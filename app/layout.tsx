@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
+import { Toaster } from 'sonner';
 import './globals.css';
+import { Providers } from '@/components/providers';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -8,8 +10,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: 'Platforms Starter Kit',
-  description: 'Next.js template for building a multi-tenant SaaS.'
+  title: 'Suite Business - Professional Websites for Service Businesses',
+  description: 'Get your service business online with a professional website, Google Business Profile management, and automated marketing.'
 };
 
 export default function RootLayout({
@@ -19,7 +21,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} antialiased`}>{children}</body>
+      <body className={`${geistSans.variable} antialiased`}>
+        <Providers>
+          {children}
+        </Providers>
+        <Toaster richColors position="top-right" />
+      </body>
     </html>
   );
 }

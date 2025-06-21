@@ -1,90 +1,158 @@
-# Next.js Multi-Tenant Example
+# Suite Business - Multi-Industry Business Suite SaaS
 
-A production-ready example of a multi-tenant application built with Next.js 15, featuring custom subdomains for each tenant.
+A self-hosted SaaS platform for service-based businesses. Leverages GoHighLevel Pro Plan's SaaS Mode for automated sub-account creation and Google Business Profile API for local SEO dominance.
 
 ## Features
 
-- ✅ Custom subdomain routing with Next.js middleware
-- ✅ Tenant-specific content and pages
-- ✅ Shared components and layouts across tenants
-- ✅ Redis for tenant data storage
-- ✅ Admin interface for managing tenants
-- ✅ Emoji support for tenant branding
-- ✅ Support for local development with subdomains
-- ✅ Compatible with Vercel preview deployments
+- **Multi-Industry Support**: Not just landscaping - any service business (HVAC, plumbing, cleaning, etc.)
+- **GHL Pro SaaS Mode**: Automated sub-account creation with rebilling
+- **Google Business Profile API**: Full integration for local SEO management
+- **Smart Onboarding**: Pre-fills business info using Google Business Profile API
+- **Multi-tenant Architecture**: Each client gets their own subdomain
+- **White-labeled Experience**: Your branding, not GHL's
+- **Automated SEO**: Local rankings, review management, directory listings
 
 ## Tech Stack
 
-- [Next.js 15](https://nextjs.org/) with App Router
-- [React 19](https://react.dev/)
-- [Upstash Redis](https://upstash.com/) for data storage
-- [Tailwind 4](https://tailwindcss.com/) for styling
-- [shadcn/ui](https://ui.shadcn.com/) for the design system
+- **Framework**: Next.js 15 with App Router
+- **Database**: PostgreSQL or SQLite  
+- **CRM/Automation**: GoHighLevel Pro (SaaS Mode)
+- **Local SEO**: Google Business Profile API
+- **Payments**: Stripe + GHL rebilling
+- **Auth**: NextAuth.js
+- **Hosting**: Your VPS
 
-## Getting Started
+## GHL Pro Plan Features We're Using
 
-### Prerequisites
+- ? **SaaS Mode**: Auto sub-account creation
+- ? **Rebilling**: Markup on SMS, voice, AI features
+- ? **White-label**: Custom domains and branding
+- ? **API Access**: Full integration capabilities
+- ? **Unlimited Sub-Accounts**: Scale without limits
 
-- Node.js 18.17.0 or later
-- pnpm (recommended) or npm/yarn
-- Upstash Redis account (for production)
+## Revenue Model
 
-### Installation
+- **Base Platform**: $297-997/month per client
+- **Add-ons via GHL Rebilling**:
+  - SMS/Email campaigns
+  - AI chatbots
+  - Voice features
+  - Review automation
 
-1. Clone the repository:
+## Quick Start
 
-   ```bash
-   git clone https://github.com/vercel/platforms.git
-   cd platforms
-   ```
+```bash
+# Install dependencies
+npm install
 
-2. Install dependencies:
+# Set up environment
+cp .env.local.example .env.local
 
-   ```bash
-   pnpm install
-   ```
+# Configure database
+npx prisma init --datasource-provider postgresql
+npx prisma migrate dev
 
-3. Set up environment variables:
-   Create a `.env.local` file in the root directory with:
+# Start development
+npm run dev
+```
 
-   ```
-   KV_REST_API_URL=your_redis_url
-   KV_REST_API_TOKEN=your_redis_token
-   ```
+## Google Business Profile API Setup
 
-4. Start the development server:
+**Important:** The Google Business Profile API requires special access approval:
 
-   ```bash
-   pnpm dev
-   ```
+1. **Enable APIs** in Google Cloud Console:
+   - Google My Business Account Management API
+   - Google My Business Business Information API
 
-5. Access the application:
-   - Main site: http://localhost:3000
-   - Admin panel: http://localhost:3000/admin
-   - Tenants: http://[tenant-name].localhost:3000
+2. **Request API Access** (Required!):
+   - Visit https://developers.google.com/my-business/content/prereqs
+   - Click "Request access to the API"
+   - Fill out the application form
+   - Wait 1-3 business days for approval
 
-## Multi-Tenant Architecture
+3. **Verify Setup**:
+   - Run diagnostics at `/dev/gbp-setup` to check your configuration
+   - Without API access approval, you'll get quota errors
 
-This application demonstrates a subdomain-based multi-tenant architecture where:
+## Environment Variables
 
-- Each tenant gets their own subdomain (`tenant.yourdomain.com`)
-- The middleware handles routing requests to the correct tenant
-- Tenant data is stored in Redis using a `subdomain:{name}` key pattern
-- The main domain hosts the landing page and admin interface
-- Subdomains are dynamically mapped to tenant-specific content
+```env
+# Database
+DATABASE_URL="postgresql://..."
 
-The middleware (`middleware.ts`) intelligently detects subdomains across various environments (local development, production, and Vercel preview deployments).
+# Auth
+NEXTAUTH_SECRET="..."
+NEXTAUTH_URL="http://localhost:3000"
+
+# GoHighLevel Pro
+GHL_API_KEY="your-api-key"
+GHL_LOCATION_ID="your-agency-location"
+GHL_SAAS_MODE_KEY="your-saas-key"
+
+# Google Business Profile API
+GOOGLE_APPLICATION_CREDENTIALS="path/to/service-account.json"
+
+# Stripe
+STRIPE_SECRET_KEY="sk_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_..."
+
+# Domain
+NEXT_PUBLIC_ROOT_DOMAIN="yourdomain.com"
+```
+
+## Project Structure
+
+```
+/app
+  /(marketing)
+    /page.tsx          - Landing page
+    /industries        - Industry-specific pages
+      /landscaping
+      /hvac
+      /plumbing
+  /(app)
+    /onboarding        - Smart onboarding
+    /dashboard         - Client portal
+    /settings
+      /gbp            - Google Business Profile
+      /automation     - GHL workflows
+  /api
+    /ghl
+      /saas           - SaaS mode endpoints
+      /webhook        - GHL webhooks
+    /gbp              - Google Business Profile
+    /stripe           - Payment handling
+```
+
+## Google Business Profile Integration
+
+- **Profile Management**: Update hours, services, photos
+- **Review Management**: Monitor and respond at scale
+- **Post Scheduling**: Keep profiles active
+- **Insights**: Track calls, directions, searches
+- **Multi-location**: Manage chains efficiently
+
+## Industry Templates
+
+Each industry gets:
+- Optimized website template
+- Pre-built GHL automations
+- Industry-specific review templates
+- Service area page generators
+- Content calendars
 
 ## Deployment
 
-This application is designed to be deployed on Vercel. To deploy:
+1. Set up PostgreSQL on VPS
+2. Configure Nginx for subdomains
+3. Set up Google Cloud project for GBP API
+4. Configure GHL webhooks
+5. Deploy with PM2
 
-1. Push your repository to GitHub
-2. Connect your repository to Vercel
-3. Configure environment variables
-4. Deploy
+## Next Steps
 
-For custom domains, make sure to:
-
-1. Add your root domain to Vercel
-2. Set up a wildcard DNS record (`*.yourdomain.com`) on Vercel
+1. Complete GHL SaaS mode integration
+2. Build industry-specific templates
+3. Set up Google Business Profile OAuth
+4. Create onboarding automations
+5. Launch to first industry vertical

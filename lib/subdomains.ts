@@ -1,4 +1,5 @@
 import { redis } from '@/lib/redis';
+import { logger } from '@/lib/logger';
 
 export function isValidIcon(str: string) {
   if (str.length > 10) {
@@ -15,10 +16,9 @@ export function isValidIcon(str: string) {
   } catch (error) {
     // If the regex fails (e.g., in environments that don't support Unicode property escapes),
     // fall back to a simpler validation
-    console.warn(
-      'Emoji regex validation failed, using fallback validation',
-      error
-    );
+    logger.warn('Emoji regex validation failed, using fallback validation', {
+      action: 'validate_icon'
+    }, error as Error);
   }
 
   // Fallback validation: Check if the string is within a reasonable length
@@ -33,9 +33,9 @@ type SubdomainData = {
 
 export async function getSubdomainData(subdomain: string) {
   const sanitizedSubdomain = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '');
-  const data = await redis.get<SubdomainData>(
+  const data = await redis.get(
     `subdomain:${sanitizedSubdomain}`
-  );
+  ) as SubdomainData | null;
   return data;
 }
 
@@ -46,7 +46,9 @@ export async function getAllSubdomains() {
     return [];
   }
 
-  const values = await redis.mget<SubdomainData[]>(...keys);
+  const values = await Promise.all(
+    keys.map(key => redis.get(key) as Promise<SubdomainData | null>)
+  );
 
   return keys.map((key, index) => {
     const subdomain = key.replace('subdomain:', '');

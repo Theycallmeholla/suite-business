@@ -1,0 +1,151 @@
+// This is your Prisma schema file
+// Using PostgreSQL - can switch to SQLite by changing provider
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Change to "sqlite" for simpler setup
+  url      = env("DATABASE_URL")
+}
+
+// Auth tables (for NextAuth)
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  accounts      Account[]
+  sessions      Session[]
+  sites         Site[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Your landscaping business models
+model Site {
+  id            String   @id @default(cuid())
+  userId        String
+  businessName  String
+  subdomain     String   @unique
+  customDomain  String?  @unique
+  
+  // Business Info
+  phone         String?
+  email         String?
+  address       String?
+  city          String?
+  state         String?
+  zip           String?
+  
+  // GHL Integration
+  ghlLocationId String?
+  ghlApiKey     String?
+  
+  // Site Configuration
+  template      String   @default("modern")
+  primaryColor  String   @default("#22C55E") // Green for landscaping
+  logo          String?
+  
+  // SEO
+  metaTitle     String?
+  metaDescription String?
+  
+  // Status
+  published     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pages         Page[]
+  services      Service[]
+  blogPosts     BlogPost[]
+  seoTasks      SeoTask[]
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  siteId    String
+  slug      String
+  title     String
+  content   Json     // Store page builder content as JSON
+  type      String   // 'home', 'about', 'services', 'contact', etc
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  @@unique([siteId, slug])
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  siteId      String
+  name        String
+  description String?
+  price       String?
+  image       String?
+  featured    Boolean  @default(false)
+  order       Int      @default(0)
+  
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  siteId      String
+  title       String
+  slug        String
+  content     String
+  excerpt     String?
+  image       String?
+  published   Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  @@unique([siteId, slug])
+}
+
+model SeoTask {
+  id          String   @id @default(cuid())
+  siteId      String
+  task        String
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
