@@ -23,12 +23,14 @@ Commands are defined in `.claude/commands/`
 Suite Business is a multi-industry SaaS platform for service-based businesses (landscaping, HVAC, plumbing, cleaning, roofing, electrical). It's a self-hosted solution with flexible onboarding - users can start with or without Google Business Profile, leveraging Google Places API for real business search and optional GoHighLevel Pro Plan's SaaS Mode.
 
 ## Recent Enhancements (December 2024)
+- **Custom Domain Support**: Full implementation with DNS verification and SSL automation
 - **Multi-Account GBP Access**: Fixed critical bug where businesses weren't recognized across multiple Google accounts
 - **Account Status Detection**: Shows badges for suspended accounts or accounts without GBP access
 - **Smart Site Deletion**: Option to delete associated GoHighLevel sub-account when removing a site
 - **Enhanced Auth Flow**: Fixed redirect issues to preserve context when adding Google accounts
 - **Shared Caching System**: Optimized API calls with intelligent caching between endpoints
 - **Logo Upload**: Smart resizing and optimization for different display contexts
+- **Dashboard Redesign**: Comprehensive UI/UX improvements with better information architecture
 
 ## Development Commands
 ```bash
