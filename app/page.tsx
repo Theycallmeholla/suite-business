@@ -69,9 +69,9 @@ export default function HomePage() {
             <Link href="#features" className="text-gray-600 hover:text-gray-900">Features</Link>
             <Link href="#industries" className="text-gray-600 hover:text-gray-900">Industries</Link>
             <Link href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
-            <Link href="/auth/signin" className="text-gray-600 hover:text-gray-900">Sign In</Link>
+            <Link href="/signin" className="text-gray-600 hover:text-gray-900">Sign In</Link>
             <Button asChild>
-              <Link href="/auth/signup">Get Started</Link>
+              <Link href="/signup">Get Started</Link>
             </Button>
           </nav>
         </div>
@@ -90,7 +90,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button size="lg" asChild>
-              <Link href="/auth/signup">Start Free Trial</Link>
+              <Link href="/signup">Start Free Trial</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="#demo">Watch Demo</Link>
@@ -235,7 +235,7 @@ export default function HomePage() {
             </Card>
           </div>
           <Button size="lg" className="mt-8" asChild>
-            <Link href="/auth/signup">Start Your Free Trial</Link>
+            <Link href="/signup">Start Your Free Trial</Link>
           </Button>
         </div>
       </section>
@@ -250,7 +250,7 @@ export default function HomePage() {
             Join 500+ service businesses already ranking #1 in their area
           </p>
           <Button size="lg" variant="secondary" asChild>
-            <Link href="/auth/signup">Get Started Now - It's Free</Link>
+            <Link href="/signup">Get Started Now - It's Free</Link>
           </Button>
           <p className="mt-4 text-sm opacity-75">
             14-day free trial ? No credit card required ? Setup in 10 minutes
@@ -292,7 +292,7 @@ export default function HomePage() {
             <div>
               <h4 className="font-semibold mb-4">Get Started</h4>
               <Button className="w-full" asChild>
-                <Link href="/auth/signup">Start Free Trial</Link>
+                <Link href="/signup">Start Free Trial</Link>
               </Button>
             </div>
           </div>

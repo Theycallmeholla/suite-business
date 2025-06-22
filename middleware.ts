@@ -1,5 +1,35 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { rootDomain } from '@/lib/utils';
+import { prisma } from '@/lib/prisma';
+
+// Cache for custom domain lookups (in production, use Redis)
+const customDomainCache = new Map<string, string | null>();
+
+async function getSubdomainFromCustomDomain(hostname: string): Promise<string | null> {
+  // Check cache first
+  if (customDomainCache.has(hostname)) {
+    return customDomainCache.get(hostname) || null;
+  }
+
+  try {
+    // Look up the site by custom domain
+    const site = await prisma.site.findUnique({
+      where: { customDomain: hostname },
+      select: { subdomain: true }
+    });
+
+    const subdomain = site?.subdomain || null;
+    
+    // Cache the result for 5 minutes
+    customDomainCache.set(hostname, subdomain);
+    setTimeout(() => customDomainCache.delete(hostname), 5 * 60 * 1000);
+    
+    return subdomain;
+  } catch (error) {
+    console.error('Error looking up custom domain:', error);
+    return null;
+  }
+}
 
 function extractSubdomain(request: NextRequest): string | null {
   const url = request.url;
@@ -42,15 +72,24 @@ function extractSubdomain(request: NextRequest): string | null {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const subdomain = extractSubdomain(request);
+  const host = request.headers.get('host') || '';
+  const hostname = host.split(':')[0];
+  
+  // First check if it's a subdomain
+  let subdomain = extractSubdomain(request);
+  
+  // If not a subdomain, check if it's a custom domain
+  if (!subdomain && !hostname.includes('localhost') && hostname !== rootDomain.split(':')[0]) {
+    subdomain = await getSubdomainFromCustomDomain(hostname);
+  }
 
   if (subdomain) {
-    // Block access to admin page from subdomains
+    // Block access to admin page from subdomains/custom domains
     if (pathname.startsWith('/admin')) {
       return NextResponse.redirect(new URL('/', request.url));
     }
 
-    // For the root path on a subdomain, rewrite to the subdomain page
+    // For the root path on a subdomain/custom domain, rewrite to the subdomain page
     if (pathname === '/') {
       return NextResponse.rewrite(new URL(`/s/${subdomain}`, request.url));
     }

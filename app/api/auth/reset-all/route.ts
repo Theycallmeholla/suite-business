@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     console.log(`Deleted ${deletedSessions.count} sessions`);
 
     // 3. Clear all auth cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const allCookies = cookieStore.getAll();
     
     for (const cookie of allCookies) {

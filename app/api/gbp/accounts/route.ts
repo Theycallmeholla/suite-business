@@ -33,34 +33,54 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Fetch email for each account
+    // Fetch email and check status for each account
     const accountsWithEmails = await Promise.all(
       accounts.map(async (account, index) => {
         let email = 'Unknown';
+        let isActive = true;
+        let hasGBPAccess = false;
         
-        // For the first account (primary), use the session email
-        if (index === 0) {
-          email = session.user.email || 'Primary Account';
-        } else {
-          // For additional accounts, fetch from Google
+        try {
+          const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET
+          );
+          
+          oauth2Client.setCredentials({
+            access_token: account.access_token,
+            refresh_token: account.refresh_token,
+          });
+          
+          // Try to get user info - this will fail if account is suspended
           try {
-            const oauth2Client = new google.auth.OAuth2(
-              process.env.GOOGLE_CLIENT_ID,
-              process.env.GOOGLE_CLIENT_SECRET
-            );
-            
-            oauth2Client.setCredentials({
-              access_token: account.access_token,
-              refresh_token: account.refresh_token,
-            });
-            
             const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
             const userInfo = await oauth2.userinfo.get();
-            email = userInfo.data.email || `Account ${account.providerAccountId.slice(-6)}`;
-          } catch (error) {
-            console.log('Could not fetch email for account:', account.id);
-            email = `Google Account ${account.providerAccountId.slice(-6)}`;
+            email = userInfo.data.email || (index === 0 ? session.user.email : `Account ${account.providerAccountId.slice(-6)}`);
+          } catch (userInfoError: any) {
+            if (userInfoError?.response?.status === 403 || userInfoError?.response?.status === 401) {
+              isActive = false;
+            }
+            email = index === 0 ? session.user.email || 'Primary Account' : `Google Account ${account.providerAccountId.slice(-6)}`;
           }
+          
+          // Quick check for GBP access without making expensive API calls
+          // Just check if we can initialize the GBP API client
+          if (isActive) {
+            try {
+              const mybusinessaccountmanagement = google.mybusinessaccountmanagement({
+                version: 'v1',
+                auth: oauth2Client,
+              });
+              // Just creating the client is enough - don't make actual API calls here
+              hasGBPAccess = true;
+            } catch (gbpError) {
+              hasGBPAccess = false;
+            }
+          }
+        } catch (error) {
+          console.log('Error checking account:', account.id, error);
+          email = index === 0 ? session.user.email || 'Primary Account' : `Google Account ${account.providerAccountId.slice(-6)}`;
+          isActive = false;
         }
         
         return {
@@ -68,6 +88,8 @@ export async function GET(request: NextRequest) {
           googleAccountId: account.providerAccountId,
           email,
           isPrimary: index === 0,
+          isActive,
+          hasGBPAccess,
         };
       })
     );

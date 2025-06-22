@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postiz - Brand Guidelines</title>
+    <style>
+        /* Font Imports (from Google Fonts, similar to what Next.js might use) */
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        /* Basic Reset & Base Styles from screenshot and CSS analysis */
+        :root {
+            --font-dm-sans: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+            --font-plus-jakarta-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-dm-sans);
+            background-color: #0E0E0E; /* rgb(14 14 14) */
+            color: #FFFFFF;
+            margin: 0;
+            padding: 20px;
+            font-weight: 350; /* .content default */
+            font-size: 18px;  /* .content default */
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 60px;
+            padding: 30px;
+            background-color: #1A1919; /* Common card/section bg */
+            border-radius: 16px; /* common rounding */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* subtle border */
+        }
+        .section-title {
+            font-family: var(--font-plus-jakarta-sans);
+            font-size: 32px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-top: 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #B094FF; /* Accent underline */
+            padding-bottom: 15px;
+            position: relative;
+        }
+        .section-title::after { /* Squiggle effect like in headings */
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: #FC69FF;
+            position: absolute;
+            bottom: -2px; /* Adjust to sit on/over border */
+            left: 0;
+            border-radius: 2px;
+            transform: skewX(-15deg);
+        }
+
+        /* Typography Specifics */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-plus-jakarta-sans);
+            color: #FFFFFF;
+            margin-top: 0;
+        }
+        .typo-h1 { font-size: 70px; font-weight: 800; line-height: 1.1; margin-bottom: 10px; text-align: left; }
+        .typo-h2 { font-size: 48px; font-weight: 700; line-height: 1.1; margin-bottom: 10px; text-align: left; }
+        .typo-h3 { font-size: 30px; font-weight: 600; line-height: 1.2; margin-bottom: 10px; text-align: left; } /* For section subheadings */
+        .typo-h4-content { font-size: 24px; font-weight: 600; line-height: 1.375; margin-bottom: 10px; text-align: left; } /* .content h4 style */
+        .typo-p { font-size: 18px; font-weight: 350; line-height: 1.6; color: #D1D1D1; margin-bottom: 15px; }
+        .typo-link {
+            color: #B094FF; /* rgb(176 148 255) */
+            text-decoration: underline;
+            text-decoration-color: #B094FF;
+            font-weight: 400;
+        }
+        .typo-link:hover { color: #FFFFFF; }
+
+        /* Color Palette */
+        .color-swatch-container { display: flex; flex-wrap: wrap; gap: 20px; }
+        .color-swatch {
+            width: 120px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            background-color: #242323; /* Slightly lighter than section for contrast */
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .color-swatch .color-box {
+            width: 100%;
+            height: 80px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .color-swatch .color-label { font-size: 14px; font-weight: 500; }
+        .color-swatch .color-hex { font-size: 12px; color: #AAA; }
+
+        /* Buttons */
+        .button-showcase { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-top: 20px;}
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 10px; /* From common button styles in screenshot */
+            font-weight: 600; /* Buttons usually bolder */
+            font-size: 16px;
+            font-family: var(--font-plus-jakarta-sans); /* Buttons often use heading font */
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: 1.5px solid transparent; /* Many buttons have a border */
+        }
+        .btn-primary-purple { /* e.g. "Get Started" in purple sections */
+            background-color: #612BD3;
+            color: #FFFFFF;
+            border-color: #7A3FF0;
+        }
+        .btn-primary-purple:hover { background-color: #7A3FF0; }
+
+        .btn-primary-white { /* e.g. "Get Started" / "Start a 7-day trial" */
+            background-color: #FFFFFF;
+            color: #0E0E0E;
+            border-color: #FFFFFF;
+        }
+        .btn-primary-white:hover { background-color: #E0E0E0; }
+        
+        .btn-accent-pink { /* For main pink CTAs */
+            background-color: #FC69FF;
+            color: #1A1919; /* Dark text on bright pink */
+            border-color: #FF4CE2;
+        }
+        .btn-accent-pink:hover { background-color: #FF8FFF; }
+
+        .btn-outline-purple {
+            background-color: transparent;
+            color: #B094FF;
+            border: 1.5px solid #B094FF;
+        }
+        .btn-outline-purple:hover { background-color: rgba(176, 148, 255, 0.1); color: #FFFFFF; }
+
+        .btn-subscribe { /* Style of "Subscribe" button next to input */
+            background-color: #FFFFFF;
+            color: #0E0E0E;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+         .btn-subscribe:hover { background-color: #E0E0E0; }
+
+
+        /* Cards */
+        .card-showcase { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card {
+            background-color: #242323; /* Default card background */
+            padding: 24px;
+            border-radius: 20px; /* from rounded-2xl or rounded-[20px] */
+            border: 1px solid rgba(255, 255, 255, 0.05); /* border-white-5 */
+            display: flex;
+            flex-direction: column;
+            color: #D1D1D1;
+        }
+        .card-title {
+            font-family: var(--font-plus-jakarta-sans);
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #FFFFFF;
+        }
+        .card-content {
+            font-size: 16px;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+        .card-footer { margin-top: 20px; font-size: 14px; color: #AAA; }
+
+        .card-accent-metric { /* Like "Trusted by" cards */
+            background: #612BD3; /* Solid purple, common for these */
+            color: #FFFFFF;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card-accent-metric .metric-value { font-size: 36px; font-weight: 700; font-family: var(--font-plus-jakarta-sans); margin-bottom: 8px; }
+        .card-accent-metric .metric-label { font-size: 16px; opacity: 0.9; }
+        .card-accent-metric .metric-attribution { display: flex; align-items: center; gap: 8px; margin-top: 15px; font-size: 14px; opacity: 0.8;}
+        .card-accent-metric .metric-attribution img { width: 24px; height: 24px; border-radius: 50%; background-color: rgba(255,255,255,0.2); }
+
+
+        .testimonial-card {
+            background-color: #1A1919; /* Darker card bg for testimonials */
+            border: 1px solid #3D3D3D; /* Slightly more visible border */
+            padding: 24px;
+            border-radius: 16px;
+        }
+        .testimonial-card .user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .testimonial-card .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #606060; /* Placeholder */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            overflow: hidden; /* For actual image */
+        }
+        .testimonial-card .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .testimonial-card .user-name { font-weight: 600; color: #FFFFFF; font-family: var(--font-plus-jakarta-sans); }
+        .testimonial-card .user-handle { font-size: 14px; color: #AAA; }
+        .testimonial-card .testimonial-text { font-size: 16px; line-height: 1.7; color: #D1D1D1; }
+
+        /* Icons */
+        .icon-showcase { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        .icon-example {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px; /* From social icon containers */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #242323; /* Default bg for icon containers */
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .icon-example svg {
+            width: 24px;
+            height: 24px;
+            fill: #B094FF; /* Default icon fill */
+        }
+        .icon-example.gradient-bg { /* For social icons with gradient bg */
+            background-image: linear-gradient(135deg, #FC69FF, #612BD3);
+        }
+        .icon-example.gradient-bg svg { fill: #FFFFFF; } /* White icon on gradient */
+
+        /* Logo */
+        .logo-display {
+            font-family: var(--font-plus-jakarta-sans);
+            font-size: 56px;
+            font-weight: 800;
+            text-align: center;
+            padding: 20px 0;
+            color: #B094FF; /* Main purple from screenshot, could also be pinker */
+        }
+        .logo-display span {
+            /* The dot is often a different color or slightly offset */
+        }
+        .logo-display .dot {
+            color: #FC69FF; /* Pink dot */
+        }
+
+
+        @media (max-width: 768px) {
+            .grid-cols-2, .card-showcase { grid-template-columns: 1fr; }
+            .typo-h1 { font-size: 40px; }
+            .typo-h2 { font-size: 30px; }
+            .typo-h3 { font-size: 24px; }
+            .typo-p { font-size: 16px; }
+            .color-swatch-container { justify-content: center; }
+            .button-showcase { justify-content: center; }
+            .section-title::after { width: 60px; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <div class="logo-display">postiz<span class="dot">.</span></div>
+            <h1 class="typo-h2" style="font-size: 24px; color: #FFFFFF; margin-top:0; font-weight: 500;">Brand Guidelines</h1>
+        </header>
+
+        <!-- Color Palette -->
+        <div class="section">
+            <h2 class="section-title">Color Palette</h2>
+            <div class="color-swatch-container">
+                <div class="color-swatch"><div class="color-box" style="background-color: #0E0E0E;"></div><div class="color-label">Primary BG</div><div class="color-hex">#0E0E0E</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #1A1919;"></div><div class="color-label">Dark Surface</div><div class="color-hex">#1A1919</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #242323;"></div><div class="color-label">Light Surface</div><div class="color-hex">#242323</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #FFFFFF;"></div><div class="color-label">White</div><div class="color-hex">#FFFFFF</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #D1D1D1;"></div><div class="color-label">Light Gray</div><div class="color-hex">#D1D1D1</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #AAA;"></div><div class="color-label">Medium Gray</div><div class="color-hex">#AAA</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #606060;"></div><div class="color-label">Dark Gray</div><div class="color-hex">#606060</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #B094FF;"></div><div class="color-label">Primary Purple</div><div class="color-hex">#B094FF</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #612BD3;"></div><div class="color-label">Strong Purple</div><div class="color-hex">#612BD3</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #FC69FF;"></div><div class="color-label">Bright Pink</div><div class="color-hex">#FC69FF</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #FF4CE2;"></div><div class="color-label">Alt. Pink</div><div class="color-hex">#FF4CE2</div></div>
+                <div class="color-swatch"><div class="color-box" style="background-color: #3E30D8;"></div><div class="color-label">Blue Accent</div><div class="color-hex">#3E30D8</div></div>
+            </div>
+        </div>
+
+        <!-- Typography -->
+        <div class="section">
+            <h2 class="section-title">Typography</h2>
+            <h3 class="typo-h3" style="margin-bottom: 5px;">Headings (Plus Jakarta Sans)</h3>
+            <p class="typo-h1">H1: Your Ultimate Social Tool</p>
+            <p class="typo-h2">H2: Schedule & Generate with AI</p>
+            <p class="typo-h3" style="font-family: var(--font-plus-jakarta-sans); font-size: 30px; font-weight:700;">H3 (Section Title Style)</p>
+            <p class="typo-h4-content">H4 (Content Heading)</p>
+            
+            <h3 class="typo-h3" style="margin-top: 30px; margin-bottom: 5px;">Body & Links (DM Sans)</h3>
+            <p class="typo-p">This is a paragraph of body text using DM Sans. Postiz offers everything you need to manage your social media posts, build an audience, capture leads, and <a href="#" class="typo-link">grow your business</a>. Explore our <a href="#" class="typo-link">features</a> today!</p>
+            <p class="typo-p" style="font-size: 16px; color: #AAA;">Smaller body text / captions. Streamlined content creation and scheduling for consistent personal brand growth.</p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="section">
+            <h2 class="section-title">Buttons</h2>
+            <div class="button-showcase">
+                <button class="btn btn-primary-white">Get Started »</button>
+                <button class="btn btn-primary-purple">Primary Purple</button>
+                <button class="btn btn-accent-pink">Accent Pink CTA</button>
+                <button class="btn btn-outline-purple">Outline Purple</button>
+                <button class="btn btn-subscribe">Subscribe</button>
+            </div>
+        </div>
+
+        <!-- Cards -->
+        <div class="section">
+            <h2 class="section-title">Cards</h2>
+            <div class="card-showcase">
+                <div class="card">
+                    <h3 class="card-title">Default Card Title</h3>
+                    <p class="card-content">This card is for general content display, like features or informational blocks. It has a subtle border and standard dark background.</p>
+                    <div class="card-footer">
+                        <a href="#" class="typo-link">Learn More →</a>
+                    </div>
+                </div>
+                <div class="card card-accent-metric">
+                    <div class="metric-value">+10%</div>
+                    <div class="metric-label">Grew following</div>
+                    <div class="metric-attribution">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FFF'/%3E%3Ctext x='50' y='60' text-anchor='middle' font-size='40' fill='%23612BD3' font-family='Arial'%3ERH%3C/text%3E%3C/svg%3E" alt="avatar">
+                        <span>Raymond Harrison</span>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="user-info">
+                        <div class="avatar">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FC69FF'/%3E%3Ctext x='50' y='60' text-anchor='middle' font-size='40' fill='%231A1919' font-family='Arial'%3EAS%3C/text%3E%3C/svg%3E" alt="avatar">
+                        </div>
+                        <div>
+                            <div class="user-name">Alice Smith</div>
+                            <div class="user-handle">@alicesmith</div>
+                        </div>
+                    </div>
+                    <p class="testimonial-text">"Postiz is fantastic! It makes social media management so easy. The AI tools for content creation and scheduling are a huge time-saver."</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Icons -->
+        <div class="section">
+            <h2 class="section-title">Iconography</h2>
+            <div class="icon-showcase">
+                <div class="icon-example" title="Generic Icon (Purple Fill)">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+                </div>
+                <div class="icon-example gradient-bg" title="Social Icon (Gradient BG, White Fill)">
+                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"> <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 3.032-.044H8.001zm0 5.838a2.71 2.71 0 1 0 0 5.42 2.71 2.71 0 0 0 0-5.42zM8 12.252a1.252 1.252 0 1 1 0-2.504 1.252 1.252 0 0 1 0 2.504zm4.938-7.864a.938.938 0 1 0 0-1.875.938.938 0 0 0 0 1.875z"/></svg>
+                </div>
+                <div class="icon-example" title="Chevron Down">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                </div>
+                 <div class="icon-example" style="background-color: #5865F2;" title="Discord Icon Example"> <!-- Discord Blue -->
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M20.222 0H3.778C2.511 0 1.489 1.067 1.489 2.4V18.4C1.489 19.733 2.511 20.8 3.778 20.8H18.222L22.511 24V2.4C22.511 1.067 21.489 0 20.222 0ZM8.578 15.2C7.311 15.2 6.289 14.133 6.289 12.8S7.311 10.4 8.578 10.4S10.867 11.467 10.867 12.8S9.844 15.2 8.578 15.2ZM15.422 15.2C14.156 15.2 13.133 14.133 13.133 12.8S14.156 10.4 15.422 10.4S17.711 11.467 17.711 12.8S16.689 15.2 15.422 15.2Z"/></svg>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

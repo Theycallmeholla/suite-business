@@ -24,17 +24,11 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      const result = await signIn("google", {
-        callbackUrl: "/onboarding",
+      await signIn("google", {
+        callbackUrl: "/dashboard",
         redirect: true,
       });
-      
-      if (result?.error) {
-        toast.error("Sign in failed", {
-          description: result.error
-        });
-        setIsLoading(false);
-      }
+      // If redirect is true, the page will redirect and this code won't run
     } catch (error) {
       console.error("Sign in error:", error);
       toast.error("Sign in failed", {

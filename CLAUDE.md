@@ -12,11 +12,23 @@ Use these slash commands for common tasks:
 - `/ghl-integration` - GoHighLevel integration tasks
 - `/gbp-setup` - Google Business Profile setup
 - `/cleanup-tech-debt` - Find and eliminate technical debt
+- `/test-manual-setup` - Test manual business setup flow
+- `/test-gbp-search` - Test Google Places search integration
+- `/test-gbp-access` - Test GBP access checking across accounts
+- `/test-site-deletion` - Test site deletion with GHL cleanup
 
 Commands are defined in `.claude/commands/`
 
 ## Project Overview
-Suite Business is a multi-industry SaaS platform for service-based businesses (landscaping, HVAC, plumbing, cleaning, roofing, electrical). It's a self-hosted solution leveraging GoHighLevel Pro Plan's SaaS Mode and Google Business Profile API.
+Suite Business is a multi-industry SaaS platform for service-based businesses (landscaping, HVAC, plumbing, cleaning, roofing, electrical). It's a self-hosted solution with flexible onboarding - users can start with or without Google Business Profile, leveraging Google Places API for real business search and optional GoHighLevel Pro Plan's SaaS Mode.
+
+## Recent Enhancements (December 2024)
+- **Multi-Account GBP Access**: Fixed critical bug where businesses weren't recognized across multiple Google accounts
+- **Account Status Detection**: Shows badges for suspended accounts or accounts without GBP access
+- **Smart Site Deletion**: Option to delete associated GoHighLevel sub-account when removing a site
+- **Enhanced Auth Flow**: Fixed redirect issues to preserve context when adding Google accounts
+- **Shared Caching System**: Optimized API calls with intelligent caching between endpoints
+- **Logo Upload**: Smart resizing and optimization for different display contexts
 
 ## Development Commands
 ```bash
@@ -30,14 +42,18 @@ npm run build
 npm run start
 
 # Database commands
-npx prisma generate    # Generate Prisma client
-npx prisma db push     # Push schema to database
-npx prisma studio      # Open database GUI
+npm run db:generate    # Generate Prisma client
+npm run db:push        # Push schema to database
+npm run db:migrate     # Run database migrations
+npm run db:studio      # Open Prisma Studio GUI
 
-# Setup scripts
-./setup-local.sh       # Quick SQLite development setup
-./setup-free.sh        # Open-source friendly setup
-./setup-complete.sh    # Full production setup with prompts
+# Docker commands
+npm run docker:up      # Start Docker containers (PostgreSQL, Redis)
+npm run docker:down    # Stop Docker containers
+npm run docker:reset   # Reset Docker containers and volumes
+
+# Complete setup
+npm run setup          # Install deps, start Docker, and push DB schema
 ```
 
 ## Architecture Overview
@@ -48,24 +64,49 @@ npx prisma studio      # Open database GUI
 - User model has `subdomain` field for tenant isolation
 
 ### App Directory Organization
-- `/app/(marketing)` - Public landing pages and industry-specific marketing pages
 - `/app/(app)` - Authenticated application routes (requires auth)
-  - `/onboarding` - Client onboarding flow with GHL/GBP setup
   - `/dashboard` - Main application dashboard
-  - `/settings` - Account and configuration settings
+- `/app/(auth)` - Authentication-related pages and components
+- `/app/onboarding` - Flexible onboarding flow (manual setup or GBP import)
+  - `/components/ManualBusinessSetup.tsx` - Manual business creation wizard
+  - `/components/BusinessConfirmation.tsx` - GBP data confirmation
+  - `/components/IndustrySelector.tsx` - Industry selection with auto-detection
 - `/app/api` - API routes for external integrations
+  - `/auth` - Authentication endpoints
+  - `/gbp` - Google Business Profile endpoints
+    - `/accounts` - List connected Google accounts with status
+    - `/search` - Real-time business search with Places API
+    - `/place-details` - Detailed business information
+    - `/check-access` - Verify GBP access across accounts
+    - `/check-ownership` - Check business ownership status
+    - `/create-location` - Create new GBP listings
+    - `/my-locations` - User's existing GBP locations
+  - `/ghl` - GoHighLevel integration endpoints
+  - `/crm` - CRM functionality endpoints
+  - `/sites` - Site management endpoints
+  - `/dev` - Development and debugging endpoints
 - `/app/s/[subdomain]` - Client-facing sites with dynamic content
+- `/app/admin` - Admin panel for platform management
+- `/app/dev` - Development tools and diagnostics
 
 ### Key Integration Points
 1. **GoHighLevel (`/lib/ghl.ts`)**: 
    - Automated sub-account creation via SaaS Mode
    - Snapshot deployment for industry-specific setups
+   - Sub-account deletion when removing sites
+   - CRM operations (contacts, opportunities, appointments)
    - Webhook handling for real-time updates
 
-2. **Google Business Profile (`/lib/google-business-profile.ts`)**:
-   - Service account authentication
-   - Profile creation and management
-   - Local SEO optimization features
+2. **Google Integration**:
+   - **Google Business Profile (`/lib/google-business-profile.ts`)**:
+     - OAuth2-based authentication (users sign in with Google)
+     - Profile fetching and management via API
+     - Multi-account support through account switching
+   - **Google Places API (`/api/gbp/search`, `/api/gbp/place-details`)**:
+     - Real-time business search with intelligent caching
+     - Detailed place information retrieval
+     - Cost optimization through field masking
+     - $200/month free tier usage optimization
 
 3. **Database (`/lib/prisma.ts`)**:
    - Supports both PostgreSQL (production) and SQLite (development)
@@ -77,40 +118,62 @@ npx prisma studio      # Open database GUI
 - Form handling with react-hook-form and zod validation
 - Radix UI primitives for accessibility
 - Tailwind CSS v4 for styling
+- Centralized logging system (`/lib/logger.ts`) - replaces all console statements
+- Toast notification system (`/lib/toast.ts`) - user feedback with Sonner
+- Shared cache system (`/lib/gbp-cache.ts`) - optimizes API calls
+- Business claim dialog (`/components/BusinessClaimDialog.tsx`) - handles ownership verification
 
 ## Environment Configuration
-Required environment variables are defined in `.env.example`. Key integrations:
-- `DATABASE_URL` - PostgreSQL or SQLite connection
+Required environment variables are defined in `.env.local.example`. Key integrations:
+- `DATABASE_URL` - PostgreSQL connection (default: local Docker PostgreSQL)
 - `NEXTAUTH_*` - Authentication configuration
 - `GHL_*` - GoHighLevel API and SaaS mode credentials
-- `GOOGLE_*` - Google Business Profile service account
+  - `GHL_API_KEY` - Main API key
+  - `GHL_LOCATION_ID` - Agency location ID
+  - `GHL_AGENCY_ID` - Agency account ID
+  - `GHL_PRIVATE_INTEGRATIONS_KEY` - Private integration key
+- `GOOGLE_*` - Google credentials
+  - `GOOGLE_CLIENT_ID` - OAuth client ID (for authentication)
+  - `GOOGLE_CLIENT_SECRET` - OAuth client secret
+  - `GOOGLE_MAPS_API_KEY` - Google Maps/Places API key (for business search)
 - `STRIPE_*` - Payment processing keys
-- Industry-specific `GHL_SNAPSHOT_ID_*` variables
+- `SMTP_*` - Email configuration (optional)
+- Industry-specific `GHL_SNAPSHOT_ID_*` variables (placeholders)
 
 ## Testing Approach
-Currently no automated tests are set up. When implementing tests:
-- Use Jest for unit tests
-- Use Playwright for E2E tests
+**Note: Automated testing is not yet implemented.** This section describes the planned testing strategy:
+
+### Future Testing Implementation
+When tests are added, the approach will be:
+- Jest for unit tests
+- Playwright for E2E tests
 - Test multi-tenant isolation
 - Mock external API calls (GHL, GBP, Stripe)
 
-### Future Testing Commands (placeholders)
+### Planned Testing Commands
+These commands will be available once testing is implemented:
 ```bash
-# Unit tests
+# Unit tests (not yet available)
 npm run test           # Run all tests
 npm run test:watch     # Run tests in watch mode
 npm run test:coverage  # Generate coverage report
 
-# E2E tests
+# E2E tests (not yet available)
 npm run test:e2e       # Run Playwright tests
 npm run test:e2e:ui    # Open Playwright UI
 
-# Specific test suites
+# Specific test suites (not yet available)
 npm run test:auth      # Test authentication flows
 npm run test:tenant    # Test multi-tenant isolation
 npm run test:ghl       # Test GoHighLevel integration
 npm run test:gbp       # Test Google Business Profile integration
 ```
+
+### Current Testing Approach
+- Manual testing using development environment
+- Use `/dev/*` routes for API testing and diagnostics
+- Desktop Commander for UI screenshot testing
+- Logging system helps with debugging (`/lib/logger.ts`)
 
 ## Important Considerations
 1. **Multi-tenancy**: Always filter data by subdomain/site
@@ -118,6 +181,21 @@ npm run test:gbp       # Test Google Business Profile integration
 3. **White-label**: UI should be customizable per client
 4. **Industry-specific**: Features vary by industry vertical
 5. **Revenue model**: Pricing tiers affect feature availability
+6. **Flexible onboarding**: Support both GBP and manual business setup
+7. **API cost management**: Cache Google API responses aggressively
+8. **Progressive enhancement**: Sites work without GBP, enhance with it
+9. **Account management**: Support multiple Google accounts per user
+10. **Smart deletion**: Clean up associated services when deleting sites
+
+## Site Infrastructure
+The platform uses a component-based template system for client sites:
+- **Section Components**: Modular sections (Hero, About, Services, etc.) in `/components/site-sections/`
+- **Dynamic Rendering**: Sections auto-generated based on available content density
+- **Industry Detection**: Automatic detection and customization based on business type
+- **Subdomain Routing**: Each site accessible via subdomain (e.g., `demo.localhost:3000`)
+- **Content Adaptation**: Rich/moderate/minimal layouts based on data availability
+
+See `/docs/SITE_INFRASTRUCTURE.md` for detailed documentation.
 
 ## Tool Usage Preferences
 - **Use fetch for HTTP requests** - Prefer native fetch over external libraries

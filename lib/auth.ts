@@ -80,11 +80,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // After sign in, redirect to onboarding if no sites, otherwise dashboard
-      if (url === baseUrl || url === `${baseUrl}/`) {
-        return `${baseUrl}/dashboard`;
+      // Preserve the full URL including query parameters
+      const urlObj = new URL(url, baseUrl);
+      
+      // If the URL already has a specific path (not just root), respect it
+      if (urlObj.pathname !== '/' && url.startsWith(baseUrl)) {
+        return url;
       }
-      return url;
+      
+      // Check if we have a callbackUrl parameter
+      const callbackUrl = urlObj.searchParams.get('callbackUrl');
+      if (callbackUrl && callbackUrl.startsWith('/')) {
+        return `${baseUrl}${callbackUrl}`;
+      }
+      
+      // For root redirects, go to dashboard
+      // The dashboard will handle redirecting to onboarding if needed
+      return `${baseUrl}/dashboard`;
     },
   },
   events: {

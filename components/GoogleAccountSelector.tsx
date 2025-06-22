@@ -11,6 +11,8 @@ interface GoogleAccount {
   googleAccountId: string;
   email: string;
   isPrimary: boolean;
+  isActive: boolean;
+  hasGBPAccess: boolean;
 }
 
 interface GoogleAccountSelectorProps {
@@ -38,7 +40,7 @@ export function GoogleAccountSelector({ onAccountSelect, currentAccountId }: Goo
         
         // Select the first account if none selected
         if (!selectedAccount && data.accounts.length > 0) {
-          const accountToSelect = currentAccountId || data.accounts[0].id;
+          const accountToSelect = currentAccountId || data.accounts[0].googleAccountId;
           setSelectedAccount(accountToSelect);
           onAccountSelect(accountToSelect);
         }
@@ -56,7 +58,7 @@ export function GoogleAccountSelector({ onAccountSelect, currentAccountId }: Goo
   };
 
   const handleAddAccount = () => {
-    router.push('/auth/add-google-account');
+    router.push('/add-google-account');
   };
 
   if (isLoading) {
@@ -75,14 +77,28 @@ export function GoogleAccountSelector({ onAccountSelect, currentAccountId }: Goo
         </SelectTrigger>
         <SelectContent>
           {accounts.map((account) => (
-            <SelectItem key={account.id} value={account.id}>
+            <SelectItem key={account.id} value={account.googleAccountId}>
               <div className="flex items-center gap-2">
-                <span>{account.email}</span>
-                {account.isPrimary && (
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                    Login Account
-                  </span>
-                )}
+                <span className={account.isActive ? '' : 'text-gray-500 line-through'}>
+                  {account.email}
+                </span>
+                <div className="flex items-center gap-1">
+                  {account.isPrimary && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                      Login Account
+                    </span>
+                  )}
+                  {!account.isActive && (
+                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
+                      Suspended
+                    </span>
+                  )}
+                  {account.isActive && !account.hasGBPAccess && (
+                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
+                      No GBP
+                    </span>
+                  )}
+                </div>
               </div>
             </SelectItem>
           ))}

@@ -14,7 +14,7 @@ export default function SignUpPage() {
     setIsLoading(true);
     try {
       await signIn("google", {
-        callbackUrl: "/onboarding",
+        callbackUrl: "/dashboard",
       });
     } catch (error) {
       console.error("Sign up error:", error);

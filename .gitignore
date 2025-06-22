@@ -49,3 +49,7 @@ credentials/
 
 # Claude Code settings (user-specific)
 .claude/settings.json
+
+# User uploads (keep directory structure but ignore files)
+/public/uploads/*/*
+!/public/uploads/*/.gitkeep

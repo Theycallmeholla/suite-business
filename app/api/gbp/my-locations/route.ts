@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { google } from 'googleapis';
-
-// Simple in-memory cache with TTL
-const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours - cache for a full day
+import { getCacheKey, getFromCache, setInCache } from '@/lib/gbp-cache';
 
 // Helper to add delay between requests
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -32,28 +29,43 @@ export async function GET(request: NextRequest) {
       where: {
         userId: session.user.id,
         provider: 'google',
-        ...(accountId ? { id: accountId } : {}),
+        ...(accountId ? { providerAccountId: accountId } : {}),
       },
       orderBy: {
         id: 'desc', // Get the most recently added account if no specific ID (newer IDs are higher)
       },
     });
 
-    if (!account?.access_token) {
+    if (!account) {
       return NextResponse.json(
-        { error: 'No Google account connected' },
-        { status: 400 }
+        { 
+          error: 'Google account not found',
+          details: accountId ? `No Google account found with ID: ${accountId}` : 'No Google accounts connected',
+          requestedAccountId: accountId 
+        },
+        { status: 404 }
+      );
+    }
+    
+    if (!account.access_token) {
+      return NextResponse.json(
+        { 
+          error: 'No access token for Google account',
+          details: 'The Google account exists but has no valid access token. Please re-authenticate.',
+          accountId: account.providerAccountId
+        },
+        { status: 401 }
       );
     }
 
     // Use both user ID and Google account ID for cache key to handle multiple Google accounts
-    const cacheKey = `locations_${session.user.id}_${account.providerAccountId}`;
+    const cacheKey = getCacheKey(session.user.id, account.providerAccountId);
     const forceRefresh = searchParams.get('refresh') === 'true';
     
     // ALWAYS check cache first unless force refresh
     if (!forceRefresh) {
-      const cached = cache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      const cached = getFromCache(cacheKey);
+      if (cached) {
         const ageMinutes = Math.floor((Date.now() - cached.timestamp) / 1000 / 60);
         console.log(`Returning cached data (${ageMinutes} minutes old) for Google account ${account.providerAccountId}`);
         return NextResponse.json({
@@ -186,20 +198,54 @@ export async function GET(request: NextRequest) {
           
           const locationsResponse = await mybusinessbusinessinformation.accounts.locations.list({
             parent: businessAccount.name,
-            readMask: 'name,title,storefrontAddress,websiteUri',
+            readMask: 'name,title,languageCode,storeCode,websiteUri,phoneNumbers,storefrontAddress,latlng,serviceArea,categories,regularHours,specialHours,moreHours,openInfo,serviceItems,profile,labels,metadata,relationshipData,adWordsLocationExtensions',
             pageSize: 100, // Get up to 100 locations per account
           });
 
           const locations = locationsResponse.data.locations || [];
           console.log(`Found ${locations.length} location(s) for account ${businessAccount.name}`);
           
-          allLocations.push(...locations.map(location => ({
+          allLocations.push(...locations.map((location: any) => ({
+            // Core identification
             id: location.name,
             name: location.title || 'Unnamed Location',
+            languageCode: location.languageCode,
+            storeCode: location.storeCode,
+            
+            // Contact information
+            primaryPhone: location.phoneNumbers?.primaryPhone || null,
+            additionalPhones: location.phoneNumbers?.additionalPhones || [],
+            website: location.websiteUri || null,
+            
+            // Location details
             address: location.storefrontAddress ? 
               `${location.storefrontAddress.addressLines?.join(', ')}, ${location.storefrontAddress.locality}, ${location.storefrontAddress.administrativeArea} ${location.storefrontAddress.postalCode}` : 
               'Address not available',
-            website: location.websiteUri || null,
+            fullAddress: location.storefrontAddress || null,
+            coordinates: location.latlng || null,
+            serviceArea: location.serviceArea || null,
+            
+            // Business categorization
+            primaryCategory: location.categories?.primaryCategory || null,
+            additionalCategories: location.categories?.additionalCategories || [],
+            
+            // Operating information
+            regularHours: location.regularHours || null,
+            specialHours: location.specialHours || null,
+            moreHours: location.moreHours || [],
+            openInfo: location.openInfo || null,
+            
+            // Services and features
+            serviceItems: location.serviceItems || [],
+            profile: location.profile || null,
+            labels: location.labels || [],
+            
+            // Metadata
+            metadata: location.metadata || null,
+            relationshipData: location.relationshipData || null,
+            adWordsLocationExtensions: location.adWordsLocationExtensions || null,
+            
+            // Account info
             accountName: businessAccount.name,
           })));
         } catch (error: any) {
@@ -237,10 +283,7 @@ export async function GET(request: NextRequest) {
         googleAccountEmail: googleEmail,
       };
       
-      cache.set(cacheKey, {
-        data: responseData,
-        timestamp: Date.now(),
-      });
+      setInCache(cacheKey, responseData);
       
       return NextResponse.json(responseData);
 

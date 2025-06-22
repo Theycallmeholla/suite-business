@@ -23,6 +23,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   sites         Site[]
+  customer      Customer?
 }
 
 model Account {
@@ -68,21 +69,55 @@ model Site {
   state         String?
   zip           String?
   
+  // Extended Business Info
+  coordinates   Json?    // {latitude, longitude}
+  serviceAreas  Json?    // Array of service area places
+  businessHours Json?    // Operating hours from GBP
+  specialHours  Json?    // Holiday/special hours
+  attributes    Json?    // Business attributes from GBP
+  
   // GHL Integration
-  ghlLocationId String?
-  ghlApiKey     String?
+  ghlLocationId String?  // Sub-account ID
+  ghlApiKey     String?  // Sub-account API key (encrypted)
+  ghlPrivateKey String?  // Private integration key
+  ghlEnabled    Boolean  @default(false)
+  
+  // Industry
+  industry          String   @default("general")
+  industryConfirmed Boolean  @default(false)
+  gbpLocationId     String?  // Track source GBP
+  gbpLastSync       DateTime? // For future syncing
+  
+  // Manual Setup & GBP Creation
+  manualSetup           Boolean  @default(false) // Track if site was created manually
+  gbpCreationStatus     String?  // 'pending', 'created', 'verified', 'failed'
+  gbpVerificationRequired Boolean @default(false)
+  gbpPlaceId            String?  // Google Places ID if selected from search
   
   // Site Configuration
-  template      String   @default("modern")
-  primaryColor  String   @default("#22C55E") // Green for landscaping
-  logo          String?
+  template       String   @default("modern")
+  primaryColor   String   @default("#22C55E") // Green for landscaping
+  secondaryColor String?
+  accentColor    String?
+  logo           String?
+  photos         Json?    // Array of business photos with metadata
   
   // SEO
   metaTitle     String?
   metaDescription String?
   
+  // Schema.org fields
+  schemaType    String?  // LocalBusiness, Plumber, etc.
+  priceRange    String?  // $, $$, $$$, $$$$
+  servesArea    String?  // Comma-separated areas
+  acceptsReservations Boolean @default(false)
+  menuUrl       String?  // URL to services/menu page
+  latitude      Float?
+  longitude     Float?
+  
   // Status
   published     Boolean  @default(false)
+  publishedAt   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
@@ -91,6 +126,26 @@ model Site {
   services      Service[]
   blogPosts     BlogPost[]
   seoTasks      SeoTask[]
+  photos        Photo[]
+  forms         Form[]
+}
+
+model Photo {
+  id          String   @id @default(cuid())
+  siteId      String
+  url         String
+  thumbnailUrl String?
+  caption     String?
+  altText     String?
+  category    String?  // 'hero', 'gallery', 'service', 'team', etc
+  googlePhotoName String? // Reference to GBP photo
+  order       Int      @default(0)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  @@index([siteId, category])
 }
 
 model Page {
@@ -148,4 +203,126 @@ model SeoTask {
   createdAt   DateTime @default(now())
   
   site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+model Form {
+  id          String   @id @default(cuid())
+  siteId      String
+  name        String
+  type        String   // 'contact', 'quote', 'appointment', 'newsletter'
+  fields      Json     // Array of field definitions
+  settings    Json?    // Form settings (notifications, redirects, etc)
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  submissions FormSubmission[]
+  
+  @@index([siteId, type])
+}
+
+model FormSubmission {
+  id          String   @id @default(cuid())
+  formId      String
+  siteId      String
+  data        Json     // Submitted form data
+  metadata    Json?    // IP, user agent, referrer, etc
+  ghlContactId String? // GoHighLevel contact ID if synced
+  createdAt   DateTime @default(now())
+  
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  @@index([formId, createdAt])
+  @@index([siteId, createdAt])
+}
+
+// Billing models
+model Customer {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  stripeCustomerId String   @unique
+  
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions    Subscription[]
+  payments         Payment[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  customerId           String
+  stripeSubscriptionId String   @unique
+  stripePriceId        String
+  status               String   // active, canceled, past_due, etc
+  plan                 String   // starter, professional, enterprise
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+  canceledAt           DateTime?
+  
+  customer             Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@index([customerId, status])
+}
+
+model Payment {
+  id               String   @id @default(cuid())
+  customerId       String
+  stripePaymentId  String   @unique
+  amount           Int      // Amount in cents
+  currency         String   @default("usd")
+  status           String   // succeeded, failed, pending
+  description      String?
+  
+  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  createdAt        DateTime @default(now())
+}
+
+model BillingWebhook {
+  id               String   @id @default(cuid())
+  stripeEventId    String   @unique
+  type             String
+  processed        Boolean  @default(false)
+  data             Json
+  error            String?
+  
+  createdAt        DateTime @default(now())
+  processedAt      DateTime?
+  
+  @@index([processed, createdAt])
+}
+
+model BusinessIntelligence {
+  id           String   @id @default(cuid())
+  businessName String
+  placeId      String?
+  siteId       String?
+  data         Json     // Full intelligence data
+  questions    Json?    // Generated questions for user
+  userAnswers  Json?    // User's answers to questions
+  extractedAt  DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([businessName])
+  @@index([placeId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  metadata  Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  @@index([userId, read])
 }
