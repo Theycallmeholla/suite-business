@@ -5,6 +5,9 @@ import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { createGHLProClient } from '@/lib/ghl';
 import { BusinessIntelligenceExtractor } from '@/lib/business-intelligence';
+import { calculateDataScore } from '@/lib/intelligence/scoring';
+import { generateSubdomain } from '@/lib/utils';
+import { detectIndustry } from '@/lib/site-builder';
 
 const createFromGBPSchema = z.object({
   locationId: z.string(), // Can be either GBP location ID or Place ID
@@ -61,12 +64,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { locationId, accountId, industry: providedIndustry, isPlaceId, placeData } = createFromGBPSchema.parse(body);
 
-    logger.info('Creating site from GBP', { 
+    logger.info('Creating site from GBP', {
+      metadata: { 
       userId: session.user.id, 
       locationId,
       accountId,
       isPlaceId,
       hasPlaceData: !!placeData
+    }
     });
 
     let business: any;
@@ -130,11 +135,13 @@ export async function POST(request: NextRequest) {
       const encodedLocationId = encodeURIComponent(locationId);
       const gbpUrl = `${process.env.NEXTAUTH_URL}/api/gbp/location/${encodedLocationId}${accountId ? `?accountId=${accountId}` : ''}`;
       
-      logger.info('Fetching GBP location details', { 
+      logger.info('Fetching GBP location details', {
+      metadata: { 
         url: gbpUrl,
         originalLocationId: locationId,
         encodedLocationId 
-      });
+      }
+    });
 
       const gbpResponse = await fetch(gbpUrl, {
         headers: {
@@ -145,11 +152,13 @@ export async function POST(request: NextRequest) {
 
       if (!gbpResponse.ok) {
         const errorText = await gbpResponse.text();
-        logger.error('Failed to fetch GBP location', { 
+        logger.error('Failed to fetch GBP location', {
+      metadata: { 
           status: gbpResponse.status,
           error: errorText,
           locationId,
-        });
+        }
+    });
         
         return NextResponse.json(
           { 
@@ -174,6 +183,9 @@ export async function POST(request: NextRequest) {
       counter++;
     }
 
+    // Create full address string early so it can be used in business intelligence
+    const fullAddress = business.fullAddress?.addressLines?.join(', ') || business.address;
+
     // Extract business intelligence
     let businessIntelligence = null;
     let extractedColors = null;
@@ -197,23 +209,83 @@ export async function POST(request: NextRequest) {
       aiContent = businessIntelligence.aiContent;
       
       logger.info('Business intelligence extracted', {
+      metadata: {
         hasLogo: !!businessIntelligence.logo,
         photosCount: businessIntelligence.photos.length,
         colorsExtracted: businessIntelligence.colors.extracted,
         questionsGenerated: businessIntelligence.questionsForUser.length,
+      }
+    });
+      
+      // Calculate data score
+      const dataScore = calculateDataScore({
+        gbp: {
+          businessName: business.name || business.title,
+          description: business.description,
+          categories: [
+            business.primaryCategory?.displayName,
+            ...(business.additionalCategories?.map((cat: any) => cat.displayName) || [])
+          ].filter(Boolean),
+          photos: businessIntelligence.photos.map((p: any) => ({ url: p.url })),
+          attributes: business.attributes || {},
+          reviews: business.rating ? {
+            rating: business.rating,
+            count: business.userRatingCount || 0
+          } : undefined,
+          hours: business.regularHours?.periods ? 
+            Object.fromEntries(
+              business.regularHours.periods.map((p: any) => [
+                p.openDay?.toLowerCase() || 'monday',
+                { open: p.openTime || '9:00', close: p.closeTime || '17:00' }
+              ])
+            ) : undefined,
+          services: business.services || []
+        },
+        places: !isFromGBP ? {
+          placeId: locationId,
+          reviews: business.rating ? {
+            rating: business.rating,
+            total: business.user_ratings_total || 0,
+            highlights: [],
+            sentiment: { positive: [], negative: [] }
+          } : undefined,
+          priceLevel: business.price_level,
+          photos: business.photos?.map((p: any) => ({ 
+            url: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${p.photo_reference}&key=${process.env.GOOGLE_MAPS_API_KEY}`,
+            reference: p.photo_reference 
+          })) || []
+        } : undefined,
+        manual: businessIntelligence.questionsForUser.length > 0 ? {
+          yearsInBusiness: undefined,
+          certifications: [],
+          awards: [],
+          specializations: [],
+          teamSize: undefined
+        } : undefined
+      });
+
+      logger.info('Data score calculated', {
+        metadata: {
+          score: dataScore.total,
+          breakdown: dataScore.breakdown,
+          contentTier: dataScore.contentTier
+        }
       });
       
       // Store the intelligence data for later use
+      // Note: BusinessIntelligence model uses specific JSON fields
       await prisma.businessIntelligence.create({
         data: {
           businessName: business.name || business.title,
           placeId: isPlaceId ? locationId : undefined,
-          data: businessIntelligence,
+          dataScore: dataScore as any, // Store the complete score object
+          gbpData: isFromGBP ? business : null,
+          placesData: !isFromGBP ? business : null,
           extractedAt: new Date(),
         },
       });
     } catch (error) {
-      logger.error('Business intelligence extraction failed', error);
+      logger.error('Business intelligence extraction failed', {}, error as Error);
       // Continue without it - use defaults
     }
 
@@ -235,13 +307,11 @@ export async function POST(request: NextRequest) {
         placeId: place.placeId
       })) || [] : [];
 
-    // Create full address string
-    const fullAddress = business.fullAddress?.addressLines?.join(', ') || business.address;
-
     // Create GoHighLevel sub-account if enabled
     let ghlLocationId = null;
     let ghlApiKey = null;
     let ghlEnabled = false;
+    let ghlLocation = null;
 
     try {
       if (process.env.GHL_API_KEY && process.env.GHL_AGENCY_ID) {
@@ -249,7 +319,7 @@ export async function POST(request: NextRequest) {
         
         const ghlClient = createGHLProClient();
 
-        const ghlLocation = await ghlClient.createSaasSubAccount({
+        ghlLocation = await ghlClient.createSaasSubAccount({
           businessName: business.name || business.title,
           email: session.user.email!,
           phone: business.primaryPhone || '',
@@ -263,10 +333,12 @@ export async function POST(request: NextRequest) {
         ghlEnabled = !ghlLocation.requiresManualApiKeySetup;
 
         logger.info('GHL sub-account created successfully', {
+      metadata: {
           locationId: ghlLocationId,
           hasApiKey: !!ghlApiKey,
           requiresManualSetup: ghlLocation.requiresManualApiKeySetup,
-        });
+        }
+    });
 
         if (ghlLocation.requiresManualApiKeySetup) {
           await prisma.notification.create({
@@ -283,14 +355,23 @@ export async function POST(request: NextRequest) {
         }
       }
     } catch (error) {
-      logger.error('Failed to create GHL sub-account', error);
+      logger.error('Failed to create GHL sub-account', {}, error as Error);
       // Continue without GHL
     }
+
+    // Create a team for this business
+    const { createClientTeam } = await import('@/lib/teams');
+    const team = await createClientTeam(
+      business.name || business.title,
+      session.user.id,
+      ghlLocation?.id
+    );
 
     // Create the site
     const site = await prisma.site.create({
       data: {
         userId: session.user.id,
+        teamId: team.id,
         businessName: business.name || business.title,
         subdomain,
         
@@ -329,7 +410,7 @@ export async function POST(request: NextRequest) {
         secondaryColor: extractedColors?.secondary,
         accentColor: extractedColors?.accent,
         logo: businessIntelligence?.logo?.url,
-        photos: businessIntelligence?.photos,
+        photoData: businessIntelligence?.photos || [],
         published: false,
       },
     });
@@ -430,11 +511,13 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info('Site created successfully from GBP', {
+      metadata: {
       siteId: site.id,
       subdomain: site.subdomain,
       servicesCount: services.length,
       industry,
       isFromGBP,
+    }
     });
 
     return NextResponse.json({
@@ -445,7 +528,9 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Create site from GBP error', { error });
+    logger.error('Create site from GBP error', {
+      metadata: { error }
+    });
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

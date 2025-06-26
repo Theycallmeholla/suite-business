@@ -29,7 +29,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { siteId, businessName, email, phone, address, industry, website } = setupSchema.parse(body);
 
-    logger.info('Setting up GoHighLevel for site', { siteId, businessName });
+    logger.info('Setting up GoHighLevel for site', {
+      metadata: { siteId, businessName }
+    });
 
     // Verify site ownership
     const site = await prisma.site.findFirst({
@@ -48,10 +50,12 @@ export async function POST(request: NextRequest) {
 
     // Check if GHL is already set up
     if (site.ghlLocationId) {
-      logger.info('GoHighLevel already set up for site', { 
+      logger.info('GoHighLevel already set up for site', {
+      metadata: { 
         siteId, 
         ghlLocationId: site.ghlLocationId 
-      });
+      }
+    });
       return NextResponse.json({
         ghlLocationId: site.ghlLocationId,
         ghlEnabled: site.ghlEnabled,
@@ -77,16 +81,20 @@ export async function POST(request: NextRequest) {
       const industryConfig = industryAutomations[industry as keyof typeof industryAutomations];
       
       if (industryConfig?.customFields) {
-        logger.info('Creating custom fields for industry', { industry, fieldsCount: industryConfig.customFields.length });
+        logger.info('Creating custom fields for industry', {
+      metadata: { industry, fieldsCount: industryConfig.customFields.length }
+    });
         
         for (const fieldConfig of industryConfig.customFields) {
           try {
             await ghlClient.createCustomField(ghlLocation.id, fieldConfig);
           } catch (fieldError) {
-            logger.warn('Failed to create custom field', { 
+            logger.warn('Failed to create custom field', {
+      metadata: { 
               field: fieldConfig.name, 
               error: fieldError 
-            });
+            }
+    });
           }
         }
       }
@@ -102,9 +110,11 @@ export async function POST(request: NextRequest) {
       });
 
       logger.info('GoHighLevel setup completed successfully', {
+      metadata: {
         siteId,
         ghlLocationId: ghlLocation.id,
-      });
+      }
+    });
 
       return NextResponse.json({
         ghlLocationId: ghlLocation.id,
@@ -113,11 +123,13 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (ghlError: any) {
-      logger.error('GoHighLevel setup failed', { 
+      logger.error('GoHighLevel setup failed', {
+      metadata: { 
         error: ghlError,
         message: ghlError.message,
         siteId 
-      });
+      }
+    });
       
       // Don't fail the entire operation, just log and return partial success
       return NextResponse.json({
@@ -129,7 +141,9 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    logger.error('GHL setup endpoint error', { error });
+    logger.error('GHL setup endpoint error', {
+      metadata: { error }
+    });
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

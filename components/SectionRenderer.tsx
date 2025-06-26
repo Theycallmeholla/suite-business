@@ -62,6 +62,30 @@ export function SectionRenderer({ sections, siteData }: SectionRendererProps) {
                 siteData={siteData}
               />
             );
+          case 'gallery':
+            return (
+              <SectionComponents.Gallery
+                key={section.id}
+                data={section.data || {}}
+                siteData={siteData}
+              />
+            );
+          case 'faq':
+            return (
+              <SectionComponents.FAQ
+                key={section.id}
+                data={section.data || {}}
+                siteData={siteData}
+              />
+            );
+          case 'serviceAreas':
+            return (
+              <SectionComponents.ServiceAreas
+                key={section.id}
+                data={section.data || {}}
+                siteData={siteData}
+              />
+            );
           default:
             return null;
         }

@@ -25,10 +25,12 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info('Starting business intelligence collection', {
+      metadata: {
       businessName,
       placeId,
       hasGBP: !!gbpData,
       hasPlaces: !!placesData,
+    }
     });
 
     // Initialize DataForSEO service
@@ -71,7 +73,10 @@ export async function POST(request: NextRequest) {
       data: {
         businessName,
         placeId,
-        data: intelligenceData,
+        gbpData: gbpData || undefined,
+        placesData: placesData || undefined,
+        serpData: searchResults ? JSON.parse(JSON.stringify(searchResults)) : undefined,
+        dataScore: intelligenceData.dataScore ? JSON.parse(JSON.stringify(intelligenceData.dataScore)) : {},
         extractedAt: new Date(),
       },
     });
@@ -81,22 +86,24 @@ export async function POST(request: NextRequest) {
       id: businessIntelligence.id,
       businessName,
       dataCollected: {
-        searchResultsCount: searchResults.searchResults.length,
-        mentionsCount: searchResults.businessMentions.length,
-        socialMediaFound: Object.keys(searchResults.socialLinks).length,
-        additionalEmails: searchResults.additionalData.emails.length,
-        additionalPhones: searchResults.additionalData.phones.length,
-        photosCount: (intelligenceData.photos.googlePlaces?.length || 0) + 
-                     (intelligenceData.photos.googleBusiness?.length || 0),
+        searchResultsCount: searchResults?.searchResults?.length || 0,
+        mentionsCount: searchResults?.businessMentions?.length || 0,
+        socialMediaFound: searchResults?.socialLinks ? Object.keys(searchResults.socialLinks).length : 0,
+        additionalEmails: searchResults?.additionalData?.emails?.length || 0,
+        additionalPhones: searchResults?.additionalData?.phones?.length || 0,
+        photosCount: (intelligenceData?.photos?.googlePlaces?.length || 0) + 
+                     (intelligenceData?.photos?.googleBusiness?.length || 0),
       },
-      socialLinks: searchResults.socialLinks,
-      topMentions: searchResults.businessMentions.slice(0, 3),
+      socialLinks: searchResults?.socialLinks || {},
+      topMentions: searchResults?.businessMentions?.slice(0, 3) || [],
     };
     
     logger.info('Business intelligence collection complete', {
+      metadata: {
       businessName,
       intelligenceId: businessIntelligence.id,
       ...summary.dataCollected,
+    }
     });
     
     return NextResponse.json({
@@ -106,8 +113,10 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
-    logger.error('Business intelligence collection failed', { 
+    logger.error('Business intelligence collection failed', {
+      metadata: { 
       error: error instanceof Error ? error.message : 'Unknown error' 
+    }
     });
     
     return NextResponse.json(
@@ -164,7 +173,9 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
-    logger.error('Failed to retrieve business intelligence', { error });
+    logger.error('Failed to retrieve business intelligence', {
+      metadata: { error }
+    });
     
     return NextResponse.json(
       { error: 'Failed to retrieve business intelligence' },

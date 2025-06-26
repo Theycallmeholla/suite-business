@@ -17,12 +17,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { locationId, accountId } = body;
 
-    logger.info('Debug: Creating site from GBP', { 
+    logger.info('Debug: Creating site from GBP', {
+      metadata: { 
       userId: session.user.id, 
       locationId,
       accountId,
       headers: Object.fromEntries(request.headers.entries()),
       url: request.url
+    }
     });
 
     // First, let's test if we can access GBP directly
@@ -64,15 +66,19 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (apiError: any) {
-      logger.error('Direct GBP API call failed', { 
+      logger.error('Direct GBP API call failed', {
+      metadata: { 
         error: apiError.message,
         response: apiError.response?.data,
         status: apiError.response?.status
-      });
+      }
+    });
 
       // Now let's try the internal API call
       const internalUrl = `${process.env.NEXTAUTH_URL}/api/gbp/location/${locationId}${accountId ? `?accountId=${accountId}` : ''}`;
-      logger.info('Trying internal API call', { url: internalUrl });
+      logger.info('Trying internal API call', {
+      metadata: { url: internalUrl }
+    });
 
       const gbpResponse = await fetch(internalUrl, {
         headers: {
@@ -101,7 +107,9 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error: any) {
-    logger.error('Debug endpoint error', { error: error.message });
+    logger.error('Debug endpoint error', {
+      metadata: { error: error.message }
+    });
     
     return NextResponse.json(
       { 

@@ -42,7 +42,7 @@ export async function PATCH(
 
     return NextResponse.json({ success: true, enabled: form.enabled });
   } catch (error) {
-    logger.error('Failed to toggle form:', error);
+    logger.error('Failed to toggle form:', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to toggle form' },
       { status: 500 }

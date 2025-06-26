@@ -156,7 +156,7 @@ function PreviewContentInner({ site, initialSections, pageId }: PreviewContentPr
             <p className="mt-2">
               Powered by{' '}
               <Link href="https://suitebusiness.com" className="hover:text-white">
-                Suite Business
+                SiteBango
               </Link>
             </p>
           </div>

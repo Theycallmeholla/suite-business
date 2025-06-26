@@ -41,12 +41,12 @@ export default async function PreviewPage({
   }
 
   // Get page content - either from database or generate default
-  let sections;
+  let sections: any[] = [];
   
   // Check if we have custom page content
   const homePage = site.pages.find(p => p.type === 'home');
   if (homePage && homePage.content && typeof homePage.content === 'object' && 'sections' in homePage.content) {
-    sections = homePage.content.sections;
+    sections = (homePage.content as any).sections || [];
   } else {
     // Generate default sections based on available data
     sections = generateDefaultSections(site);

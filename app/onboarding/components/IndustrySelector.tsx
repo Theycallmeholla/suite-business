@@ -158,6 +158,44 @@ export function IndustrySelector({ detectedIndustry, onSelect, onBack }: Industr
         </div>
       </RadioGroup>
 
+      {/* Enhanced Question Flow Option */}
+      {selectedIndustry && (
+        <Card className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+          <div className="text-center">
+            <Sparkles className="h-8 w-8 text-purple-600 mx-auto mb-3" />
+            <h3 className="text-lg font-semibold mb-2">Want an Even Better Website?</h3>
+            <p className="text-gray-600 mb-4">
+              Answer 3-5 quick questions and we'll create a website that's perfectly tailored to your business. 
+              See changes happen in real-time!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={() => {
+                  // Redirect to enhanced question flow
+                  const params = new URLSearchParams({
+                    name: 'Your Business', // This would come from business data
+                    industry: selectedIndustry
+                  });
+                  window.location.href = `/onboarding/enhance?${params.toString()}`;
+                }}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Enhance My Website
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleContinue}
+                disabled={isConfirming}
+                className="flex-1"
+              >
+                Create Basic Website
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <div className="flex gap-4">
         <Button
           variant="outline"
@@ -167,13 +205,15 @@ export function IndustrySelector({ detectedIndustry, onSelect, onBack }: Industr
         >
           Back
         </Button>
-        <Button
-          onClick={handleContinue}
-          disabled={!selectedIndustry || isConfirming}
-          className="flex-1"
-        >
-          {isConfirming ? 'Confirming...' : 'Continue'}
-        </Button>
+        {!selectedIndustry && (
+          <Button
+            onClick={handleContinue}
+            disabled={!selectedIndustry || isConfirming}
+            className="flex-1"
+          >
+            {isConfirming ? 'Confirming...' : 'Continue'}
+          </Button>
+        )}
       </div>
     </div>
   );

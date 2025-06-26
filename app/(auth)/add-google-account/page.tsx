@@ -1,27 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserPlus, AlertCircle, ArrowLeft } from 'lucide-react';
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function AddGoogleAccountPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const [returnTo, setReturnTo] = useState('/onboarding?fromAddAccount=true');
+
+  useEffect(() => {
+    // Check if there's a returnTo parameter
+    const returnParam = searchParams.get('returnTo');
+    if (returnParam) {
+      // Append the fromAddAccount flag to the return URL
+      const separator = returnParam.includes('?') ? '&' : '?';
+      setReturnTo(`${returnParam}${separator}fromAddAccount=true`);
+    }
+  }, [searchParams]);
 
   const handleAddAccount = async () => {
     setIsLoading(true);
     try {
       // Sign in with Google, forcing account selection
       await signIn('google', {
-        callbackUrl: '/onboarding?fromAddAccount=true',
+        callbackUrl: returnTo,
         redirect: true,
       });
     } catch (error) {
-      console.error('Error adding account:', error);
+      // Error is handled by NextAuth
       setIsLoading(false);
     }
   };

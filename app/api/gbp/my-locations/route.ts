@@ -161,10 +161,7 @@ export async function GET(request: NextRequest) {
         };
         
         // Cache even empty results
-        cache.set(cacheKey, {
-          data: responseData,
-          timestamp: Date.now(),
-        });
+        setInCache(cacheKey, responseData);
         
         return NextResponse.json(responseData);
       }
@@ -355,13 +352,12 @@ export async function GET(request: NextRequest) {
       // Handle quota exceeded
       if (apiError?.code === 429 || apiError?.message?.includes('Quota exceeded')) {
         // Try to return cached data
-        const cached = cache.get(cacheKey);
+        const cached = getFromCache(cacheKey);
         if (cached) {
           return NextResponse.json({
-            ...cached.data,
+            ...cached,
             warning: 'Using cached data due to API quota limit.',
             cached: true,
-            cacheAge: Math.floor((Date.now() - cached.timestamp) / 1000 / 60),
           });
         }
         

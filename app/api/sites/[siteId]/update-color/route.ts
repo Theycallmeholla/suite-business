@@ -10,8 +10,10 @@ const updateColorSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { siteId: string } }
+  { params }: { params: Promise<{ siteId: string }> }
 ) {
+  const { siteId } = await params;
+  
   try {
     const session = await getAuthSession();
     
@@ -22,7 +24,6 @@ export async function PATCH(
       );
     }
 
-    const { siteId } = params;
     const body = await request.json();
     const { primaryColor } = updateColorSchema.parse(body);
 
@@ -48,10 +49,12 @@ export async function PATCH(
     });
 
     logger.info('Site color updated', {
+      metadata: {
       siteId,
       userId: session.user.id,
       oldColor: site.primaryColor,
       newColor: primaryColor,
+    }
     });
 
     return NextResponse.json({
@@ -67,7 +70,9 @@ export async function PATCH(
       );
     }
 
-    logger.error('Error updating site color', { error, siteId: params.siteId });
+    logger.error('Error updating site color', {
+      metadata: { error, siteId: siteId }
+    });
     return NextResponse.json(
       { error: 'Failed to update color' },
       { status: 500 }

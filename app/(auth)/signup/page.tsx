@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import Image from 'next/image';
+import { CheckCircle2, Info } from "lucide-react";
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,17 +36,36 @@ export default function SignUpPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">S</span>
-            </div>
-            <span className="text-2xl font-bold">Suite Business</span>
+          <Link href="/" className="inline-flex justify-center mb-6">
+            <Image 
+              src="/sitebango-logo.svg" 
+              alt="Sitebango" 
+              width={200} 
+              height={50}
+              className="h-10 w-auto"
+            />
           </Link>
           
           <h1 className="text-2xl font-bold mb-2">Start Your Free Trial</h1>
           <p className="text-gray-600">
             Get your business online in minutes
           </p>
+        </div>
+
+        {/* Google Business Profile tip */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start space-x-3">
+            <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm text-blue-900 font-medium mb-1">
+                Pro tip: Use your Google Business Profile account
+              </p>
+              <p className="text-sm text-blue-700">
+                Sign up with the Google account connected to your business listing for seamless integration. 
+                Don't have one? No problem - you can connect it later!
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-4">

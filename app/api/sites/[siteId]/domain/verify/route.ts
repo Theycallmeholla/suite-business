@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import dns from 'dns/promises';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { siteId: string } }
+  { params }: { params: Promise<{ siteId: string }> }
 ) {
+  const { siteId } = await params;
+  
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getAuthSession();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -18,7 +19,7 @@ export async function POST(
     // Get site with custom domain
     const site = await prisma.site.findFirst({
       where: {
-        id: params.siteId,
+        id: siteId,
         user: { email: session.user.email }
       },
       select: {
@@ -83,10 +84,12 @@ export async function POST(
     }
 
     logger.info('Domain verification check', {
+      metadata: {
       action: 'verify_domain',
       domain,
       verified: allValid,
       records
+    }
     });
 
     return NextResponse.json({
@@ -96,9 +99,11 @@ export async function POST(
     });
   } catch (error) {
     logger.error('Failed to verify domain', {
+      metadata: {
       action: 'verify_domain',
-      siteId: params.siteId,
+      siteId: siteId,
       error: error instanceof Error ? error.message : 'Unknown error'
+    }
     });
 
     return NextResponse.json(

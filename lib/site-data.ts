@@ -1,8 +1,17 @@
 import { prisma } from '@/lib/prisma';
 import { cache } from 'react';
 import { logger } from '@/lib/logger';
+import { Prisma } from '@prisma/client';
 
-export interface SiteWithPages {
+export type SiteWithPages = Prisma.SiteGetPayload<{
+  include: {
+    pages: true;
+    services: true;
+  }
+}>;
+
+// Legacy interface for backwards compatibility
+export interface SiteWithPagesLegacy {
   id: string;
   userId: string;
   businessName: string;
@@ -14,12 +23,16 @@ export interface SiteWithPages {
   city: string | null;
   state: string | null;
   zip: string | null;
+  industry: string;
   ghlLocationId: string | null;
   ghlApiKey: string | null;
   ghlEnabled: boolean;
   template: string;
   primaryColor: string;
+  secondaryColor: string | null;
+  accentColor: string | null;
   logo: string | null;
+  photoData: any;
   metaTitle: string | null;
   metaDescription: string | null;
   published: boolean;

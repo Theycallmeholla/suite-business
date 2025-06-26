@@ -65,10 +65,12 @@ export async function POST(request: NextRequest) {
     // 3. Combined with access check to determine true ownership
     
     logger.info('Checking GBP ownership', {
+      metadata: {
       action: 'gbp_check_ownership',
       placeId,
       businessName,
       hasAccess: accessData.hasAccess,
+    }
     });
 
     // Determine ownership status based on access check
@@ -83,6 +85,8 @@ export async function POST(request: NextRequest) {
       // For now, simulate based on business name patterns
       if (businessName.toLowerCase().includes('claimed')) {
         ownershipStatus = 'claimed_by_others';
+      } else if (businessName.toLowerCase().includes('unclaimed')) {
+        ownershipStatus = 'unclaimed';
       } else {
         ownershipStatus = 'no_access'; // Found but user has no access
       }
@@ -108,8 +112,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Ownership check error', {
+      metadata: {
       action: 'gbp_ownership_error',
       error: error instanceof Error ? error.message : 'Unknown error',
+    }
     });
 
     return NextResponse.json(

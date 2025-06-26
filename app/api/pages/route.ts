@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import logger from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
 const createPageSchema = z.object({
@@ -69,9 +69,11 @@ export async function POST(request: NextRequest) {
     });
 
     logger.info('Page created', {
+      metadata: {
       pageId: page.id,
       siteId,
       userId: session.user.id,
+    }
     });
 
     return NextResponse.json({
@@ -79,7 +81,9 @@ export async function POST(request: NextRequest) {
       page,
     });
   } catch (error) {
-    logger.error('Failed to create page', { error });
+    logger.error('Failed to create page', {
+      metadata: { error }
+    });
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

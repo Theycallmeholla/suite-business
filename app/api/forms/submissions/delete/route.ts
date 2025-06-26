@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, deleted: ids.length });
   } catch (error) {
-    logger.error('Failed to delete submissions:', error);
+    logger.error('Failed to delete submissions:', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to delete submissions' },
       { status: 500 }

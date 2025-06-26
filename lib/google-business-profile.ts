@@ -4,6 +4,8 @@
 // In production, use the newer Business Profile Performance API
 
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
+import axios from 'axios';
 
 export class GoogleBusinessProfileClient {
   private auth: any;
@@ -204,6 +206,163 @@ export function getGoogleBusinessProfileClient() {
     gbpClient = new GoogleBusinessProfileClient();
   }
   return gbpClient;
+}
+
+// Helper function to refresh Google access token
+async function refreshGoogleToken(refreshToken: string): Promise<{ access_token: string; expires_at: number } | null> {
+  try {
+    const response = await axios.post('https://oauth2.googleapis.com/token', {
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token',
+    });
+
+    const { access_token, expires_in } = response.data;
+    const expires_at = Math.floor(Date.now() / 1000) + expires_in;
+
+    return { access_token, expires_at };
+  } catch (error) {
+    logger.error('Failed to refresh Google token', { error });
+    return null;
+  }
+}
+
+// Get user's Google Business Profile access
+export async function getUserGoogleBusinessAccess(userId: string): Promise<{
+  success: boolean;
+  client?: any;
+  error?: string;
+  requiresAuth?: boolean;
+}> {
+  try {
+    // Get all Google accounts for this user
+    const googleAccounts = await prisma.account.findMany({
+      where: {
+        userId,
+        provider: 'google',
+      },
+      orderBy: {
+        createdAt: 'desc', // Most recent first
+      },
+    });
+
+    if (googleAccounts.length === 0) {
+      return {
+        success: false,
+        error: 'No Google accounts connected',
+        requiresAuth: true,
+      };
+    }
+
+    // Try each Google account to find one with GBP access
+    for (const account of googleAccounts) {
+      try {
+        let accessToken = account.access_token;
+        let expiresAt = account.expires_at;
+
+        // Check if token is expired and refresh if needed
+        if (!accessToken || (expiresAt && expiresAt * 1000 < Date.now())) {
+          if (!account.refresh_token) {
+            logger.debug('Account has no refresh token, skipping', {
+              accountId: account.id,
+              providerAccountId: account.providerAccountId,
+            });
+            continue;
+          }
+
+          const refreshed = await refreshGoogleToken(account.refresh_token);
+          if (!refreshed) {
+            logger.debug('Failed to refresh token for account, skipping', {
+              accountId: account.id,
+              providerAccountId: account.providerAccountId,
+            });
+            continue;
+          }
+
+          accessToken = refreshed.access_token;
+          expiresAt = refreshed.expires_at;
+
+          // Update the account with new token
+          await prisma.account.update({
+            where: { id: account.id },
+            data: {
+              access_token: accessToken,
+              expires_at: expiresAt,
+            },
+          });
+        }
+
+        // Check if this account has GBP scope
+        if (!account.scope?.includes('https://www.googleapis.com/auth/business.manage')) {
+          logger.debug('Account does not have GBP scope, skipping', {
+            accountId: account.id,
+            providerAccountId: account.providerAccountId,
+            scope: account.scope,
+          });
+          continue;
+        }
+
+        // Create authenticated axios client
+        const client = axios.create({
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        // Test the client by trying to list accounts
+        try {
+          await client.get('https://mybusinessaccountmanagement.googleapis.com/v1/accounts');
+          
+          logger.info('Successfully created GBP client', {
+            userId,
+            accountId: account.id,
+            providerAccountId: account.providerAccountId,
+          });
+
+          return {
+            success: true,
+            client,
+          };
+        } catch (testError: any) {
+          logger.debug('GBP test call failed for account, trying next', {
+            accountId: account.id,
+            providerAccountId: account.providerAccountId,
+            error: testError.message,
+            status: testError.response?.status,
+          });
+          continue;
+        }
+      } catch (accountError: any) {
+        logger.debug('Error processing account, trying next', {
+          accountId: account.id,
+          providerAccountId: account.providerAccountId,
+          error: accountError.message,
+        });
+        continue;
+      }
+    }
+
+    // If we get here, none of the accounts worked
+    return {
+      success: false,
+      error: 'No Google accounts with valid GBP access found. Please connect a Google account with Business Profile permissions.',
+      requiresAuth: true,
+    };
+
+  } catch (error: any) {
+    logger.error('Error getting user Google Business access', {
+      userId,
+      error: error.message,
+    });
+
+    return {
+      success: false,
+      error: 'Failed to check Google Business Profile access',
+      requiresAuth: false,
+    };
+  }
 }
 
 // Helper functions for common operations

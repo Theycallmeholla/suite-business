@@ -59,23 +59,25 @@ export async function GET(req: NextRequest) {
     };
 
     // Add email and SMS credits if available in plan
-    if (limits.emailCredits !== undefined) {
-      usage.emailCredits = {
+    if ((limits as any).emailCredits !== undefined) {
+      (usage as any).emailCredits = {
         used: 0, // Would track actual email usage
-        limit: limits.emailCredits,
+        limit: (limits as any).emailCredits,
       };
     }
 
-    if (limits.smsCredits !== undefined) {
-      usage.smsCredits = {
+    if ((limits as any).smsCredits !== undefined) {
+      (usage as any).smsCredits = {
         used: 0, // Would track actual SMS usage
-        limit: limits.smsCredits,
+        limit: (limits as any).smsCredits,
       };
     }
 
     return NextResponse.json({ usage });
   } catch (error) {
-    logger.error('Error fetching usage', { error });
+    logger.error('Error fetching usage', {
+      metadata: { error }
+    });
     return NextResponse.json(
       { error: 'Failed to fetch usage' },
       { status: 500 }

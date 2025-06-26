@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
           try {
             const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
             const userInfo = await oauth2.userinfo.get();
-            email = userInfo.data.email || (index === 0 ? session.user.email : `Account ${account.providerAccountId.slice(-6)}`);
+            email = userInfo.data.email || (index === 0 ? session.user.email || 'Primary Account' : `Account ${account.providerAccountId.slice(-6)}`);
           } catch (userInfoError: any) {
             if (userInfoError?.response?.status === 403 || userInfoError?.response?.status === 401) {
               isActive = false;

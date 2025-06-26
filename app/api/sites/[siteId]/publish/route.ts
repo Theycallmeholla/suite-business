@@ -5,8 +5,10 @@ import { logger } from '@/lib/logger';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { siteId: string } }
+  { params }: { params: Promise<{ siteId: string }> }
 ) {
+  const { siteId } = await params;
+  
   try {
     const session = await getAuthSession();
     
@@ -16,8 +18,6 @@ export async function POST(
         { status: 401 }
       );
     }
-
-    const { siteId } = params;
 
     // Verify ownership
     const site = await prisma.site.findFirst({
@@ -52,10 +52,12 @@ export async function POST(
     });
 
     logger.info('Site published', {
+      metadata: {
       siteId,
       userId: session.user.id,
       subdomain: site.subdomain,
       publishedAt: updatedSite.publishedAt,
+    }
     });
 
     // In a real app, you might:
@@ -72,7 +74,9 @@ export async function POST(
     });
 
   } catch (error) {
-    logger.error('Error publishing site', { error, siteId: params.siteId });
+    logger.error('Error publishing site', {
+      metadata: { error, siteId: siteId }
+    });
     return NextResponse.json(
       { error: 'Failed to publish site' },
       { status: 500 }

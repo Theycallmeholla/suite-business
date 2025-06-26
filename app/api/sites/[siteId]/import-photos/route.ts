@@ -5,8 +5,10 @@ import { logger } from '@/lib/logger';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { siteId: string } }
+  { params }: { params: Promise<{ siteId: string }> }
 ) {
+  const { siteId } = await params;
+  
   try {
     const session = await getAuthSession();
     
@@ -17,8 +19,6 @@ export async function POST(
       );
     }
 
-    const { siteId } = params;
-
     // Verify ownership and get GBP location ID
     const site = await prisma.site.findFirst({
       where: {
@@ -28,6 +28,7 @@ export async function POST(
       select: {
         id: true,
         gbpLocationId: true,
+        businessName: true,
       },
     });
 
@@ -39,9 +40,11 @@ export async function POST(
     }
 
     logger.info('Importing photos from GBP', {
+      metadata: {
       siteId,
       userId: session.user.id,
       gbpLocationId: site.gbpLocationId,
+    }
     });
 
     // Fetch photos from GBP
@@ -91,8 +94,10 @@ export async function POST(
     );
 
     logger.info('Photos imported successfully', {
+      metadata: {
       siteId,
       photosCount: importedPhotos.length,
+    }
     });
 
     // Update site to mark last sync
@@ -110,7 +115,9 @@ export async function POST(
     });
 
   } catch (error) {
-    logger.error('Error importing photos', { error, siteId: params.siteId });
+    logger.error('Error importing photos', {
+      metadata: { error, siteId: siteId }
+    });
     return NextResponse.json(
       { error: 'Failed to import photos' },
       { status: 500 }

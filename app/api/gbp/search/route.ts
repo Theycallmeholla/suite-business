@@ -30,11 +30,13 @@ export async function POST(request: NextRequest) {
     const cacheKey = `${query}-${location || 'none'}`;
     const cached = searchCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      logger.debug('Returning cached search results', { 
+      logger.debug('Returning cached search results', {
+      metadata: { 
         action: 'search_cache_hit',
         query,
         resultCount: cached.results.length 
-      });
+      }
+    });
       return NextResponse.json({ results: cached.results, cached: true });
     }
 
@@ -89,20 +91,24 @@ export async function POST(request: NextRequest) {
 
     const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?${searchParams.toString()}`;
     
-    logger.debug('Searching Google Places API', { 
+    logger.debug('Searching Google Places API', {
+      metadata: { 
       action: 'places_api_search',
       query,
       location 
+    }
     });
 
     const response = await fetch(searchUrl);
     const data = await response.json();
 
     if (data.status === 'REQUEST_DENIED') {
-      logger.error('Places API request denied', { 
+      logger.error('Places API request denied', {
+      metadata: { 
         action: 'places_api_denied',
         error_message: data.error_message 
-      });
+      }
+    });
       return NextResponse.json(
         { error: 'Search service configuration error', details: data.error_message },
         { status: 500 }
@@ -118,10 +124,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      logger.error('Places API error', { 
+      logger.error('Places API error', {
+      metadata: { 
         action: 'places_api_error',
         status: data.status 
-      });
+      }
+    });
       return NextResponse.json(
         { error: 'Search failed', status: data.status },
         { status: 500 }
@@ -158,18 +166,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    logger.info('Places search completed', { 
+    logger.info('Places search completed', {
+      metadata: { 
       action: 'search_success',
       query,
       resultCount: results.length 
+    }
     });
 
     return NextResponse.json({ results });
 
   } catch (error) {
-    logger.error('Search error', { 
+    logger.error('Search error', {
+      metadata: { 
       action: 'search_error',
       error: error instanceof Error ? error.message : 'Unknown error' 
+    }
     });
     return NextResponse.json(
       { error: 'Search failed' },

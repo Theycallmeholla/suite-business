@@ -53,7 +53,11 @@ export function ContactSection({ section, siteData, onUpdate, isEditable = false
           {isEditable ? (
             <EditableText
               value={section.data.title || 'Get In Touch'}
-              onSave={(value: string) => onUpdate?.('title', value)}
+              onSave={async (value: string) => {
+                if (onUpdate) {
+                  await onUpdate('title', value);
+                }
+              }}
               as="h2"
               className="text-3xl font-bold text-gray-900 mb-4"
               editClassName="text-3xl font-bold text-gray-900"
@@ -68,7 +72,11 @@ export function ContactSection({ section, siteData, onUpdate, isEditable = false
             isEditable ? (
               <EditableText
                 value={section.data.subtitle || ''}
-                onSave={(value: string) => onUpdate?.('subtitle', value)}
+                onSave={async (value: string) => {
+                  if (onUpdate) {
+                    await onUpdate('subtitle', value);
+                  }
+                }}
                 className="text-lg text-gray-600 max-w-2xl mx-auto"
                 editClassName="text-lg text-gray-900 max-w-2xl mx-auto"
                 placeholder="Contact subtitle"

@@ -10,7 +10,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: 'Suite Business - Professional Websites for Service Businesses',
+  title: 'SiteBango - Professional Websites for Service Businesses',
   description: 'Get your service business online with a professional website, Google Business Profile management, and automated marketing.'
 };
 

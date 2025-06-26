@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Created**: December 2024  
+**Last Updated**: June 2025, 1:35 AM CST
+
 ## Quick Reference: Claude Commands
 Use these slash commands for common tasks:
 - `/add-industry` - Add a new industry vertical
@@ -20,9 +23,61 @@ Use these slash commands for common tasks:
 Commands are defined in `.claude/commands/`
 
 ## Project Overview
-Suite Business is a multi-industry SaaS platform for service-based businesses (landscaping, HVAC, plumbing, cleaning, roofing, electrical). It's a self-hosted solution with flexible onboarding - users can start with or without Google Business Profile, leveraging Google Places API for real business search and optional GoHighLevel Pro Plan's SaaS Mode.
+Sitebango is a multi-industry SaaS platform for service-based businesses (landscaping, HVAC, plumbing, cleaning, roofing, electrical). It's a self-hosted solution with flexible onboarding - users can start with or without Google Business Profile, leveraging Google Places API for real business search and optional GoHighLevel Pro Plan's SaaS Mode.
 
-## Recent Enhancements (December 2024)
+### Quick Commands Reference
+- `npm run add-agency-member email "name" role` - Add team member
+- `npm run setup:agency` - Initial agency setup
+- `npm run db:studio` - View/edit database
+- See `.claude/commands.md` for full command list
+
+## Team Structure & Permissions
+
+### Agency Level (Your SaaS Company)
+The platform uses a team-based architecture with three levels:
+
+1. **Agency Team** (Your company)
+   - **Owner** (Super Admin): Full system access, defined by SUPER_ADMIN_EMAIL
+   - **Admin**: Can manage businesses, view financials, manage team
+   - **Member**: Can view businesses and reports (read-only)
+
+2. **Business Level** (Your clients)
+   - Each business is owned by the user who created it
+   - Future: Business teams with their own members
+
+3. **Database Structure**
+   ```
+   Team (type: 'agency' or 'client')
+   ├── TeamMember (links users to teams with roles)
+   │   ├── role: 'owner' | 'admin' | 'member'
+   │   └── permissions: JSON (future granular permissions)
+   └── Site (businesses belong to teams)
+   ```
+
+### GoHighLevel Integration
+
+#### Sync Strategy
+- **App → GHL**: ALWAYS (All app users must exist in GHL)
+- **GHL → App**: OPTIONAL (Not all GHL users need app access)
+
+#### Key Points
+- Each business gets a GHL sub-account (created via `createSaasSubAccount()`)
+- Sub-accounts are linked via `ghlLocationId` in the Site model
+- Users are automatically synced to GHL on creation
+- Agency team members can be bulk imported
+
+#### Adding Team Members
+```bash
+# Single member (creates user + adds to team + syncs to GHL)
+npm run add-agency-member email@gmail.com "Full Name" role
+
+# Bulk import
+npm run add-agency-members-bulk
+```
+
+## Recent Enhancements
+
+### December 2024
 - **Custom Domain Support**: Full implementation with DNS verification and SSL automation
 - **Multi-Account GBP Access**: Fixed critical bug where businesses weren't recognized across multiple Google accounts
 - **Account Status Detection**: Shows badges for suspended accounts or accounts without GBP access
@@ -31,6 +86,19 @@ Suite Business is a multi-industry SaaS platform for service-based businesses (l
 - **Shared Caching System**: Optimized API calls with intelligent caching between endpoints
 - **Logo Upload**: Smart resizing and optimization for different display contexts
 - **Dashboard Redesign**: Comprehensive UI/UX improvements with better information architecture
+
+### June 2025 - Intelligent Content Generation System
+- **Data Scoring Algorithm**: 0-100 point system across 5 categories (basic info, content, visuals, trust, differentiation)
+- **Smart Question Components**: 5 engaging UI components for data collection
+  - TinderSwipe: Yes/no questions with swipe gestures, "I don't know" support, skip if known
+  - ThisOrThat: Binary choice questions for positioning
+  - StylePicker: Visual style selection (fonts, colors, layouts)
+  - FontPairing: Typography combinations with live preview
+  - MultipleChoice: Flexible single/multi-select with 3 variants
+- **Question Intelligence**: Automatically skips questions when data is already known from GBP
+- **Industry Profiles**: Complete configurations for all 6 supported industries
+- **Progressive Enhancement**: Content quality improves as more data becomes available
+- See `/docs/INTELLIGENT_CONTENT_GENERATION.md` for full documentation
 
 ## Development Commands
 ```bash
@@ -86,10 +154,16 @@ npm run setup          # Install deps, start Docker, and push DB schema
   - `/ghl` - GoHighLevel integration endpoints
   - `/crm` - CRM functionality endpoints
   - `/sites` - Site management endpoints
+  - `/intelligence` - Intelligent content generation endpoints
+    - `/analyze` - Analyze business data and calculate scores
+    - `/questions` - Generate smart questions based on data gaps
+    - `/answers` - Store user responses to questions
+    - `/generate` - Generate content based on all available data
   - `/dev` - Development and debugging endpoints
 - `/app/s/[subdomain]` - Client-facing sites with dynamic content
 - `/app/admin` - Admin panel for platform management
 - `/app/dev` - Development tools and diagnostics
+  - `/smart-questions` - Demo page for all smart question components
 
 ### Key Integration Points
 1. **GoHighLevel (`/lib/ghl.ts`)**: 
@@ -117,8 +191,10 @@ npm run setup          # Install deps, start Docker, and push DB schema
 
 ### Component Structure
 - Uses shadcn/ui components in `/components/ui`
+- Smart question components in `/components/SmartQuestionComponents`
 - Form handling with react-hook-form and zod validation
 - Radix UI primitives for accessibility
+- Framer Motion for smooth animations
 - Tailwind CSS v4 for styling
 - Centralized logging system (`/lib/logger.ts`) - replaces all console statements
 - Toast notification system (`/lib/toast.ts`) - user feedback with Sonner
@@ -221,7 +297,12 @@ See `/docs/SITE_INFRASTRUCTURE.md` for detailed documentation.
    - Clean up any temporary files or debugging code before completing work
    - Consolidate related functionality into existing modules
    
-3. **Before Completing Any Task**:
+3. **Documentation Standards**:
+   - Always include creation date and time CST when creating new documentation
+   - Always update "Last Updated" date and time CST when modifying documentation
+   - Use format: **Created**: Month Day, Year, Time CST, **Last Updated**: Month Day, Year, Time CST
+   
+4. **Before Completing Any Task**:
    - Run linting: `npm run lint` (when available)
    - Run type checking: `npm run typecheck` (when available)
    - Ensure no console.logs or debugging code remains

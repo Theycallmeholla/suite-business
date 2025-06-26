@@ -9,16 +9,21 @@ interface SignOutButtonProps {
   size?: "default" | "sm" | "lg" | "icon";
   showIcon?: boolean;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export function SignOutButton({ 
   variant = "ghost", 
   size = "default",
   showIcon = true,
-  className 
+  className,
+  children
 }: SignOutButtonProps) {
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/signin' });
+    await signOut({ 
+      callbackUrl: '/signin',
+      redirect: true 
+    });
   };
 
   return (
@@ -29,7 +34,7 @@ export function SignOutButton({
       className={className}
     >
       {showIcon && <LogOut className="h-4 w-4 mr-2" />}
-      Sign Out
+      {children || "Sign Out"}
     </Button>
   );
 }

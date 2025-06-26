@@ -16,6 +16,7 @@ import Link from 'next/link';
 interface Site {
   id: string;
   businessName: string;
+  subdomain: string;
   phone?: string | null;
   email?: string | null;
   address?: string | null;

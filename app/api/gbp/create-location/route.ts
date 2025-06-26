@@ -89,9 +89,11 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info('Creating Google Business Profile', {
+      metadata: {
       action: 'gbp_create_location',
       siteId: validatedData.siteId,
       businessName: validatedData.businessInfo.title,
+    }
     });
 
     // For development/demo purposes, simulate the creation
@@ -136,9 +138,11 @@ export async function POST(request: NextRequest) {
       });
 
       logger.info('Mock GBP location created', {
+      metadata: {
         action: 'gbp_create_success_mock',
         locationId: mockLocationId,
-      });
+      }
+    });
 
       return NextResponse.json({
         success: true,
@@ -174,8 +178,10 @@ export async function POST(request: NextRequest) {
     }
 
     logger.error('GBP creation error', {
+      metadata: {
       action: 'gbp_create_error',
       error: error instanceof Error ? error.message : 'Unknown error',
+    }
     });
 
     return NextResponse.json(
@@ -234,8 +240,10 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     logger.error('GBP status check error', {
+      metadata: {
       action: 'gbp_status_error',
       error: error instanceof Error ? error.message : 'Unknown error',
+    }
     });
 
     return NextResponse.json(

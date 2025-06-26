@@ -76,7 +76,7 @@ export function LogoUpload({ site, onUpdate }: LogoUploadProps) {
       onUpdate();
       setIsOpen(false);
     } catch (error) {
-      logger.error('Logo upload error:', error);
+      logger.error('Logo upload error:', {}, error as Error);
       toast.error(error instanceof Error ? error.message : 'Failed to upload logo');
       setPreviewUrl(site.logo || null);
     } finally {
@@ -124,7 +124,7 @@ export function LogoUpload({ site, onUpdate }: LogoUploadProps) {
       setPreviewUrl(null);
       onUpdate();
     } catch (error) {
-      logger.error('Logo removal error:', error);
+      logger.error('Logo removal error:', {}, error as Error);
       toast.error('Failed to remove logo');
     } finally {
       setIsUploading(false);

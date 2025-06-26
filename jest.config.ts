@@ -18,6 +18,11 @@ const config: Config = {
     '**/__tests__/**/*.{js,jsx,ts,tsx}',
     '**/*.{spec,test}.{js,jsx,ts,tsx}',
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/e2e/',
+    '/.next/',
+  ],
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
     'components/**/*.{js,jsx,ts,tsx}',

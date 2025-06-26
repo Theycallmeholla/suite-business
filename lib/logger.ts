@@ -1,5 +1,5 @@
 /**
- * Centralized logging utility for Suite Business
+ * Centralized logging utility for Sitebango
  * Provides consistent logging across the application with proper error handling
  */
 

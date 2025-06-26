@@ -71,16 +71,18 @@ export async function POST(request: NextRequest) {
     // Return the public URL
     const logoUrl = `/uploads/logos/${filename}`;
 
-    logger.info('Logo uploaded successfully', { 
+    logger.info('Logo uploaded successfully', {
+      metadata: { 
       siteId, 
       filename,
       size: file.size,
       type: file.type 
+    }
     });
 
     return NextResponse.json({ logoUrl });
   } catch (error) {
-    logger.error('Logo upload error:', error);
+    logger.error('Logo upload error:', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to upload logo' },
       { status: 500 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "? Suite Business - Docker PostgreSQL Setup"
+echo "? Sitebango - Docker PostgreSQL Setup"
 echo "=========================================="
 echo ""
 

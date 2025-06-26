@@ -37,7 +37,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
-    logger.error('Error creating checkout session', { error });
+    logger.error('Error creating checkout session', {
+      metadata: { error }
+    });
     return NextResponse.json(
       { error: 'Failed to create checkout session' },
       { status: 500 }

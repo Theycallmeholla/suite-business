@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         email: data.email,
         phone: data.phone,
         address: `${data.address}, ${data.city}, ${data.state} ${data.zip}`,
-        industry: 'landscaping', // TODO: Get from user selection
+        industry: data.industry || 'general', // Use industry from request data
         website: data.website,
       });
       ghlLocationId = ghlAccount.id;

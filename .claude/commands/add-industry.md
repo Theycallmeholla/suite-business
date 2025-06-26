@@ -1,5 +1,5 @@
 ---
-description: Add a new industry vertical to Suite Business
+description: Add a new industry vertical to SiteBango
 arguments:
   - name: INDUSTRY_NAME
     description: Name of the industry (e.g., landscaping, HVAC, plumbing)

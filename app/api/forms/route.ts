@@ -53,7 +53,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(forms);
   } catch (error) {
-    logger.error('Failed to fetch forms:', error);
+    logger.error('Failed to fetch forms:', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch forms' },
       { status: 500 }
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
       submissionsCount: form._count.submissions
     });
   } catch (error) {
-    logger.error('Failed to create form:', error);
+    logger.error('Failed to create form:', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to create form' },
       { status: 500 }

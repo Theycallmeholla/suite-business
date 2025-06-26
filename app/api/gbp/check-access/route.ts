@@ -47,9 +47,11 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info('Checking GBP access for place', {
+      metadata: {
       action: 'gbp_check_access',
       placeId,
       businessName,
+    }
     });
 
     // Get all user's Google accounts
@@ -97,9 +99,11 @@ export async function POST(request: NextRequest) {
           const locations = locationsData.locations || [];
 
           logger.info(`Checking ${locations.length} locations for account ${account.providerAccountId}`, {
+      metadata: {
             businessName,
             accountEmail: locationsData.googleAccountEmail
-          });
+          }
+    });
 
           // Check if any location matches our search
           for (const location of locations) {
@@ -116,28 +120,34 @@ export async function POST(request: NextRequest) {
               // Get email from the locations API response
               accessAccountEmail = locationsData.googleAccountEmail || user?.email || 'Connected Account';
               accessLocationId = location.id;
-              logger.info('Found matching business!', { 
+              logger.info('Found matching business!', {
+      metadata: { 
                 locationName: location.name,
                 businessName,
                 accountEmail: accessAccountEmail 
-              });
+              }
+    });
               break;
             }
           }
         } else {
           logger.warn('Failed to fetch locations for account', {
+      metadata: {
             accountId: account.providerAccountId,
             status: locationsResponse.status,
             error: await locationsResponse.text()
-          });
+          }
+    });
         }
 
         if (hasAccess) break;
       } catch (error) {
-        logger.warn('Error checking account for GBP access', { 
+        logger.warn('Error checking account for GBP access', {
+      metadata: { 
           accountId: account.providerAccountId,
           error: error instanceof Error ? error.message : 'Unknown error'
-        });
+        }
+    });
       }
     }
 
@@ -186,8 +196,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('GBP access check error', {
+      metadata: {
       action: 'gbp_access_error',
       error: error instanceof Error ? error.message : 'Unknown error',
+    }
     });
 
     return NextResponse.json(

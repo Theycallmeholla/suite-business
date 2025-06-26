@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import logger from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
 const updateContentSchema = z.object({
@@ -55,9 +55,11 @@ export async function POST(request: NextRequest) {
     });
 
     logger.info('Page content updated', {
+      metadata: {
       pageId: page.id,
       siteId: page.site.id,
       userId: session.user.id,
+    }
     });
 
     return NextResponse.json({
@@ -65,7 +67,9 @@ export async function POST(request: NextRequest) {
       page: updatedPage,
     });
   } catch (error) {
-    logger.error('Failed to update page content', { error });
+    logger.error('Failed to update page content', {
+      metadata: { error }
+    });
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -123,7 +127,9 @@ export async function GET(request: NextRequest) {
       page,
     });
   } catch (error) {
-    logger.error('Failed to get page content', { error });
+    logger.error('Failed to get page content', {
+      metadata: { error }
+    });
     
     return NextResponse.json(
       { error: 'Failed to get content' },

@@ -46,7 +46,7 @@ export function GoogleAccountSelector({ onAccountSelect, currentAccountId }: Goo
         }
       }
     } catch (error) {
-      console.error('Failed to fetch accounts:', error);
+      // Error handled silently
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +58,9 @@ export function GoogleAccountSelector({ onAccountSelect, currentAccountId }: Goo
   };
 
   const handleAddAccount = () => {
-    router.push('/add-google-account');
+    // Get current path to return to
+    const currentPath = window.location.pathname + window.location.search;
+    router.push(`/add-google-account?returnTo=${encodeURIComponent(currentPath)}`);
   };
 
   if (isLoading) {

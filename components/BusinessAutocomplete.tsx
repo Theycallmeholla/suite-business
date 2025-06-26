@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Loader2, Building2, MapPin, Search } from 'lucide-react';
@@ -44,7 +44,7 @@ export function BusinessAutocomplete({
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debounceTimer = useRef<NodeJS.Timeout>();
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Generate session token on mount
   useEffect(() => {
@@ -179,7 +179,7 @@ export function BusinessAutocomplete({
   const highlightMatch = (text: string, matches?: Array<{ offset: number; length: number }>) => {
     if (!matches || matches.length === 0) return text;
 
-    const parts: JSX.Element[] = [];
+    const parts: React.JSX.Element[] = [];
     let lastOffset = 0;
 
     matches.forEach((match, index) => {

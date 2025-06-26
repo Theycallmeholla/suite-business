@@ -10,7 +10,7 @@ const updateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { siteId: string } }
+  { params }: { params: Promise<{ siteId: string }> }
 ) {
   try {
     const session = await getAuthSession();
@@ -22,7 +22,7 @@ export async function PATCH(
       );
     }
 
-    const { siteId } = params;
+    const { siteId } = await params;
     const body = await request.json();
     const { enabled } = updateSchema.parse(body);
 
@@ -56,8 +56,10 @@ export async function PATCH(
     });
 
     logger.info('Updated GHL status', {
+      metadata: {
       siteId,
       ghlEnabled: enabled,
+    }
     });
 
     return NextResponse.json({
@@ -65,7 +67,9 @@ export async function PATCH(
     });
 
   } catch (error) {
-    logger.error('Update GHL status error', { error });
+    logger.error('Update GHL status error', {
+      metadata: { error }
+    });
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(

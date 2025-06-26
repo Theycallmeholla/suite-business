@@ -16,6 +16,7 @@ import { IndustrySelector } from './components/IndustrySelector';
 import { ManualBusinessSetup } from './components/ManualBusinessSetup';
 import { BusinessClaimDialog } from './components/BusinessClaimDialog';
 import { toast } from '@/lib/toast';
+import { logger } from '@/lib/logger';
 import { BusinessAutocomplete } from '@/components/BusinessAutocomplete';
 
 type Step = 'gbp-check' | 'gbp-select' | 'gbp-search' | 'business-info' | 'industry-select' | 'manual-setup';
@@ -95,10 +96,31 @@ export default function OnboardingPage() {
     }
   }, [status, router]);
   
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      // Clean up any saved state when leaving onboarding
+      localStorage.removeItem('onboarding_step');
+      localStorage.removeItem('onboarding_resume_data');
+    };
+  }, []);
+  
   // Check if we're coming back from adding a new account
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromAddAccount = urlParams.get('fromAddAccount');
+    const error = urlParams.get('error');
+    
+    // Handle errors first
+    if (error === 'AccountAlreadyLinked') {
+      toast.error('This Google account is already linked to another user');
+    } else if (error === 'oauth_error') {
+      toast.error('Google authentication was cancelled or failed');
+    } else if (error === 'invalid_state' || error === 'state_expired') {
+      toast.error('Authentication session expired. Please try again');
+    } else if (error === 'token_exchange_failed') {
+      toast.error('Failed to complete Google authentication');
+    }
     
     if (fromAddAccount === 'true') {
       // Check if we have resume data
@@ -108,8 +130,16 @@ export default function OnboardingPage() {
           const resumeData = JSON.parse(resumeDataStr);
           localStorage.removeItem('onboarding_resume_data');
           
-          // Re-check the business with the new account
-          if (resumeData.placeId) {
+          // Restore the state based on where we were
+          if (resumeData.step === 'gbp-select') {
+            // We were on the "Select your business" page
+            setStep('gbp-select');
+            setHasGBP('yes');
+            
+            // Get the newly added account and select it
+            fetchAccountsAndSelectNewest();
+          } else if (resumeData.placeId) {
+            // We were searching for a business
             setStep('gbp-search');
             // Trigger the ownership check again
             setTimeout(() => {
@@ -121,12 +151,17 @@ export default function OnboardingPage() {
             }, 100);
           }
         } catch (error) {
-          console.error('Error parsing resume data:', error);
+          logger.error('Error parsing resume data', {}, error as Error);
         }
-      } else if (step === 'gbp-select') {
-        // Force refresh to get the new account's businesses
-        console.log('Refreshing businesses after adding new account...');
-        fetchUserBusinesses();
+      } else {
+        // No resume data but coming from add account - restore to gbp-select
+        // This handles the case where user was already on gbp-select
+        const savedStep = localStorage.getItem('onboarding_step');
+        if (savedStep === 'gbp-select') {
+          setStep('gbp-select');
+          setHasGBP('yes');
+          fetchAccountsAndSelectNewest();
+        }
       }
       
       // Clean up URL
@@ -162,16 +197,25 @@ export default function OnboardingPage() {
         
         // Log useful information
         if (data.cached) {
-          console.log(`Using cached data (${data.cacheAge} minutes old)`);
+          logger.info('Using cached GBP data', {
+      metadata: { cacheAge: data.cacheAge }
+    });
         }
         if (data.accountsChecked > 0) {
-          console.log(`Checked ${data.accountsChecked} business account(s), found ${data.totalLocations || 0} location(s)`);
+          logger.info('Fetched GBP data', {
+      metadata: { 
+            accountsChecked: data.accountsChecked, 
+            totalLocations: data.totalLocations || 0 
+          }
+    });
         }
         if (data.apiCallsUsed) {
-          console.log(`API calls used: ${data.apiCallsUsed}`);
+          logger.info('GBP API usage', {
+      metadata: { apiCallsUsed: data.apiCallsUsed }
+    });
         }
       } else {
-        console.error('GBP API Error:', data);
+        logger.error('GBP API Error', { metadata: data });
         
         // Handle specific error cases
         if (response.status === 403) {
@@ -215,12 +259,34 @@ export default function OnboardingPage() {
         setBusinesses([]);
       }
     } catch (error) {
-      console.error('Error fetching businesses:', error);
+      logger.error('Error fetching businesses', {}, error as Error);
       alert('Network error. Please check your connection and try again.');
       setBusinesses([]);
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
+    }
+  };
+
+  // Fetch accounts and select the newest one
+  const fetchAccountsAndSelectNewest = async () => {
+    try {
+      const response = await fetch('/api/gbp/accounts');
+      if (response.ok) {
+        const data = await response.json();
+        const accounts = data.accounts || [];
+        
+        if (accounts.length > 0) {
+          // Sort by creation date (newest first) or just take the last one
+          const newestAccount = accounts[accounts.length - 1];
+          setSelectedAccountId(newestAccount.googleAccountId);
+          
+          // Now fetch businesses for this account
+          await fetchUserBusinesses(newestAccount.googleAccountId);
+        }
+      }
+    } catch (error) {
+      logger.error('Error fetching accounts', {}, error as Error);
     }
   };
 
@@ -240,6 +306,8 @@ export default function OnboardingPage() {
     if (value === 'yes') {
       await fetchUserBusinesses(undefined, false);
       setStep('gbp-select');
+      // Save step to localStorage for recovery
+      localStorage.setItem('onboarding_step', 'gbp-select');
     } else if (value === 'no') {
       // Go directly to manual setup
       setStep('manual-setup');
@@ -285,13 +353,10 @@ export default function OnboardingPage() {
           id: placeId,
           name: businessName,
           address: details.formatted_address || address,
-          phone: details.formatted_phone_number || null,
-          website: details.website || null,
-          verified: details.business_status === 'OPERATIONAL',
           primaryPhone: details.formatted_phone_number || null,
+          website: details.website || null,
           coordinates: details.location,
           regularHours: details.opening_hours,
-          place_id: placeId,
         };
         
         setSelectedBusiness(placeId);
@@ -301,7 +366,7 @@ export default function OnboardingPage() {
         toast.error('Failed to get business details');
       }
     } catch (error) {
-      console.error('Error fetching place details:', error);
+      logger.error('Error fetching place details', {}, error as Error);
       toast.error('Failed to get business details');
     } finally {
       setIsLoading(false);
@@ -358,7 +423,7 @@ export default function OnboardingPage() {
         await proceedWithBusinessDetails(placeId, businessName, address);
       }
     } catch (error) {
-      console.error('Error checking ownership:', error);
+      logger.error('Error checking ownership', {}, error as Error);
       // Fallback to just getting details
       await proceedWithBusinessDetails(placeId, businessName, address);
     }
@@ -397,7 +462,7 @@ export default function OnboardingPage() {
           // The selected business is already set, so move to confirmation
           setStep('business-info');
         } catch (error) {
-          console.error('Error fetching GBP data:', error);
+          logger.error('Error fetching GBP data', {}, error as Error);
           toast.error('Failed to fetch business details');
         } finally {
           setIsLoading(false);
@@ -629,11 +694,15 @@ export default function OnboardingPage() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        // Just refresh the account selector to show the new account
-                        window.location.reload();
+                        // Save current state before adding account
+                        localStorage.setItem('onboarding_resume_data', JSON.stringify({
+                          step: 'gbp-select',
+                          hasGBP: 'yes'
+                        }));
+                        router.push('/add-google-account?returnTo=/onboarding');
                       }}
                     >
-                      Refresh accounts
+                      Add account
                     </Button>
                   </div>
                 </div>

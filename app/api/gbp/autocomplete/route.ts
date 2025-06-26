@@ -106,19 +106,23 @@ export async function POST(request: NextRequest) {
 
     const autocompleteUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params.toString()}`;
     
-    logger.debug('Calling Places Autocomplete API', { 
+    logger.debug('Calling Places Autocomplete API', {
+      metadata: { 
       action: 'places_autocomplete',
       input: input.substring(0, 20) // Log only first 20 chars
+    }
     });
 
     const response = await fetch(autocompleteUrl);
     const data = await response.json();
 
     if (data.status === 'REQUEST_DENIED') {
-      logger.error('Places Autocomplete API request denied', { 
+      logger.error('Places Autocomplete API request denied', {
+      metadata: { 
         action: 'autocomplete_denied',
         error_message: data.error_message 
-      });
+      }
+    });
       return NextResponse.json(
         { error: 'Autocomplete service configuration error', details: data.error_message },
         { status: 500 }
@@ -134,10 +138,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      logger.error('Places Autocomplete API error', { 
+      logger.error('Places Autocomplete API error', {
+      metadata: { 
         action: 'autocomplete_error',
         status: data.status 
-      });
+      }
+    });
       return NextResponse.json(
         { error: 'Autocomplete failed', status: data.status },
         { status: 500 }
@@ -179,10 +185,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    logger.info('Places autocomplete completed', { 
+    logger.info('Places autocomplete completed', {
+      metadata: { 
       action: 'autocomplete_success',
       input: input.substring(0, 20),
       resultCount: predictions.length 
+    }
     });
 
     return NextResponse.json({ 
@@ -191,9 +199,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Autocomplete error', { 
+    logger.error('Autocomplete error', {
+      metadata: { 
       action: 'autocomplete_error',
       error: error instanceof Error ? error.message : 'Unknown error' 
+    }
     });
     return NextResponse.json(
       { error: 'Autocomplete failed' },

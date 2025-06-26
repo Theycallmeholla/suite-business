@@ -7,7 +7,7 @@ import path from 'path';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { siteId: string } }
+  { params }: { params: Promise<{ siteId: string }> }
 ) {
   try {
     // Check authentication
@@ -16,7 +16,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { siteId } = params;
+    const { siteId } = await params;
     const { logo } = await request.json();
 
     // Verify site ownership
@@ -36,10 +36,14 @@ export async function PATCH(
       try {
         const oldLogoPath = path.join(process.cwd(), 'public', site.logo);
         await unlink(oldLogoPath);
-        logger.info('Deleted old logo file', { path: oldLogoPath });
+        logger.info('Deleted old logo file', {
+      metadata: { path: oldLogoPath }
+    });
       } catch (error) {
         // File might not exist, which is fine
-        logger.warn('Could not delete old logo file', { error });
+        logger.warn('Could not delete old logo file', {
+      metadata: { error }
+    });
       }
     }
 
@@ -49,10 +53,12 @@ export async function PATCH(
       data: { logo },
     });
 
-    logger.info('Site logo updated', { 
+    logger.info('Site logo updated', {
+      metadata: { 
       siteId, 
       oldLogo: site.logo,
       newLogo: logo 
+    }
     });
 
     return NextResponse.json({ 
@@ -60,7 +66,7 @@ export async function PATCH(
       logo: updatedSite.logo 
     });
   } catch (error) {
-    logger.error('Update logo error:', error);
+    logger.error('Update logo error:', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to update logo' },
       { status: 500 }

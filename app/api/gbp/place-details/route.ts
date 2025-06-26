@@ -29,10 +29,12 @@ export async function POST(request: NextRequest) {
     // Check cache first
     const cached = detailsCache.get(placeId);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      logger.debug('Returning cached place details', { 
+      logger.debug('Returning cached place details', {
+      metadata: { 
         action: 'details_cache_hit',
         placeId 
-      });
+      }
+    });
       return NextResponse.json({ details: cached.details, cached: true });
     }
 
@@ -96,19 +98,23 @@ export async function POST(request: NextRequest) {
       `&fields=${encodeURIComponent(fields)}` +
       `&key=${GOOGLE_MAPS_API_KEY}`;
     
-    logger.debug('Fetching place details from Google', { 
+    logger.debug('Fetching place details from Google', {
+      metadata: { 
       action: 'places_api_details',
       placeId 
+    }
     });
 
     const response = await fetch(detailsUrl);
     const data = await response.json();
 
     if (data.status === 'REQUEST_DENIED') {
-      logger.error('Places API request denied', { 
+      logger.error('Places API request denied', {
+      metadata: { 
         action: 'places_api_denied',
         error_message: data.error_message 
-      });
+      }
+    });
       return NextResponse.json(
         { error: 'Search service configuration error', details: data.error_message },
         { status: 500 }
@@ -124,10 +130,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (data.status !== 'OK') {
-      logger.error('Places API error', { 
+      logger.error('Places API error', {
+      metadata: { 
         action: 'places_api_error',
         status: data.status 
-      });
+      }
+    });
       return NextResponse.json(
         { error: 'Failed to fetch place details', status: data.status },
         { status: 500 }
@@ -137,7 +145,7 @@ export async function POST(request: NextRequest) {
     const place = data.result;
     
     // Transform the data to our format
-    const details = {
+    const details: any = {
       place_id: place.place_id,
       name: place.name,
       formatted_address: place.formatted_address,
@@ -192,21 +200,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    logger.info('Place details fetched successfully', { 
+    logger.info('Place details fetched successfully', {
+      metadata: { 
       action: 'details_success',
       placeId,
       hasWebsite: !!details.website,
       hasPhone: !!details.formatted_phone_number,
       photosCount: details.photos.length,
       reviewsCount: details.reviews.length,
+    }
     });
 
     return NextResponse.json({ details });
 
   } catch (error) {
-    logger.error('Place details error', { 
+    logger.error('Place details error', {
+      metadata: { 
       action: 'details_error',
       error: error instanceof Error ? error.message : 'Unknown error' 
+    }
     });
     return NextResponse.json(
       { error: 'Failed to fetch place details' },

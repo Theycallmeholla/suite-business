@@ -58,7 +58,7 @@ class EmailService {
     }
 
     try {
-      const defaultFrom = `${process.env.NEXT_PUBLIC_APP_NAME || 'Suite Business'} <${process.env.SMTP_USER}>`;
+      const defaultFrom = `${process.env.NEXT_PUBLIC_APP_NAME || 'Sitebango'} <${process.env.SMTP_USER}>`;
 
       const info = await this.transporter.sendMail({
         from: options.from || defaultFrom,
@@ -190,10 +190,10 @@ The ${data.businessName} Team
     const dashboardUrl = `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/dashboard`;
 
     return {
-      subject: 'Welcome to Suite Business! 🎉',
+      subject: 'Welcome to Sitebango! 🎉',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333; text-align: center;">Welcome to Suite Business!</h1>
+          <h1 style="color: #333; text-align: center;">Welcome to Sitebango!</h1>
           
           <p>Hi ${data.firstName},</p>
           
@@ -219,11 +219,11 @@ The ${data.businessName} Team
           
           <p>If you have any questions or need help getting started, our support team is here to help!</p>
           
-          <p>Best regards,<br>The Suite Business Team</p>
+          <p>Best regards,<br>The Sitebango Team</p>
         </div>
       `,
       text: `
-Welcome to Suite Business!
+Welcome to Sitebango!
 
 Hi ${data.firstName},
 

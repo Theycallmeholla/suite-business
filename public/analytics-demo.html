@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sitebango Analytics Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .button {
+      background: #22c55e;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+      margin: 0.5rem;
+    }
+    .button:hover {
+      background: #16a34a;
+    }
+    .code {
+      background: #f3f4f6;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-family: monospace;
+      font-size: 0.875rem;
+      overflow-x: auto;
+    }
+    .section {
+      margin: 2rem 0;
+    }
+    .log {
+      background: #fefce8;
+      border: 1px solid #fef08a;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin: 1rem 0;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .log-entry {
+      margin: 0.25rem 0;
+      font-size: 0.875rem;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sitebango Analytics Demo</h1>
+  
+  <div class="section">
+    <h2>How to Add Analytics to Your Site</h2>
+    <p>Simply add this script tag to your HTML, replacing YOUR_SITE_ID with your actual site ID:</p>
+    <div class="code">
+      &lt;script src="https://yourdomain.com/analytics.js" data-site-id="YOUR_SITE_ID" defer&gt;&lt;/script&gt;
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Automatic Tracking</h2>
+    <p>The analytics script automatically tracks:</p>
+    <ul>
+      <li><strong>Page Views</strong> - Every time a page loads</li>
+      <li><strong>Sessions</strong> - User sessions with duration and bounce rate</li>
+      <li><strong>Device Info</strong> - Mobile, tablet, or desktop</li>
+      <li><strong>Traffic Sources</strong> - Where visitors come from</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Manual Tracking</h2>
+    <p>You can also manually track events using the global SitebangoAnalytics object:</p>
+    
+    <h3>Track a Lead</h3>
+    <div class="code">
+      SitebangoAnalytics.trackLead('contact-form');
+    </div>
+    <button class="button" onclick="trackLead()">Track Lead</button>
+    
+    <h3>Track a Conversion</h3>
+    <div class="code">
+      SitebangoAnalytics.trackConversion('appointment', 250);
+    </div>
+    <button class="button" onclick="trackConversion()">Track Conversion</button>
+  </div>
+
+  <div class="section">
+    <h2>Event Log</h2>
+    <div id="log" class="log">
+      <div class="log-entry">Waiting for analytics to load...</div>
+    </div>
+  </div>
+
+  <!-- Analytics Script (replace with your site ID) -->
+  <script src="/analytics.js" data-site-id="demo-site-id"></script>
+  
+  <script>
+    const log = document.getElementById('log');
+    
+    function addLog(message, data) {
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      if (data) {
+        entry.textContent += ` - ${JSON.stringify(data)}`;
+      }
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+    
+    // Check when analytics loads
+    let checkInterval = setInterval(() => {
+      if (window.SitebangoAnalytics) {
+        clearInterval(checkInterval);
+        addLog('Analytics loaded successfully');
+        addLog('Session ID', { sessionId: SitebangoAnalytics.sessionId });
+      }
+    }, 100);
+    
+    function trackLead() {
+      if (window.SitebangoAnalytics) {
+        SitebangoAnalytics.trackLead('demo-button');
+        addLog('Lead tracked', { source: 'demo-button' });
+      } else {
+        addLog('Analytics not loaded yet');
+      }
+    }
+    
+    function trackConversion() {
+      if (window.SitebangoAnalytics) {
+        SitebangoAnalytics.trackConversion('demo-conversion', 250);
+        addLog('Conversion tracked', { type: 'demo-conversion', value: 250 });
+      } else {
+        addLog('Analytics not loaded yet');
+      }
+    }
+    
+    // Track some automatic events
+    setTimeout(() => {
+      addLog('Page view should have been tracked automatically');
+    }, 1000);
+    
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        addLog('Page hidden - session data will be sent');
+      } else {
+        addLog('Page visible again');
+      }
+    });
+  </script>
+</body>
+</html>

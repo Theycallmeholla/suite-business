@@ -128,7 +128,7 @@ export default async function SitePagesPage({ params }: { params: Promise<{ id: 
                   <CardContent>
                     <div className="text-sm text-gray-600">
                       <p>Last updated: {new Date(page.updatedAt).toLocaleDateString()}</p>
-                      {page.content.sections && (
+                      {page.content && typeof page.content === 'object' && 'sections' in page.content && Array.isArray(page.content.sections) && (
                         <p>{page.content.sections.length} sections</p>
                       )}
                     </div>

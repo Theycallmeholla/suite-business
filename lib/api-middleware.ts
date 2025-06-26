@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { getActiveSubscription, hasFeatureAccess } from '@/lib/stripe';
 import { logger } from '@/lib/logger';
 
@@ -8,7 +7,7 @@ export async function requirePlan(
   req: NextRequest,
   requiredPlans: Array<'starter' | 'professional' | 'enterprise'>
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   
   if (!session?.user) {
     return {
@@ -33,7 +32,7 @@ export async function requirePlan(
 }
 
 export async function requireFeature(req: NextRequest, feature: string) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   
   if (!session?.user) {
     return {

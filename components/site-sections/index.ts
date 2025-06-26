@@ -1,7 +1,19 @@
-export { Hero } from './Hero';
+// Export all variants for each section type
+export * from './Hero';
+export * from './Services';
+export * from './Testimonials';
+
+// For backward compatibility, export default variants
+export { HeroModern as Hero } from './Hero';
+export { ServicesCards as Services } from './Services';
+export { TestimonialsGrid as Testimonials } from './Testimonials';
+
+// Maintain other section exports
 export { About } from './About';
-export { Services } from './Services';
 export { Features } from './Features';
 export { CTA } from './CTA';
 export { Contact } from './Contact';
 export { ContactSection } from './ContactSection';
+export { Gallery } from './Gallery';
+export { FAQ } from './FAQ';
+export { ServiceAreas } from './ServiceAreas';

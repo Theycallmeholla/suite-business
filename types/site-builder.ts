@@ -17,7 +17,8 @@ export type SectionType =
   | 'contact'
   | 'gallery'
   | 'faq'
-  | 'stats';
+  | 'stats'
+  | 'serviceAreas';
 
 // Industry types for future customization
 export type IndustryType = 
@@ -127,13 +128,75 @@ export interface ContactSection extends SectionBase {
   };
 }
 
+// Testimonials section
+export interface TestimonialsSection extends SectionBase {
+  type: 'testimonials';
+  data: {
+    title: string;
+    subtitle?: string;
+    testimonials: Array<{
+      id: string;
+      name: string;
+      title?: string;
+      company?: string;
+      rating: number;
+      review: string;
+      date?: string;
+      image?: string;
+    }>;
+    variant: 'grid' | 'carousel' | 'minimal';
+  };
+}
+
+// Gallery section
+export interface GallerySection extends SectionBase {
+  type: 'gallery';
+  data: {
+    testimonials?: Array<{
+      quote: string;
+      name: string;
+      location?: string;
+      image?: string;
+    }>;
+    transformations?: Array<{
+      before: string;
+      after: string;
+      alt: string;
+    }>;
+  };
+}
+
+// FAQ section
+export interface FAQSection extends SectionBase {
+  type: 'faq';
+  data: {
+    questions?: Array<{
+      question: string;
+      answer: string;
+    }>;
+  };
+}
+
+// Service Areas section
+export interface ServiceAreasSection extends SectionBase {
+  type: 'serviceAreas';
+  data: {
+    areas?: string[];
+    mapImage?: string;
+  };
+}
+
 export type Section = 
   | HeroSection 
   | AboutSection 
   | ServicesSection 
   | FeaturesSection 
   | CTASection 
-  | ContactSection;
+  | ContactSection
+  | TestimonialsSection
+  | GallerySection
+  | FAQSection
+  | ServiceAreasSection;
 
 // Page template structure
 export interface PageTemplate {

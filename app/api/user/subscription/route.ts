@@ -18,7 +18,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ subscription });
   } catch (error) {
-    logger.error('Error fetching subscription', { error });
+    logger.error('Error fetching subscription', {
+      metadata: { error }
+    });
     return NextResponse.json(
       { error: 'Failed to fetch subscription' },
       { status: 500 }

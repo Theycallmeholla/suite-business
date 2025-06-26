@@ -79,7 +79,16 @@ export function EditableSectionRenderer({
               <SectionComponents.ContactSection
                 key={section.id}
                 section={section}
-                siteData={siteData}
+                siteData={{
+                  id: siteData.id,
+                  phone: siteData.phone || undefined,
+                  email: siteData.email || undefined,
+                  address: siteData.address || undefined,
+                  city: siteData.city || undefined,
+                  state: siteData.state || undefined,
+                  zip: siteData.zip || undefined,
+                  businessHours: siteData.businessHours || undefined,
+                }}
                 onUpdate={isEditMode ? handleUpdate : undefined}
                 isEditable={isEditMode}
               />

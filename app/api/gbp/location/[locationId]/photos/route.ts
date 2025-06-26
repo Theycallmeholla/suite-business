@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { locationId: string } }
+  { params }: { params: Promise<{ locationId: string }> }
 ) {
   try {
     const session = await getAuthSession();
@@ -17,14 +17,16 @@ export async function GET(
       );
     }
 
-    const { locationId } = params;
+    const { locationId } = await params;
     const pageSize = request.nextUrl.searchParams.get('pageSize') || '10';
     const pageToken = request.nextUrl.searchParams.get('pageToken');
 
-    logger.info('Fetching GBP location photos', { 
+    logger.info('Fetching GBP location photos', {
+      metadata: { 
       userId: session.user.id, 
       locationId,
       pageSize 
+    }
     });
 
     const gbpAccess = await getUserGoogleBusinessAccess(session.user.id);
@@ -66,10 +68,12 @@ export async function GET(
       dataRef: photo.dataRef,
     }));
 
-    logger.info('Successfully fetched GBP photos', { 
+    logger.info('Successfully fetched GBP photos', {
+      metadata: { 
       locationId,
       photosCount: transformedPhotos.length,
       hasNextPage: !!response.data.nextPageToken
+    }
     });
 
     return NextResponse.json({
@@ -79,9 +83,11 @@ export async function GET(
     });
 
   } catch (error: any) {
-    logger.error('Error fetching GBP photos', { 
+    logger.error('Error fetching GBP photos', {
+      metadata: { 
       error: error.message,
-      locationId: params.locationId 
+      locationId: (await params).locationId 
+    }
     });
 
     if (error.response?.status === 404) {

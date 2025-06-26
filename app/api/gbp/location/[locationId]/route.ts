@@ -25,11 +25,13 @@ export async function GET(
     const locationId = decodeURIComponent(paramLocationId);
     const accountId = request.nextUrl.searchParams.get('accountId');
 
-    logger.info('Fetching single GBP location', { 
+    logger.info('Fetching single GBP location', {
+      metadata: { 
       userId: session.user.id, 
       locationId,
       encodedLocationId: paramLocationId,
       accountId 
+    }
     });
 
     // Get the Google account
@@ -90,7 +92,7 @@ export async function GET(
         });
         oauth2Client.setCredentials(credentials);
       } catch (refreshError) {
-        logger.error('Token refresh failed', refreshError);
+        logger.error('Token refresh failed', {}, refreshError as Error);
         return NextResponse.json(
           { error: 'Google authentication expired. Please sign in again.' },
           { status: 401 }
@@ -156,7 +158,7 @@ export async function GET(
               return false;
             });
 
-            if (targetLocation) {
+            if (targetLocation && targetLocation.name) {
               resourceName = targetLocation.name;
               found = true;
               break;
@@ -238,22 +240,26 @@ export async function GET(
         serviceItems: location.serviceItems || [],
       };
 
-      logger.info('Successfully fetched GBP location', { 
+      logger.info('Successfully fetched GBP location', {
+      metadata: { 
         locationId,
         resourceName,
         hasServiceArea: !!location.serviceArea,
         categoriesCount: (location.categories?.additionalCategories?.length || 0) + 1
-      });
+      }
+    });
 
       return NextResponse.json(transformedLocation);
 
     } catch (apiError: any) {
-      logger.error('Google API Error:', { 
+      logger.error('Google API Error:', {
+      metadata: { 
         error: apiError.message,
         locationId,
         code: apiError.code,
         details: apiError.response?.data
-      });
+      }
+    });
 
       if (apiError.code === 404 || apiError.message?.includes('not found')) {
         return NextResponse.json(
@@ -274,9 +280,11 @@ export async function GET(
 
   } catch (error: any) {
     const { locationId: paramLocationId } = await params;
-    logger.error('Error fetching GBP location', { 
+    logger.error('Error fetching GBP location', {
+      metadata: { 
       error: error.message,
       locationId: paramLocationId 
+    }
     });
 
     return NextResponse.json(

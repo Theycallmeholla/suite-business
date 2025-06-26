@@ -115,10 +115,7 @@ async function deleteSite(siteId: string, deleteGHL: boolean = false) {
   if (deleteGHL && site.ghlLocationId) {
     try {
       const { createGHLProClient } = await import('@/lib/ghl');
-      const ghlClient = createGHLProClient({
-        apiKey: process.env.GHL_API_KEY!,
-        locationId: site.ghlLocationId,
-      });
+      const ghlClient = createGHLProClient();
 
       // Delete the GHL sub-account
       await ghlClient.deleteLocation(site.ghlLocationId);

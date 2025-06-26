@@ -17,13 +17,17 @@ model User {
   emailVerified DateTime?
   name          String?
   image         String?
+  ghlUserId     String?   @unique // Their GHL user ID
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   accounts      Account[]
   sessions      Session[]
-  sites         Site[]
+  sites         Site[]    // Direct ownership (legacy)
+  teamMembers   TeamMember[]
   customer      Customer?
+  generatedTemplates GeneratedTemplate[]
+  generatedContent GeneratedContent[]
 }
 
 model Account {
@@ -53,10 +57,40 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// Team/Organization models
+model Team {
+  id            String   @id @default(cuid())
+  name          String
+  type          String   @default("client") // "agency" or "client"
+  ghlCompanyId  String?  @unique // Links to GHL agency/location
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  members       TeamMember[]
+  sites         Site[]
+}
+
+model TeamMember {
+  id            String   @id @default(cuid())
+  userId        String
+  teamId        String
+  role          String   // "owner", "admin", "member"
+  ghlUserId     String?  // Their GHL user ID
+  permissions   Json?    // Future: granular permissions
+  createdAt     DateTime @default(now())
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team          Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, teamId])
+  @@index([teamId])
+}
+
 // Your landscaping business models
 model Site {
   id            String   @id @default(cuid())
-  userId        String
+  userId        String   // Keep for backward compatibility
+  teamId        String?  // New: team ownership
   businessName  String
   subdomain     String   @unique
   customDomain  String?  @unique
@@ -100,7 +134,7 @@ model Site {
   secondaryColor String?
   accentColor    String?
   logo           String?
-  photos         Json?    // Array of business photos with metadata
+  photoData      Json?    // Array of business photos with metadata (from GBP import)
   
   // SEO
   metaTitle     String?
@@ -121,13 +155,20 @@ model Site {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
+  // Intelligence System
+  intelligence  BusinessIntelligence?
+  
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team          Team?    @relation(fields: [teamId], references: [id])
   pages         Page[]
   services      Service[]
   blogPosts     BlogPost[]
   seoTasks      SeoTask[]
   photos        Photo[]
   forms         Form[]
+  contacts      Contact[]
+  leads         Lead[]
+  analytics     SiteAnalytics[]
 }
 
 model Photo {
@@ -229,12 +270,15 @@ model FormSubmission {
   data        Json     // Submitted form data
   metadata    Json?    // IP, user agent, referrer, etc
   ghlContactId String? // GoHighLevel contact ID if synced
+  isRead      Boolean  @default(false)
+  readAt      DateTime?
   createdAt   DateTime @default(now())
   
   form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
   
   @@index([formId, createdAt])
   @@index([siteId, createdAt])
+  @@index([siteId, isRead])
 }
 
 // Billing models
@@ -303,15 +347,45 @@ model BusinessIntelligence {
   id           String   @id @default(cuid())
   businessName String
   placeId      String?
-  siteId       String?
-  data         Json     // Full intelligence data
-  questions    Json?    // Generated questions for user
-  userAnswers  Json?    // User's answers to questions
+  site         Site?    @relation(fields: [siteId], references: [id])
+  siteId       String?  @unique
+  
+  // Comprehensive data storage
+  dataScore    Json     // Scoring breakdown
+  gbpData      Json?    // Google Business Profile
+  placesData   Json?    // Enhanced Places data
+  serpData     Json?    // Search results data
+  userAnswers  Json?    // Question responses
+  
+  // Generated content
+  generatedSections Json?  // AI-generated sections
+  seoMetadata      Json?  // Generated SEO data
+  
   extractedAt  DateTime @default(now())
   updatedAt    DateTime @updatedAt
   
+  generatedTemplates GeneratedTemplate[]
+  generatedContent GeneratedContent[]
+  
   @@index([businessName])
   @@index([placeId])
+}
+
+model SmartQuestion {
+  id          String   @id @default(cuid())
+  industry    String
+  type        String   // question type
+  priority    Int
+  category    String
+  question    String
+  options     Json     // Array of options
+  conditions  Json?    // Skip conditions
+  popularity  Json?    // Usage statistics
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([industry, priority])
 }
 
 model Notification {
@@ -325,4 +399,212 @@ model Notification {
   createdAt DateTime @default(now())
   
   @@index([userId, read])
+}
+
+// CRM and Analytics models
+model Contact {
+  id           String   @id @default(cuid())
+  siteId       String
+  ghlContactId String?  @unique // GoHighLevel contact ID
+  
+  // Contact information
+  firstName    String?
+  lastName     String?
+  email        String?
+  phone        String?
+  source       String?  // Where the contact came from
+  
+  // Metadata
+  tags         String[] // Array of tags
+  customFields Json?    // Additional custom fields
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  lastUpdated  DateTime @updatedAt
+  
+  site         Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  leads        Lead[]   // Leads associated with this contact
+  
+  @@index([siteId, createdAt])
+  @@index([email])
+  @@index([ghlContactId])
+}
+
+model Lead {
+  id            String   @id @default(cuid())
+  siteId        String
+  contactId     String?  // Optional link to existing contact
+  ghlLeadId     String?  @unique // GoHighLevel lead ID
+  
+  // Lead information
+  firstName     String
+  lastName      String?
+  email         String
+  phone         String?
+  company       String?
+  
+  // Lead details
+  source        String   // Website form, Google Ads, Facebook, etc.
+  sourceUrl     String?  // URL where lead was captured
+  referrer      String?  // HTTP referrer
+  utmSource     String?  // UTM tracking parameters
+  utmMedium     String?
+  utmCampaign   String?
+  utmTerm       String?
+  utmContent    String?
+  
+  // Lead qualification
+  status        String   @default("new") // new, contacted, qualified, unqualified, converted
+  score         Int      @default(0)     // Lead score 0-100
+  temperature   String   @default("cold") // hot, warm, cold
+  
+  // Assignment
+  assignedTo    String?  // User ID of assigned team member
+  assignedAt    DateTime?
+  
+  // Activity tracking
+  lastContactedAt DateTime?
+  nextFollowUp    DateTime?
+  notes           String?  // Internal notes
+  
+  // Form data
+  formId        String?  // Which form was submitted
+  formData      Json?    // Complete form submission data
+  
+  // Conversion tracking
+  converted     Boolean  @default(false)
+  convertedAt   DateTime?
+  dealValue     Float?   // Potential deal value
+  
+  // Integration status
+  ghlSynced     Boolean  @default(false)
+  ghlSyncedAt   DateTime?
+  ghlSyncError  String?
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  site          Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  contact       Contact? @relation(fields: [contactId], references: [id])
+  activities    LeadActivity[]
+  
+  @@index([siteId, createdAt])
+  @@index([siteId, status])
+  @@index([email])
+  @@index([assignedTo])
+  @@index([ghlLeadId])
+}
+
+model LeadActivity {
+  id          String   @id @default(cuid())
+  leadId      String
+  userId      String?  // Who performed the activity
+  
+  type        String   // email, call, meeting, note, status_change
+  subject     String?
+  description String?
+  metadata    Json?    // Additional activity data
+  
+  createdAt   DateTime @default(now())
+  
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  @@index([leadId, createdAt])
+}
+
+model SiteAnalytics {
+  id          String   @id @default(cuid())
+  siteId      String
+  date        String   // YYYY-MM-DD format
+  
+  // Metrics
+  views       Int      @default(0)
+  leads       Int      @default(0)
+  conversions Int      @default(0)
+  
+  // Additional metrics
+  bounceRate  Float?   // Percentage
+  avgSession  Int?     // Average session duration in seconds
+  topPages    Json?    // Array of top pages with view counts
+  sources     Json?    // Traffic sources breakdown
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  @@unique([siteId, date])
+  @@index([siteId, date])
+}
+
+// Adaptive Template System models
+model GeneratedTemplate {
+  id                     String   @id @default(cuid())
+  userId                 String
+  businessIntelligenceId String
+  
+  // Template data
+  templateData           Json     // Complete adaptive template structure
+  uniquenessScore        Int      // 0-100 score of how unique this template is
+  conversionOptimized    Boolean  @default(false)
+  
+  // Generation context
+  industry               String
+  answers                Json     // Question answers that influenced generation
+  generationOptions      Json?    // Options used during generation
+  
+  // Performance tracking
+  performanceData        Json?    // Conversion rates, bounce rates, etc.
+  optimizationHistory    Json?    // History of optimizations applied
+  
+  // Metadata
+  generatedAt            DateTime @default(now())
+  lastOptimizedAt        DateTime?
+  
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessIntelligence   BusinessIntelligence @relation(fields: [businessIntelligenceId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, generatedAt])
+  @@index([businessIntelligenceId])
+  @@index([uniquenessScore])
+}
+
+model GeneratedContent {
+  id                     String   @id @default(cuid())
+  userId                 String
+  businessIntelligenceId String
+  
+  // Content generation context
+  contentType            String   // 'complete-website', 'single-section', 'specific-content'
+  sectionType            String?  // 'hero', 'about', 'services', 'cta', 'contact'
+  specificContentType    String?  // 'headline', 'subheadline', 'description', etc.
+  
+  // Generation inputs
+  industry               String
+  answers                Json     // Question answers that influenced generation
+  options                Json?    // Generation options (tone, length, etc.)
+  
+  // Generated content
+  generatedContent       Json     // The actual generated content
+  
+  // Quality metrics
+  seoScore               Int?     // SEO optimization score
+  uniquenessScore        Int?     // Content uniqueness score
+  
+  // Usage tracking
+  used                   Boolean  @default(false)
+  usedAt                 DateTime?
+  feedback               Json?    // User feedback on content quality
+  
+  // Metadata
+  generatedAt            DateTime @default(now())
+  
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessIntelligence   BusinessIntelligence @relation(fields: [businessIntelligenceId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, generatedAt])
+  @@index([businessIntelligenceId])
+  @@index([contentType, sectionType])
+  @@index([industry])
 }

@@ -1,14 +1,18 @@
 import { notFound, redirect } from 'next/navigation';
 import { getAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Card } from '@/components/ui/card';
+import { formatDistanceToNow } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   Globe, Phone, MapPin, Clock, ExternalLink, Settings, 
   Edit, Trash2, BarChart, Eye, EyeOff, Briefcase, CheckCircle,
-  ArrowLeft, Users
+  ArrowLeft, Users, FileText, Calendar, Shield, TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
+import { StatCard } from '@/components/dashboard/QuickStats';
+import { RecentActivity } from '@/components/dashboard/RecentActivity';
 
 export default async function SiteDashboard({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -37,201 +41,262 @@ export default async function SiteDashboard({ params }: { params: Promise<{ id: 
     notFound();
   }
 
+  const domain = site.customDomain || `${site.subdomain}.${process.env.NODE_ENV === 'development' ? 'localhost:3000' : process.env.NEXT_PUBLIC_ROOT_DOMAIN}`;
   const siteUrl = process.env.NODE_ENV === 'development' 
-    ? `http://${site.subdomain}.localhost:3000`
-    : `https://${site.subdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`;
+    ? `http://${domain}`
+    : `https://${domain}`;
+
+  // Mock data for recent activity - replace with real data
+  const recentActivities = [
+    {
+      id: '1',
+      type: 'form_submission' as const,
+      title: 'Form submission from contact page',
+      timestamp: new Date(Date.now() - 30 * 60 * 1000),
+      siteName: site.businessName,
+    },
+    {
+      id: '2',
+      type: 'lead_created' as const,
+      title: 'New lead captured',
+      description: 'John Doe - john@example.com',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      siteName: site.businessName,
+    },
+    {
+      id: '3',
+      type: 'site_published' as const,
+      title: 'Page "Services" updated',
+      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      siteName: site.businessName,
+    },
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <Link 
-          href="/dashboard"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Link>
-        
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">{site.businessName}</h1>
-            <p className="text-gray-600 mt-1">
-              Manage your site settings and content
-            </p>
-          </div>
+    <div className="space-y-8">
+      {/* Site Header */}
+      <div className="bg-white rounded-lg border p-6">
+        <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
+            <div 
+              className="h-16 w-16 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: site.primaryColor || '#22C55E' }}
+            >
+              {site.logo ? (
+                <img 
+                  src={site.logo} 
+                  alt={site.businessName} 
+                  className="h-14 w-14 object-contain"
+                />
+              ) : (
+                <Globe className="h-8 w-8 text-white" />
+              )}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">{site.businessName}</h1>
+              <div className="flex items-center gap-3 mt-1">
+                <a 
+                  href={siteUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                >
+                  {domain}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+                <Badge 
+                  variant={site.published ? "default" : "secondary"}
+                  className={site.published ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}
+                >
+                  {site.published ? "Published" : "Draft"}
+                </Badge>
+                {site.industryConfirmed && (
+                  <Badge variant="outline" className="text-green-600 border-green-600">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Verified
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
             <Button variant="outline" asChild>
-              <Link href={`/preview/${site.id}`} className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
+              <Link href={`/preview/${site.id}`}>
+                <Eye className="h-4 w-4 mr-2" />
                 Preview
               </Link>
             </Button>
             {site.published && (
               <Button variant="outline" asChild>
-                <Link href={siteUrl} target="_blank" className="flex items-center gap-2">
-                  <Eye className="h-4 w-4" />
+                <a href={siteUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-2" />
                   View Live
-                  <ExternalLink className="h-3 w-3" />
-                </Link>
+                </a>
               </Button>
             )}
-            <Button variant="outline">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
           </div>
         </div>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Status</p>
-              <p className="text-2xl font-semibold flex items-center gap-2">
-                {site.published ? (
-                  <>
-                    <Eye className="h-5 w-5 text-green-500" />
-                    Published
-                  </>
-                ) : (
-                  <>
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                    Draft
-                  </>
-                )}
-              </p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Pages</p>
-              <p className="text-2xl font-semibold">{site.pages.length}</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Services</p>
-              <p className="text-2xl font-semibold">{site.services.length}</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Industry</p>
-              <p className="text-2xl font-semibold capitalize flex items-center gap-2">
-                {site.industry}
-                {site.industryConfirmed && (
-                  <CheckCircle className="h-5 w-5 text-green-500" title="Confirmed" />
-                )}
-              </p>
-            </div>
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Views"
+          value="1,234"
+          icon={Eye}
+          description="This month"
+          trend={{ value: 12, label: "from last month" }}
+        />
+        <StatCard
+          title="Leads"
+          value="45"
+          icon={Users}
+          description="Total captured"
+        />
+        <StatCard
+          title="Pages"
+          value={site.pages.length}
+          icon={FileText}
+          description="Published pages"
+        />
+        <StatCard
+          title="Services"
+          value={site.services.length}
+          icon={Briefcase}
+          description="Active services"
+        />
       </div>
 
-      {/* Site Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Site Information</h2>
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <Globe className="h-5 w-5 text-gray-400 mt-0.5" />
-              <div>
-                <p className="text-sm text-gray-600">Website</p>
-                <a 
-                  href={siteUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline flex items-center gap-1"
-                >
-                  {site.subdomain}.{process.env.NODE_ENV === 'development' ? 'localhost:3000' : process.env.NEXT_PUBLIC_ROOT_DOMAIN}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            </div>
-            
-            {site.phone && (
-              <div className="flex items-start space-x-3">
-                <Phone className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-600">Phone</p>
-                  <p>{site.phone}</p>
-                </div>
-              </div>
-            )}
-            
-            {site.address && (
-              <div className="flex items-start space-x-3">
-                <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-600">Address</p>
-                  <p>{site.address}</p>
-                  {site.city && site.state && site.zip && (
-                    <p>{site.city}, {site.state} {site.zip}</p>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            <div className="flex items-start space-x-3">
-              <Clock className="h-5 w-5 text-gray-400 mt-0.5" />
-              <div>
-                <p className="text-sm text-gray-600">Created</p>
-                <p>{new Date(site.createdAt).toLocaleDateString()}</p>
-              </div>
-            </div>
-          </div>
-        </Card>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Recent Activity */}
+        <div className="lg:col-span-2">
+          <RecentActivity activities={recentActivities} />
+        </div>
 
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-          <div className="space-y-3">
-            <Button className="w-full justify-start" variant="outline" asChild>
-              <Link href={`/dashboard/sites/${site.id}/pages`}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Pages
-              </Link>
-            </Button>
-            
-            <Button className="w-full justify-start" variant="outline" asChild>
-              <Link href={`/dashboard/sites/${site.id}/services`}>
-                <Edit className="h-4 w-4 mr-2" />
-                Manage Services
-              </Link>
-            </Button>
-            
-            <Button className="w-full justify-start" variant="outline" asChild>
-              <Link href={`/dashboard/sites/${site.id}/seo`}>
-                <BarChart className="h-4 w-4 mr-2" />
-                SEO Settings
-              </Link>
-            </Button>
-            
-            <Button className="w-full justify-start" variant="outline" asChild>
-              <Link href={`/dashboard/sites/${site.id}/crm`}>
-                <Users className="h-4 w-4 mr-2" />
-                CRM Dashboard
-              </Link>
-            </Button>
-            
-            <Button className="w-full justify-start" variant="outline" asChild>
-              <Link href={`/dashboard/sites/${site.id}/settings`}>
-                <Settings className="h-4 w-4 mr-2" />
-                Site Settings
-              </Link>
-            </Button>
-          </div>
-        </Card>
+        {/* Right Column - Site Information */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Site Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-500">Industry</p>
+                <p className="font-medium capitalize">{site.industry}</p>
+              </div>
+              
+              {site.phone && (
+                <div>
+                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                    <Phone className="h-3 w-3" />
+                    Phone
+                  </p>
+                  <p className="font-medium">{site.phone}</p>
+                </div>
+              )}
+              
+              {site.address && (
+                <div>
+                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    Address
+                  </p>
+                  <p className="font-medium">
+                    {site.address}
+                    {site.city && site.state && site.zip && (
+                      <><br />{site.city}, {site.state} {site.zip}</>
+                    )}
+                  </p>
+                </div>
+              )}
+              
+              <div>
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  Created
+                </p>
+                <p className="font-medium">
+                  {new Date(site.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Last Updated
+                </p>
+                <p className="font-medium">
+                  {formatDistanceToNow(new Date(site.updatedAt), { addSuffix: true })}
+                </p>
+              </div>
+              
+              {site.gbpLocationId && (
+                <div>
+                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    Google Business Profile
+                  </p>
+                  <p className="font-medium text-green-600">Connected</p>
+                </div>
+              )}
+              
+              {site.customDomain && (
+                <div>
+                  <p className="text-sm text-gray-500">Custom Domain</p>
+                  <p className="font-medium">{site.customDomain}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button className="w-full justify-start" variant="outline" asChild>
+                <Link href={`/dashboard/sites/${site.id}/pages`}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Edit Pages
+                </Link>
+              </Button>
+              
+              <Button className="w-full justify-start" variant="outline" asChild>
+                <Link href={`/dashboard/sites/${site.id}/services`}>
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  Manage Services
+                </Link>
+              </Button>
+              
+              <Button className="w-full justify-start" variant="outline" asChild>
+                <Link href={`/dashboard/sites/${site.id}/seo`}>
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  SEO Settings
+                </Link>
+              </Button>
+              
+              <Button className="w-full justify-start" variant="outline" asChild>
+                <Link href={`/dashboard/sites/${site.id}/crm`}>
+                  <Users className="h-4 w-4 mr-2" />
+                  CRM Dashboard
+                </Link>
+              </Button>
+              
+              <Button className="w-full justify-start" variant="outline" asChild>
+                <Link href={`/dashboard/sites/${site.id}/settings`}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Site Settings
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Services List */}

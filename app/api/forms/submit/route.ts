@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     logger.info(`Form submission created: ${submission.id} for form ${formId}`);
 
     // Sync to GoHighLevel if enabled
-    if (form.settings?.ghlSync && form.site.ghlEnabled && form.site.ghlLocationId) {
+    if ((form.settings as any)?.ghlSync && form.site.ghlEnabled && form.site.ghlLocationId) {
       try {
         const ghlClient = createGHLProClient();
         
@@ -78,17 +78,19 @@ export async function POST(request: Request) {
         }
 
         logger.info('Form submission synced to GHL', {
+      metadata: {
           submissionId: submission.id,
           ghlContactId: ghlContact?.id,
-        });
+        }
+    });
       } catch (error) {
-        logger.error('Error syncing to GHL:', error);
+        logger.error('Error syncing to GHL:', {}, error as Error);
         // Don't fail the submission if GHL sync fails
       }
     }
 
     // Send email notification if enabled
-    if (form.settings?.emailNotifications && form.settings?.notificationEmail) {
+    if ((form.settings as any)?.emailNotifications && (form.settings as any)?.notificationEmail) {
       try {
         // Get site details for email template
         const site = await prisma.site.findUnique({
@@ -107,17 +109,17 @@ export async function POST(request: Request) {
         });
 
         await emailService.sendEmail({
-          to: form.settings.notificationEmail,
+          to: (form.settings as any).notificationEmail,
           ...emailTemplate,
         });
 
         // Send auto-response if configured and email provided
-        if (form.settings?.autoResponse && data.email) {
+        if ((form.settings as any)?.autoResponse && data.email) {
           const autoResponseTemplate = emailService.getContactAutoResponseTemplate({
             firstName: data.firstName || data.name?.split(' ')[0] || 'there',
             businessName: site?.businessName || 'Our Team',
-            businessEmail: form.settings.notificationEmail,
-            businessPhone: site?.phone,
+            businessEmail: (form.settings as any).notificationEmail,
+            businessPhone: site?.phone || undefined,
           });
 
           await emailService.sendEmail({
@@ -126,18 +128,18 @@ export async function POST(request: Request) {
           });
         }
       } catch (error) {
-        logger.error('Error sending email notifications:', error);
+        logger.error('Error sending email notifications:', {}, error as Error);
         // Don't fail the submission if email fails
       }
     }
 
     return NextResponse.json({ 
       success: true,
-      message: form.settings?.successMessage || 'Form submitted successfully',
+      message: (form.settings as any)?.successMessage || 'Form submitted successfully',
       submissionId: submission.id 
     });
   } catch (error) {
-    logger.error('Failed to submit form:', error);
+    logger.error('Failed to submit form:', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to submit form' },
       { status: 500 }

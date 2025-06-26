@@ -4,6 +4,7 @@ import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import { createGHLProClient } from '@/lib/ghl';
 import { emailService } from '@/lib/email';
+import { getAuthSession } from '@/lib/auth';
 
 const leadSubmissionSchema = z.object({
   siteId: z.string(),
@@ -22,9 +23,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const leadData = leadSubmissionSchema.parse(body);
 
-    logger.info('Processing lead submission', { 
+    logger.info('Processing lead submission', {
+      metadata: { 
       siteId: leadData.siteId,
       email: leadData.email,
+    }
     });
 
     // Get site details including GHL configuration
@@ -37,6 +40,7 @@ export async function POST(request: NextRequest) {
         ghlEnabled: true,
         industry: true,
         email: true,
+        phone: true,
       },
     });
 
@@ -88,9 +92,11 @@ export async function POST(request: NextRequest) {
         });
 
         logger.info('Lead synced to GoHighLevel', {
+      metadata: {
           siteId: site.id,
           ghlContactId: ghlContact.id,
-        });
+        }
+    });
 
         // Send notification email to business owner
         if (site.email) {
@@ -114,8 +120,8 @@ export async function POST(request: NextRequest) {
             const autoResponseTemplate = emailService.getContactAutoResponseTemplate({
               firstName: leadData.firstName,
               businessName: site.businessName,
-              businessEmail: site.email,
-              businessPhone: site.phone,
+              businessEmail: site.email || undefined,
+              businessPhone: site.phone || undefined,
             });
 
             await emailService.sendEmail({
@@ -132,10 +138,12 @@ export async function POST(request: NextRequest) {
         });
 
       } catch (ghlError) {
-        logger.error('Failed to sync lead to GoHighLevel', { 
+        logger.error('Failed to sync lead to GoHighLevel', {
+      metadata: { 
           error: ghlError,
           siteId: site.id,
-        });
+        }
+    });
         
         // Don't fail the submission if GHL sync fails
         // Still return success to the user
@@ -148,7 +156,9 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Lead submission error', { error });
+    logger.error('Lead submission error', {
+      metadata: { error }
+    });
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -167,6 +177,16 @@ export async function POST(request: NextRequest) {
 // GET endpoint to retrieve leads for a site (authenticated)
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await getAuthSession();
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const siteId = searchParams.get('siteId');
 
@@ -177,11 +197,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // TODO: Add authentication check here
-    // For now, this is a placeholder
+    // Verify the user owns this site
+    const site = await prisma.site.findFirst({
+      where: {
+        id: siteId,
+        userId: session.user.id,
+      },
+    });
+
+    if (!site) {
+      return NextResponse.json(
+        { error: 'Site not found or unauthorized' },
+        { status: 404 }
+      );
+    }
 
     // TODO: Retrieve leads from database
-    // This would query the Lead model
+    // This would query the Lead model once it's created in the schema
 
     return NextResponse.json({
       leads: [],
@@ -189,7 +221,9 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    logger.error('Get leads error', { error });
+    logger.error('Get leads error', {
+      metadata: { error }
+    });
     
     return NextResponse.json(
       { error: 'Failed to retrieve leads' },

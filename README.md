@@ -1,4 +1,4 @@
-# Suite Business - Multi-Industry SaaS Platform
+# Sitebango - Multi-Industry SaaS Platform
 
 A self-hosted SaaS platform for service-based businesses (landscaping, HVAC, plumbing, cleaning, roofing, electrical) with Google Business Profile integration and white-label capabilities.
 
@@ -112,9 +112,18 @@ npm run docker:up
 # Push database schema
 npm run db:push
 
+# Setup agency team structure
+npm run setup:agency
+
+# Add agency team members (they'll be synced to GHL)
+npm run add-agency-member team@gmail.com "Team Member" admin
+
 # Start development server
 npm run dev
 ```
+
+### Team Management
+See `.claude/commands.md` for full team management commands and GHL integration details.
 
 ### Environment Variables
 See `.env.local.example` for required variables:

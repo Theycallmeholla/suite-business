@@ -70,7 +70,7 @@ export default function PricingPage() {
         {plans.map((plan) => (
           <Card 
             key={plan.key}
-            className={plan.popular ? 'border-primary shadow-lg scale-105' : ''}
+            className={plan.key === 'professional' ? 'border-primary shadow-lg scale-105' : ''}
           >
             <CardHeader>
               <div className="flex justify-between items-start mb-4">
@@ -78,7 +78,7 @@ export default function PricingPage() {
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   <CardDescription className="mt-2">{plan.description}</CardDescription>
                 </div>
-                {plan.popular && (
+                {plan.key === 'professional' && (
                   <Badge variant="default">Popular</Badge>
                 )}
               </div>
@@ -91,7 +91,7 @@ export default function PricingPage() {
               <Button
                 className="w-full mb-6"
                 size="lg"
-                variant={plan.popular ? 'default' : 'outline'}
+                variant={plan.key === 'professional' ? 'default' : 'outline'}
                 onClick={() => handleSelectPlan(plan.key)}
                 disabled={loadingPlan !== null}
               >
@@ -146,16 +146,16 @@ export default function PricingPage() {
                       {plan.limits.gbpPosts === -1 ? 'Unlimited' : plan.limits.gbpPosts}
                     </span>
                   </div>
-                  {plan.limits.emailCredits !== undefined && (
+                  {'emailCredits' in plan.limits && plan.limits.emailCredits !== undefined && (
                     <div className="flex justify-between">
                       <span>Email Credits</span>
-                      <span className="font-medium">{plan.limits.emailCredits}</span>
+                      <span className="font-medium">{'emailCredits' in plan.limits ? plan.limits.emailCredits : 0}</span>
                     </div>
                   )}
-                  {plan.limits.smsCredits !== undefined && (
+                  {'smsCredits' in plan.limits && plan.limits.smsCredits !== undefined && (
                     <div className="flex justify-between">
                       <span>SMS Credits</span>
-                      <span className="font-medium">{plan.limits.smsCredits}</span>
+                      <span className="font-medium">{'smsCredits' in plan.limits ? plan.limits.smsCredits : 0}</span>
                     </div>
                   )}
                 </div>

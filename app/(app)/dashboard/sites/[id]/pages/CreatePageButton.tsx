@@ -21,8 +21,8 @@ export function CreatePageButton({ siteId, pageType, siteData }: CreatePageButto
     setIsCreating(true);
     
     try {
-      // Generate default sections for this page type
-      const sections = generateDefaultSections(siteData, pageType);
+      // Generate sections based on page type
+      const sections = getPageSections(pageType, siteData);
       
       const response = await fetch('/api/pages', {
         method: 'POST',
@@ -91,4 +91,40 @@ function getPageTitle(type: string): string {
   };
   
   return titles[type] || type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+function getPageSections(pageType: string, siteData: any): any[] {
+  // Generate all default sections
+  const allSections = generateDefaultSections(siteData);
+  
+  // Filter sections based on page type
+  switch (pageType) {
+    case 'home':
+      // Home page gets all sections
+      return allSections;
+      
+    case 'about':
+      // About page gets about, features, and CTA sections
+      return allSections.filter(section => 
+        ['about', 'features', 'cta'].includes(section.type)
+      );
+      
+    case 'services':
+      // Services page gets services and CTA sections
+      return allSections.filter(section => 
+        ['services', 'cta'].includes(section.type)
+      );
+      
+    case 'contact':
+      // Contact page gets contact section only
+      return allSections.filter(section => 
+        section.type === 'contact'
+      );
+      
+    default:
+      // Default pages get hero and CTA
+      return allSections.filter(section => 
+        ['hero', 'cta'].includes(section.type)
+      );
+  }
 }

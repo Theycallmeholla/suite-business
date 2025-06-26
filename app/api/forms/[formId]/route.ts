@@ -36,7 +36,7 @@ export async function GET(
 
     return NextResponse.json(form);
   } catch (error) {
-    logger.error('Failed to fetch form:', error);
+    logger.error('Failed to fetch form:', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to fetch form' },
       { status: 500 }
@@ -100,7 +100,7 @@ export async function PUT(
       submissionsCount: form._count.submissions
     });
   } catch (error) {
-    logger.error('Failed to update form:', error);
+    logger.error('Failed to update form:', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to update form' },
       { status: 500 }
@@ -144,7 +144,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Failed to delete form:', error);
+    logger.error('Failed to delete form:', {}, error as Error);
     return NextResponse.json(
       { error: 'Failed to delete form' },
       { status: 500 }

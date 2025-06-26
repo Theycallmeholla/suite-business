@@ -4,9 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { CreateGBPForm } from './CreateGBPForm';
 
 interface CreateGBPPageProps {
-  searchParams: {
+  searchParams: Promise<{
     siteId?: string;
-  };
+  }>;
 }
 
 export default async function CreateGBPPage({ searchParams }: CreateGBPPageProps) {
@@ -16,7 +16,8 @@ export default async function CreateGBPPage({ searchParams }: CreateGBPPageProps
     redirect('/signin');
   }
 
-  const siteId = searchParams.siteId;
+  const resolvedSearchParams = await searchParams;
+  const siteId = resolvedSearchParams.siteId;
   
   if (!siteId) {
     redirect('/dashboard');

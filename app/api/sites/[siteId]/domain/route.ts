@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
@@ -14,13 +13,15 @@ const domainSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { siteId: string } }
+  { params }: { params: Promise<{ siteId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const { siteId } = await params;
 
     const body = await request.json();
     const validation = domainSchema.safeParse(body);
@@ -38,7 +39,7 @@ export async function POST(
     const existingDomain = await prisma.site.findFirst({
       where: {
         customDomain: domain,
-        NOT: { id: params.siteId }
+        NOT: { id: siteId }
       }
     });
 
@@ -52,7 +53,7 @@ export async function POST(
     // Verify site ownership
     const site = await prisma.site.findFirst({
       where: {
-        id: params.siteId,
+        id: siteId,
         user: { email: session.user.email }
       }
     });
@@ -63,15 +64,17 @@ export async function POST(
 
     // Update site with custom domain
     const updatedSite = await prisma.site.update({
-      where: { id: params.siteId },
+      where: { id: siteId },
       data: { customDomain: domain }
     });
 
     logger.info('Custom domain updated', {
+      metadata: {
       action: 'update_custom_domain',
-      siteId: params.siteId,
+      siteId,
       domain,
       userId: session.user.email
+    }
     });
 
     return NextResponse.json({ 
@@ -79,10 +82,13 @@ export async function POST(
       domain: updatedSite.customDomain
     });
   } catch (error) {
+    const { siteId } = await params;
     logger.error('Failed to update custom domain', {
+      metadata: {
       action: 'update_custom_domain',
-      siteId: params.siteId,
+      siteId,
       error: error instanceof Error ? error.message : 'Unknown error'
+    }
     });
 
     return NextResponse.json(
@@ -94,18 +100,20 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { siteId: string } }
+  { params }: { params: Promise<{ siteId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const { siteId } = await params;
 
     // Verify site ownership
     const site = await prisma.site.findFirst({
       where: {
-        id: params.siteId,
+        id: siteId,
         user: { email: session.user.email }
       }
     });
@@ -116,22 +124,27 @@ export async function DELETE(
 
     // Remove custom domain
     await prisma.site.update({
-      where: { id: params.siteId },
+      where: { id: siteId },
       data: { customDomain: null }
     });
 
     logger.info('Custom domain removed', {
+      metadata: {
       action: 'remove_custom_domain',
-      siteId: params.siteId,
+      siteId,
       userId: session.user.email
+    }
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    const { siteId } = await params;
     logger.error('Failed to remove custom domain', {
+      metadata: {
       action: 'remove_custom_domain',
-      siteId: params.siteId,
+      siteId,
       error: error instanceof Error ? error.message : 'Unknown error'
+    }
     });
 
     return NextResponse.json(
