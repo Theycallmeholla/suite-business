@@ -4,8 +4,8 @@ export * from './Services';
 export * from './Testimonials';
 
 // For backward compatibility, export default variants
-export { HeroModern as Hero } from './Hero';
-export { ServicesCards as Services } from './Services';
+export { HeroModern as Hero } from './Hero/HeroModern';
+export { ServicesCards as Services } from './Services/ServicesCards';
 export { TestimonialsGrid as Testimonials } from './Testimonials';
 
 // Maintain other section exports

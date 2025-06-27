@@ -14,6 +14,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { StatCard } from '@/components/dashboard/QuickStats';
 import { TrafficChart, DeviceBreakdown, ConversionFunnel, EngagementMetrics } from '@/components/analytics/AnalyticsCharts';
 
@@ -147,29 +155,26 @@ export default async function AnalyticsPage() {
             <CardTitle>Top Pages</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {analytics.topPages.map((page, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-500 w-6">
-                      {index + 1}.
-                    </span>
-                    <span className="font-medium">{page.page}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${page.percentage}%` }}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-600 w-20 text-right">
-                      {page.views.toLocaleString()} views
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50px]">#</TableHead>
+                  <TableHead>Page</TableHead>
+                  <TableHead className="text-right">Views</TableHead>
+                  <TableHead className="text-right">Percentage</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {analytics.topPages.map((page, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{index + 1}.</TableCell>
+                    <TableCell className="font-medium">{page.page}</TableCell>
+                    <TableCell className="text-right">{page.views.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">{page.percentage}%</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 
@@ -179,29 +184,26 @@ export default async function AnalyticsPage() {
             <CardTitle>Top Referrers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {analytics.topReferrers.map((referrer, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-500 w-6">
-                      {index + 1}.
-                    </span>
-                    <span className="font-medium">{referrer.source}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full"
-                        style={{ width: `${referrer.percentage}%` }}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-600 w-20 text-right">
-                      {referrer.visits.toLocaleString()} visits
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50px]">#</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead className="text-right">Visits</TableHead>
+                  <TableHead className="text-right">Percentage</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {analytics.topReferrers.map((referrer, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{index + 1}.</TableCell>
+                    <TableCell className="font-medium">{referrer.source}</TableCell>
+                    <TableCell className="text-right">{referrer.visits.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">{referrer.percentage}%</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </div>

@@ -1,0 +1,147 @@
+/* Template-specific styles */
+@import "tailwindcss";
+
+/* Emerald Elegance Template Colors */
+.template-emerald-elegance {
+  --template-primary: #10b981;
+  --template-primary-dark: #047857;
+  --template-primary-light: #34d399;
+  --template-secondary: #6b7280;
+  --template-accent: #059669;
+}
+
+/* Dream Garden Template Colors */
+.template-dream-garden {
+  --template-primary: #8BC34A;
+  --template-primary-dark: #689F38;
+  --template-primary-light: #AED581;
+  --template-secondary: #795548;
+  --template-accent: #FFC107;
+}
+
+/* Nature Premium Template Colors */
+.template-nature-premium {
+  --template-primary: #4CAF50;
+  --template-primary-dark: #388E3C;
+  --template-primary-light: #81C784;
+  --template-secondary: #8D6E63;
+  --template-accent: #FF6F00;
+}
+
+/* Artistry Minimal Template Colors */
+.template-artistry-minimal {
+  --template-primary: #424242;
+  --template-primary-dark: #212121;
+  --template-primary-light: #616161;
+  --template-secondary: #9E9E9E;
+  --template-accent: #FF5252;
+}
+
+/* Premium Template Components */
+@layer components {
+  /* Animated Botanical Effects */
+  .botanical-float {
+    animation: botanicalFloat 20s ease-in-out infinite;
+  }
+  
+  @keyframes botanicalFloat {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-30px) rotate(-5deg);
+    }
+    50% {
+      transform: translateY(-20px) rotate(3deg);
+    }
+    75% {
+      transform: translateY(-40px) rotate(-3deg);
+    }
+  }
+  
+  /* Parallax Layers */
+  .parallax-layer {
+    position: absolute;
+    inset: 0;
+    will-change: transform;
+  }
+  
+  /* Premium Button Styles */
+  .btn-premium {
+    @apply inline-flex items-center justify-center px-8 py-4 font-semibold text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg;
+  }
+  
+  .btn-premium-primary {
+    @apply bg-[var(--template-primary)] text-white hover:bg-[var(--template-primary-dark)];
+  }
+  
+  .btn-premium-secondary {
+    @apply bg-white text-[var(--template-primary)] border-2 border-[var(--template-primary)] hover:bg-[var(--template-primary)] hover:text-white;
+  }
+  
+  /* Form Focus States */
+  .form-premium {
+    @apply w-full p-4 border border-gray-300 rounded-lg transition-all duration-200;
+  }
+  
+  .form-premium:focus {
+    @apply outline-none ring-2 ring-[var(--template-primary)] border-[var(--template-primary)];
+  }
+  
+  /* Card Hover Effects */
+  .card-premium {
+    @apply bg-white rounded-xl shadow-lg transition-all duration-300 overflow-hidden;
+  }
+  
+  .card-premium:hover {
+    @apply shadow-2xl transform -translate-y-1;
+  }
+  
+  /* Section Backgrounds */
+  .section-gradient {
+    background: linear-gradient(135deg, var(--template-primary) 0%, var(--template-primary-dark) 100%);
+  }
+  
+  .section-pattern {
+    background-image: 
+      repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.1) 35px, rgba(255,255,255,.1) 70px),
+      linear-gradient(180deg, var(--template-primary), var(--template-primary-dark));
+  }
+}
+
+/* Ensure Tailwind colors are available for templates */
+@layer utilities {
+  /* Emerald colors for templates */
+  .bg-emerald-50 { background-color: #ecfdf5; }
+  .bg-emerald-100 { background-color: #d1fae5; }
+  .bg-emerald-200 { background-color: #a7f3d0; }
+  .bg-emerald-300 { background-color: #6ee7b7; }
+  .bg-emerald-400 { background-color: #34d399; }
+  .bg-emerald-500 { background-color: #10b981; }
+  .bg-emerald-600 { background-color: #059669; }
+  .bg-emerald-700 { background-color: #047857; }
+  .bg-emerald-800 { background-color: #065f46; }
+  .bg-emerald-900 { background-color: #064e3b; }
+  
+  .text-emerald-50 { color: #ecfdf5; }
+  .text-emerald-100 { color: #d1fae5; }
+  .text-emerald-200 { color: #a7f3d0; }
+  .text-emerald-300 { color: #6ee7b7; }
+  .text-emerald-400 { color: #34d399; }
+  .text-emerald-500 { color: #10b981; }
+  .text-emerald-600 { color: #059669; }
+  .text-emerald-700 { color: #047857; }
+  .text-emerald-800 { color: #065f46; }
+  .text-emerald-900 { color: #064e3b; }
+  
+  .border-emerald-500 { border-color: #10b981; }
+  .ring-emerald-500 { --tw-ring-color: #10b981; }
+  
+  /* Focus states */
+  .focus\:ring-emerald-500:focus { --tw-ring-color: #10b981; }
+  .focus\:border-emerald-500:focus { border-color: #10b981; }
+  
+  /* Hover states */
+  .hover\:bg-emerald-100:hover { background-color: #d1fae5; }
+  .hover\:bg-emerald-700:hover { background-color: #047857; }
+}

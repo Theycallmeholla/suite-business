@@ -66,7 +66,20 @@
       "Bash(npm test:*)",
       "Bash(docker stop:*)",
       "mcp__filesystem__list_directory",
-      "mcp__context7-mcp__get-library-docs"
+      "mcp__context7-mcp__get-library-docs",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(git cherry-pick:*)",
+      "mcp__desktop-commander__read_file",
+      "mcp__desktop-commander__write_file",
+      "Bash(git stash:*)",
+      "mcp__desktop-commander__edit_block",
+      "mcp__desktop-commander__search_code",
+      "Bash(npx tsc:*)",
+      "Bash(git --no-pager diff --stat)",
+      "mcp__puppeteer__puppeteer_navigate",
+      "mcp__puppeteer__puppeteer_screenshot",
+      "Bash(sqlite3:*)"
     ],
     "deny": []
   },

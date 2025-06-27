@@ -7,6 +7,37 @@ import { createGHLProClient } from '@/lib/ghl';
 import { BusinessIntelligenceExtractor } from '@/lib/business-intelligence';
 import { calculateDataScore } from '@/lib/intelligence/scoring';
 import { generateSubdomain } from '@/lib/utils';
+import { generateDataDrivenSections } from '@/lib/content-generation/data-driven-content';
+import { IndustryType } from '@/types/site-builder';
+import { BusinessIntelligenceData } from '@/types/intelligence';
+
+/**
+ * Select the best premium template based on industry and business data
+ */
+function selectPremiumTemplate(industry: IndustryType, businessData?: BusinessIntelligenceData | null): string {
+  // For landscaping and related industries
+  if (['landscaping', 'gardening', 'lawn-care', 'tree-service'].includes(industry)) {
+    // Use emerald-elegance for established/premium businesses
+    if (businessData?.basicInfo?.years_in_business && businessData.basicInfo.years_in_business > 5) {
+      return 'emerald-elegance';
+    }
+    // Use dream-garden for others
+    return 'dream-garden';
+  }
+  
+  // For HVAC, plumbing, electrical - more technical industries
+  if (['hvac', 'plumbing', 'electrical'].includes(industry)) {
+    return 'nature-premium'; // Clean, professional look
+  }
+  
+  // For cleaning, roofing, and general services
+  if (['cleaning', 'roofing', 'general'].includes(industry)) {
+    return 'artistry-minimal'; // Minimal, modern aesthetic
+  }
+  
+  // Default to emerald-elegance for unmatched industries
+  return 'emerald-elegance';
+}
 
 const createFromGBPSchema = z.object({
   locationId: z.string(), // Can be either GBP location ID or Place ID
@@ -280,7 +311,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Detect industry if not provided
-    const industry = providedIndustry || detectIndustryFromCategory(business.primaryCategory) || 'general';
+    const industry = (providedIndustry || detectIndustryFromCategory(business.primaryCategory) || 'general') as IndustryType;
 
     // Extract services from categories (if from GBP)
     const services = isFromGBP ? [
@@ -357,6 +388,58 @@ export async function POST(request: NextRequest) {
       ghlLocation?.id
     );
 
+    // Generate data-driven sections before creating the site
+    let sections = [];
+    try {
+      sections = generateDataDrivenSections({
+        businessData: businessIntelligence || {
+          basicInfo: {
+            name: business.name || business.title,
+            description: business.profile?.description,
+            address: fullAddress,
+            service_area: serviceAreaPlaces.join(', '),
+            primary_phone: business.primaryPhone,
+            email: session.user.email,
+            coordinates: business.coordinates,
+            hours: business.regularHours || business.openingHours,
+          },
+          services: {
+            services: services,
+            primary_service: services[0],
+            service_details: {},
+            pricing_type: 'custom',
+            emergency_service: false,
+          },
+          reputation: business.rating ? {
+            average_rating: business.rating,
+            total_reviews: business.userRatingCount || 0,
+            google_reviews: [],
+          } : undefined,
+          visuals: {
+            photos: businessIntelligence?.photos || [],
+            hero_image: businessIntelligence?.photos?.[0]?.url,
+          },
+          differentiation: {
+            unique_selling_points: [],
+            certifications: [],
+            guarantees: [],
+          },
+        },
+        industry,
+        gbpData: business,
+        userAnswers: {},
+      });
+      
+      logger.info('Generated data-driven sections', {
+        metadata: {
+          sectionsCount: sections.length,
+          sectionTypes: sections.map(s => s.type),
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to generate data-driven sections', {}, error as Error);
+    }
+
     // Create the site
     const site = await prisma.site.create({
       data: {
@@ -394,8 +477,8 @@ export async function POST(request: NextRequest) {
         ghlApiKey,
         ghlEnabled,
         
-        // Configuration
-        template: 'modern',
+        // Configuration - use premium template based on industry
+        template: selectPremiumTemplate(industry, businessIntelligence),
         primaryColor: extractedColors?.primary || '#22C55E',
         secondaryColor: extractedColors?.secondary,
         accentColor: extractedColors?.accent,
@@ -413,9 +496,11 @@ export async function POST(request: NextRequest) {
         title: 'Home',
         type: 'home',
         content: {
+          sections: sections, // Use our data-driven sections
+          // Keep legacy data for backwards compatibility
           hero: {
-            title: aiContent?.heroTitle || `Welcome to ${business.name || business.title}`,
-            subtitle: aiContent?.heroSubtitle || business.profile?.description || `Professional ${industry} services you can trust`,
+            title: sections.find(s => s.type === 'hero')?.data?.headline || `Welcome to ${business.name || business.title}`,
+            subtitle: sections.find(s => s.type === 'hero')?.data?.subheadline || business.profile?.description || `Professional ${industry} services you can trust`,
             backgroundImage: businessIntelligence?.photos?.[0]?.url,
           },
           services: services.slice(0, 6),

@@ -49,7 +49,7 @@ export default async function FormSubmissionsPage({
   }
 
   // Get form submissions from all user's sites
-  const submissions = await prisma.formSubmission.findMany({
+  const submissions = (await prisma.formSubmission.findMany({
     where: whereClause,
     include: {
       form: {
@@ -66,8 +66,12 @@ export default async function FormSubmissionsPage({
       }
     },
     orderBy: { createdAt: 'desc' },
-    take: 100
-  });
+    take: 100 // Limit to recent 100 submissions
+  })).map(submission => ({
+    ...submission,
+    createdAt: submission.createdAt.toISOString(), // Convert Date to string
+    readAt: submission.readAt ? submission.readAt.toISOString() : null, // Convert Date to string or keep null
+  }));
 
   const totalSubmissions = await prisma.formSubmission.count({
     where: {

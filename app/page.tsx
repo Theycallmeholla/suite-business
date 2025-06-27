@@ -1,136 +1,10 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-
-// STYLES - Kept in a single component for self-containment
-const GlobalStyles = () => (
-  <style>{`
-    body {
-        background-color: #f8f9fa; /* Light, clean background */
-        color: #1a1a1a;
-        font-weight: 300; /* Thinner font weight for body text */
-    }
-    h1, h2, h3, .font-bold {
-        font-weight: 600; /* Bolder for headings */
-    }
-    .font-extrabold {
-        font-weight: 900;
-    }
-    .gradient-text {
-        background: linear-gradient(90deg, #6914c1, #9333ea, #EC4899); /* Using Sitebango purple */
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .card-glow {
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    .card-glow:before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 300%;
-        height: 300%;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
-        transform: translate(-50%, -50%) scale(0);
-        transition: transform 0.8s ease;
-    }
-    .card-glow:hover:before {
-        transform: translate(-50%, -50%) scale(1);
-    }
-    .card-glow:hover {
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-        transform: translateY(-5px);
-    }
-    .feature-card {
-        background-color: white;
-        border: 1px solid #e5e7eb;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .feature-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-    .icon-bg {
-        background-color: #f3f4f6;
-    }
-    .btn-primary {
-        background: linear-gradient(90deg, #6914c1, #7e22ce); /* Sitebango purple gradient */
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 7px 14px rgba(105,20,193,0.25);
-    }
-    .section-title {
-        animation: fadeIn 1s ease-out;
-    }
-    .card-anim {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-    }
-    .card-anim.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-15px); }
-        100% { transform: translateY(0px); }
-    }
-    .floating-icon {
-        animation: float 6s ease-in-out infinite;
-        position: absolute;
-        color: #6914c1;
-        opacity: 0.05;
-    }
-  `}</style>
-);
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
 
 // COMPONENTS
-const Header = () => (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm shadow-sm">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div className="flex items-center">
-                <Image 
-                    src="/sitebango-logo.svg" 
-                    alt="Sitebango" 
-                    width={140} 
-                    height={35}
-                    className="h-8 w-auto"
-                />
-            </div>
-            <nav className="hidden md:flex items-center space-x-8 font-medium">
-                <a href="#how" className="text-gray-600 hover:text-[#6914c1] transition-colors">How It Works</a>
-                <a href="#features" className="text-gray-600 hover:text-[#6914c1] transition-colors">Features</a>
-                <Link href="#industries" className="text-gray-600 hover:text-[#6914c1] transition-colors">Industries</Link>
-                <Link href="#pricing" className="text-gray-600 hover:text-[#6914c1] transition-colors">Pricing</Link>
-                <Link href="/signin" className="text-gray-600 hover:text-[#6914c1] transition-colors">Sign In</Link>
-            </nav>
-            <Link href="/signup" className="btn-primary text-white font-semibold py-2 px-5 rounded-lg">Get Started</Link>
-        </div>
-    </header>
-);
-
 const FloatingIcon = ({ children, className, delay }: { children: React.ReactNode; className: string; delay: string }) => (
     <div className={`floating-icon ${className}`} style={{ animationDelay: delay }}>
         {children}
@@ -301,54 +175,6 @@ const CtaSection = () => (
     </section>
 );
 
-const Footer = () => (
-    <footer className="bg-gray-100 py-12">
-        <div className="container mx-auto px-6">
-            <div className="grid md:grid-cols-4 gap-8">
-                <div>
-                    <div className="mb-4">
-                        <Image 
-                            src="/sitebango-logo.svg" 
-                            alt="Sitebango" 
-                            width={140} 
-                            height={35}
-                            className="h-8 w-auto"
-                        />
-                    </div>
-                    <p className="text-gray-600">
-                        The complete platform for service business growth.
-                    </p>
-                </div>
-                <div>
-                    <h4 className="font-semibold mb-4">Product</h4>
-                    <ul className="space-y-2 text-gray-600">
-                        <li><Link href="#features">Features</Link></li>
-                        <li><Link href="#pricing">Pricing</Link></li>
-                        <li><Link href="#industries">Industries</Link></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 className="font-semibold mb-4">Company</h4>
-                    <ul className="space-y-2 text-gray-600">
-                        <li><Link href="/about">About</Link></li>
-                        <li><Link href="/contact">Contact</Link></li>
-                        <li><Link href="/privacy">Privacy</Link></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 className="font-semibold mb-4">Get Started</h4>
-                    <Link href="/signup" className="btn-primary text-white font-bold py-2 px-4 rounded-lg block text-center">
-                        Start Free Trial
-                    </Link>
-                </div>
-            </div>
-            <div className="mt-12 pt-8 border-t text-center text-gray-500">
-                <p>&copy; 2024 Sitebango. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-);
-
 
 // Main App Component
 export default function LandingPage() {
@@ -380,7 +206,6 @@ export default function LandingPage() {
 
     return (
         <div ref={appRef} className="overflow-x-hidden">
-            <GlobalStyles />
             <Header />
             <main className="mt-20">
                 <HeroSection />

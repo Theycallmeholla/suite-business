@@ -26,6 +26,7 @@ import {
   Heart
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { StylePicker } from './StylePicker'
 
 export interface ConversationalQuestion {
   id: string
@@ -379,8 +380,22 @@ export function ConversationalFlow({
           disabled={isAnimating}
         />
       
+      case 'service-grid':
+        return <ServiceGridRenderer 
+          question={currentQuestion} 
+          onAnswer={handleAnswer}
+          disabled={isAnimating}
+        />
+      
+      case 'style-picker':
+        return <StylePickerRenderer 
+          question={currentQuestion} 
+          onAnswer={handleAnswer}
+          disabled={isAnimating}
+        />
+      
       default:
-        return <div>Question type not implemented</div>
+        return <div>Question type not implemented: {currentQuestion.type}</div>
     }
   }
 }
@@ -590,6 +605,148 @@ function MultipleChoiceRenderer({
         >
           Continue
           <Zap className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function ServiceGridRenderer({ 
+  question, 
+  onAnswer, 
+  disabled 
+}: { 
+  question: ConversationalQuestion
+  onAnswer: (answer: any) => void
+  disabled: boolean 
+}) {
+  const [selected, setSelected] = useState<string[]>([])
+
+  const handleToggle = (value: string) => {
+    if (disabled) return
+    
+    const newSelected = selected.includes(value)
+      ? selected.filter(s => s !== value)
+      : [...selected, value]
+    
+    setSelected(newSelected)
+  }
+
+  const handleContinue = () => {
+    if (selected.length > 0) {
+      onAnswer(selected)
+    }
+  }
+
+  return (
+    <div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+        {question.options.map((option) => (
+          <motion.button
+            key={option.value}
+            onClick={() => handleToggle(option.value)}
+            disabled={disabled}
+            whileHover={{ scale: disabled ? 1 : 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={cn(
+              "p-6 rounded-2xl border-2 transition-all duration-300 text-center relative",
+              selected.includes(option.value)
+                ? "border-primary bg-primary/10 shadow-lg"
+                : "border-gray-200 hover:border-gray-300 bg-white",
+              disabled && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            {option.icon && (
+              <div className="text-4xl mb-3 flex justify-center">
+                {option.icon}
+              </div>
+            )}
+            <h5 className="font-semibold text-sm">{option.label}</h5>
+            {option.description && (
+              <p className="text-xs text-gray-600 mt-1">{option.description}</p>
+            )}
+            {selected.includes(option.value) && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center"
+              >
+                <CheckCircle2 className="w-4 h-4 text-white" />
+              </motion.div>
+            )}
+          </motion.button>
+        ))}
+      </div>
+
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-gray-500">
+          Select all that apply • {selected.length} selected
+        </p>
+        
+        <Button
+          onClick={handleContinue}
+          disabled={disabled || selected.length === 0}
+          size="lg"
+          className="min-w-32"
+        >
+          Continue
+          <Zap className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function StylePickerRenderer({ 
+  question, 
+  onAnswer, 
+  disabled 
+}: { 
+  question: ConversationalQuestion
+  onAnswer: (answer: any) => void
+  disabled: boolean 
+}) {
+  const [selected, setSelected] = useState<string | null>(null)
+
+  const handleSelect = (value: string) => {
+    if (disabled) return
+    setSelected(value)
+  }
+
+  const handleContinue = () => {
+    if (selected) {
+      onAnswer(selected)
+    }
+  }
+
+  // Determine the style picker type from the question id or options
+  const getStyleType = (): 'font' | 'color' | 'layout' => {
+    if (question.id.includes('color')) return 'color'
+    if (question.id.includes('typography') || question.id.includes('font')) return 'font'
+    return 'layout'
+  }
+
+  return (
+    <div>
+      <StylePicker
+        question=""
+        options={question.options}
+        onSelect={handleSelect}
+        selected={selected}
+        businessName={question.businessName}
+        type={getStyleType()}
+        className="mb-6"
+      />
+
+      <div className="flex justify-center mt-6">
+        <Button
+          onClick={handleContinue}
+          disabled={disabled || !selected}
+          size="lg"
+          className="min-w-32"
+        >
+          {question.id === 'typography' ? 'Complete' : 'Continue'}
+          {question.id === 'typography' ? <CheckCircle2 className="w-4 h-4 ml-2" /> : <Zap className="w-4 h-4 ml-2" />}
         </Button>
       </div>
     </div>

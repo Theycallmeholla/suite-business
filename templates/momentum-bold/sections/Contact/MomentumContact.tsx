@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 
@@ -24,7 +23,7 @@ const MomentumContact = ({ content }: { content: any }) => {
           viewport={{ once: true }}
           className="text-lg text-indigo-200 max-w-2xl mx-auto mb-8"
         >
-          {subtitle || 'Let's talk about how we can help you achieve your goals. We are currently accepting new partners.'}
+          {subtitle || 'Let\'s talk about how we can help you achieve your goals. We are currently accepting new partners.'}
         </motion.p>
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}

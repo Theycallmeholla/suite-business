@@ -312,5 +312,3 @@ export default function Testimonials(props: TestimonialsProps) {
   }
 }
 
-// Export all variants for direct use
-export { TestimonialsGrid, TestimonialsCarousel, TestimonialsMinimal };

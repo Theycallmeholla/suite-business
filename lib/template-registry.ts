@@ -79,3 +79,43 @@ export async function getSectionComponent(variantId: string) {
   const module = await loader();
   return module.default;
 }
+
+// Template Registry Class for easier access
+export class TemplateRegistry {
+  private templates: TemplateConfig[];
+
+  constructor() {
+    this.templates = templateRegistry;
+  }
+
+  getAllTemplates(): TemplateConfig[] {
+    return this.templates;
+  }
+
+  getTemplateById(templateId: string): TemplateConfig | undefined {
+    return this.templates.find(t => t.id === templateId);
+  }
+
+  getTemplatesForIndustry(industry: string): TemplateConfig[] {
+    return this.templates.filter(t => {
+      const { include, exclude } = t.compatibility.industries;
+      
+      // Check exclusions first
+      if (exclude && exclude.includes(industry)) {
+        return false;
+      }
+      
+      // If includes is specified, industry must be in the list
+      if (include && include.length > 0) {
+        return include.includes(industry);
+      }
+      
+      // No restrictions, template is compatible
+      return true;
+    });
+  }
+
+  getDefaultTemplateForIndustry(industry: string): TemplateConfig {
+    return getDefaultTemplateForIndustry(industry);
+  }
+}

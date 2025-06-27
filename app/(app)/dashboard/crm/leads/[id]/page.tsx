@@ -64,6 +64,11 @@ export default async function LeadDetailPage({ params }: PageProps) {
     },
   });
 
+  const activities = lead.activities.map(activity => ({
+    ...activity,
+    createdAt: activity.createdAt.toISOString(), // Convert Date to string
+  }));
+
   if (!lead) {
     notFound();
   }
