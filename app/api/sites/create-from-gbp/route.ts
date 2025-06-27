@@ -7,7 +7,6 @@ import { createGHLProClient } from '@/lib/ghl';
 import { BusinessIntelligenceExtractor } from '@/lib/business-intelligence';
 import { calculateDataScore } from '@/lib/intelligence/scoring';
 import { generateSubdomain } from '@/lib/utils';
-import { detectIndustry } from '@/lib/site-builder';
 
 const createFromGBPSchema = z.object({
   locationId: z.string(), // Can be either GBP location ID or Place ID
@@ -26,7 +25,20 @@ const createFromGBPSchema = z.object({
   }).optional(),
 });
 
-// The functions generateSubdomain and detectIndustry are imported from other modules above
+// Helper function to detect industry from GBP category
+function detectIndustryFromCategory(category: any): string {
+  if (!category?.displayName) return 'general';
+  const categoryName = category.displayName.toLowerCase();
+  
+  if (categoryName.includes('landscap') || categoryName.includes('lawn')) return 'landscaping';
+  if (categoryName.includes('hvac') || categoryName.includes('heating') || categoryName.includes('cooling')) return 'hvac';
+  if (categoryName.includes('plumb')) return 'plumbing';
+  if (categoryName.includes('clean')) return 'cleaning';
+  if (categoryName.includes('roof')) return 'roofing';
+  if (categoryName.includes('electric')) return 'electrical';
+  
+  return 'general';
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -268,7 +280,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Detect industry if not provided
-    const industry = providedIndustry || detectIndustry(business.primaryCategory) || 'general';
+    const industry = providedIndustry || detectIndustryFromCategory(business.primaryCategory) || 'general';
 
     // Extract services from categories (if from GBP)
     const services = isFromGBP ? [
