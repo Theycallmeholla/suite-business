@@ -46,20 +46,43 @@ const formatHours = (regularHours: any) => {
   if (!regularHours?.periods) return null;
   
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayMapping: Record<string, string> = {
+    'SUNDAY': 'Sunday',
+    'MONDAY': 'Monday',
+    'TUESDAY': 'Tuesday',
+    'WEDNESDAY': 'Wednesday',
+    'THURSDAY': 'Thursday',
+    'FRIDAY': 'Friday',
+    'SATURDAY': 'Saturday'
+  };
   const hoursMap: Record<string, string> = {};
   
   regularHours.periods.forEach((period: any) => {
-    if (period.openDay !== undefined && period.openTime && period.closeTime) {
-      const day = daysOfWeek[period.openDay];
-      const openTime = formatTime(period.openTime);
-      const closeTime = formatTime(period.closeTime);
-      if (day && openTime && closeTime) {
-        hoursMap[day] = `${openTime} - ${closeTime}`;
+    if (period.openDay && period.openTime && period.closeTime) {
+      // Handle both string day names and numeric indices
+      const day = typeof period.openDay === 'string' 
+        ? dayMapping[period.openDay] 
+        : daysOfWeek[period.openDay];
+      
+      if (day) {
+        const openTime = formatTime(period.openTime);
+        const closeTime = formatTime(period.closeTime);
+        if (openTime && closeTime) {
+          hoursMap[day] = `${openTime} - ${closeTime}`;
+        }
       }
     }
   });
   
-  return hoursMap;
+  // Sort days in correct order
+  const sortedHours: Record<string, string> = {};
+  daysOfWeek.forEach(day => {
+    if (hoursMap[day]) {
+      sortedHours[day] = hoursMap[day];
+    }
+  });
+  
+  return Object.keys(sortedHours).length > 0 ? sortedHours : null;
 };
 
 const formatTime = (time: any) => {
@@ -71,13 +94,15 @@ const formatTime = (time: any) => {
     const minute = time.substring(2, 4);
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minute} ${ampm}`;
+    // Only show minutes if they're not :00
+    return minute === '00' ? `${displayHour}${ampm}` : `${displayHour}:${minute}${ampm}`;
   } else if (time.hours !== undefined) {
     const hour = time.hours;
     const minute = time.minutes || 0;
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minute.toString().padStart(2, '0')} ${ampm}`;
+    // Only show minutes if they're not :00
+    return minute === 0 ? `${displayHour}${ampm}` : `${displayHour}:${minute.toString().padStart(2, '0')}${ampm}`;
   }
   
   return '';
@@ -101,6 +126,16 @@ export function BusinessConfirmation({ business, selectedAccountId, onConfirm, o
   const detectedIndustry = detectIndustry(business.primaryCategory);
   const formattedHours = formatHours(business.regularHours);
   const suggestedSubdomain = generateSubdomain(business.name);
+  
+  // Generate the full URL based on environment
+  const getWebsiteUrl = () => {
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    return `${protocol}//${suggestedSubdomain}.${host}`;
+  };
+  
+  const websiteUrl = getWebsiteUrl();
+  const isLocalDev = window.location.hostname === 'localhost';
   
   const handleConfirm = () => {
     // Pass the detected industry to the parent
@@ -218,19 +253,42 @@ export function BusinessConfirmation({ business, selectedAccountId, onConfirm, o
       {/* Operating Hours */}
       {formattedHours && (
         <Card className="p-6">
-          <h3 className="font-semibold mb-3 flex items-center">
+          <h3 className="font-semibold mb-4 flex items-center">
             <Clock className="h-4 w-4 mr-2" />
             Business Hours
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-            {Object.entries(formattedHours).map(([day, hours]) => (
-              <div key={day}>
-                <span className="font-medium">{day}:</span> {hours}
-              </div>
-            ))}
+          <div className="grid grid-cols-7 gap-2">
+            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => {
+              const hours = formattedHours[day];
+              const dayAbbrev = day.substring(0, 3).toUpperCase();
+              
+              if (!hours) {
+                return (
+                  <div key={day} className="text-center">
+                    <div className="text-xs font-semibold text-gray-500 mb-1">{dayAbbrev}</div>
+                    <div className="border rounded-lg p-3 bg-gray-50 min-h-[80px] flex items-center justify-center">
+                      <span className="text-xs text-gray-400">Closed</span>
+                    </div>
+                  </div>
+                );
+              }
+              
+              const [openTime, closeTime] = hours.split(' - ');
+              
+              return (
+                <div key={day} className="text-center">
+                  <div className="text-xs font-semibold text-gray-700 mb-1">{dayAbbrev}</div>
+                  <div className="border border-green-200 rounded-lg p-2 bg-green-50 min-h-[80px] flex flex-col justify-between">
+                    <div className="text-xs font-medium text-green-700">{openTime}</div>
+                    <div className="text-[10px] text-gray-500 my-1">to</div>
+                    <div className="text-xs font-medium text-green-700">{closeTime}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
           {business.openInfo?.status && (
-            <p className="mt-3 text-sm">
+            <p className="mt-4 text-sm text-center">
               Currently: <span className={`font-medium ${
                 business.openInfo.status === 'OPEN' ? 'text-green-600' : 'text-red-600'
               }`}>
@@ -356,10 +414,16 @@ export function BusinessConfirmation({ business, selectedAccountId, onConfirm, o
         <h3 className="font-semibold mb-3">Your New Website</h3>
         <div className="flex items-center space-x-2">
           <Globe className="h-4 w-4 text-gray-400" />
-          <span className="text-sm font-mono">
-            {suggestedSubdomain}.{window.location.hostname}
+          <span className="text-sm font-mono text-blue-600">
+            {websiteUrl}
           </span>
         </div>
+        <p className="text-xs text-gray-500 mt-2">
+          {isLocalDev 
+            ? 'Local development URL - in production this will be your custom domain'
+            : 'This will be your website URL once published'
+          }
+        </p>
       </Card>
 
       {/* Action Buttons */}

@@ -36,7 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         let existingSession = null;
         try {
           // Get the current session from cookies to check if user is already logged in
-          const cookieStore = cookies();
+          const cookieStore = await cookies();
           const sessionToken = cookieStore.get('authjs.session-token')?.value || 
                               cookieStore.get('__Secure-authjs.session-token')?.value;
           
@@ -50,6 +50,54 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           logger.error('Error checking existing session', {}, error as Error);
         }
 
+        // If there's an existing session, this is an "add account" flow
+        if (existingSession && existingSession.user) {
+          // User is already authenticated and adding an additional Google account
+          // This account will ONLY be used for GBP access, not for signing in
+          try {
+            // Check if this Google account is already linked to the current user
+            const existingLink = await prisma.account.findFirst({
+              where: {
+                userId: existingSession.userId,
+                provider: "google",
+                providerAccountId: account.providerAccountId
+              }
+            });
+
+            if (!existingLink) {
+              // Link this Google account to the current user
+              // Even if another user has this as their primary account, 
+              // we can still add it as an additional account for GBP access
+              await prisma.account.create({
+                data: {
+                  userId: existingSession.userId,
+                  type: account.type,
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                  refresh_token: account.refresh_token,
+                  access_token: account.access_token,
+                  expires_at: account.expires_at,
+                  token_type: account.token_type,
+                  scope: account.scope,
+                  id_token: account.id_token,
+                }
+              });
+              logger.info('Successfully linked additional Google account for GBP access', {
+                metadata: { 
+                  userId: existingSession.userId,
+                  googleAccountId: account.providerAccountId,
+                  email: user.email
+                }
+              });
+            }
+            return true;
+          } catch (error) {
+            logger.error('Error linking additional account', {}, error as Error);
+            return false;
+          }
+        }
+
+        // No existing session - this is a regular sign in flow
         // Check if user already exists with this email
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email! },
@@ -81,62 +129,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }, 1000); // Wait a second for user creation
         }
 
+        // For regular sign in, verify the Google account is linked to this user
         if (existingUser) {
-          // Check if this Google account is already linked
           const isLinked = existingUser.accounts.some(
             acc => acc.provider === "google" && acc.providerAccountId === account.providerAccountId
           );
-
+          
           if (!isLinked) {
-            // Check if there's an authenticated session and it belongs to the same user
-            // This indicates the user is adding an additional Google account
-            const isAddingAccount = existingSession && 
-                                   existingSession.userId === existingUser.id;
-
-            if (isAddingAccount) {
-              // User is authenticated and adding a new Google account
-              try {
-                await prisma.account.create({
-                  data: {
-                    userId: existingUser.id,
-                    type: account.type,
-                    provider: account.provider,
-                    providerAccountId: account.providerAccountId,
-                    refresh_token: account.refresh_token,
-                    access_token: account.access_token,
-                    expires_at: account.expires_at,
-                    token_type: account.token_type,
-                    scope: account.scope,
-                    id_token: account.id_token,
-                  }
-                });
-                logger.info('Successfully linked additional Google account', {
-                  metadata: { 
-                    userId: existingUser.id,
-                    googleAccountId: account.providerAccountId 
-                  }
-                });
-                return true;
-              } catch (error) {
-                logger.error('Error linking account', {}, error as Error);
-                // If account already exists (race condition), it's ok
-                if ((error as any).code !== 'P2002') {
-                  return false;
-                }
-                return true; // Account already linked, allow sign in
+            // This Google account is not linked to this user for sign in
+            logger.warn('Google account not linked to this user for sign in', {
+              metadata: {
+                email: user.email,
+                googleAccountId: account.providerAccountId
               }
-            } else {
-              // Different user or no session - don't allow automatic linking
-              logger.warn('Attempted to sign in with unlinked Google account', {
-                metadata: {
-                  email: user.email,
-                  hasSession: !!existingSession,
-                  sessionUserId: existingSession?.userId,
-                  existingUserId: existingUser.id
-                }
-              });
-              return false;
-            }
+            });
+            return false;
           }
         }
         
