@@ -26,29 +26,7 @@ const createFromGBPSchema = z.object({
   }).optional(),
 });
 
-// Generate subdomain from business name
-function generateSubdomain(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .substring(0, 30);
-}
-
-// Detect industry from category
-function detectIndustry(category: any): string {
-  if (!category?.displayName) return 'general';
-  const categoryName = category.displayName.toLowerCase();
-  
-  if (categoryName.includes('landscap') || categoryName.includes('lawn')) return 'landscaping';
-  if (categoryName.includes('hvac') || categoryName.includes('heating') || categoryName.includes('cooling')) return 'hvac';
-  if (categoryName.includes('plumb')) return 'plumbing';
-  if (categoryName.includes('clean')) return 'cleaning';
-  if (categoryName.includes('roof')) return 'roofing';
-  if (categoryName.includes('electric')) return 'electrical';
-  
-  return 'general';
-}
+// The functions generateSubdomain and detectIndustry are imported from other modules above
 
 export async function POST(request: NextRequest) {
   try {
