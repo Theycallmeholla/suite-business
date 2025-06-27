@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Created**: December 2024  
-**Last Updated**: June 2025, 1:35 AM CST
+**Last Updated**: December 28, 2024, 1:45 AM CST
 
 ## Quick Reference: Claude Commands
 Use these slash commands for common tasks:
@@ -86,6 +86,11 @@ npm run add-agency-members-bulk
 - **Shared Caching System**: Optimized API calls with intelligent caching between endpoints
 - **Logo Upload**: Smart resizing and optimization for different display contexts
 - **Dashboard Redesign**: Comprehensive UI/UX improvements with better information architecture
+- **Onboarding Persistence**: Full state persistence for onboarding flow with 24-hour retention
+  - Automatically saves progress at every step
+  - Resume capability with visual indicator
+  - Handles browser refresh and navigation without data loss
+  - Fixed parsing errors from concatenated code lines
 
 ### June 2025 - Intelligent Content Generation System
 - **Data Scoring Algorithm**: 0-100 point system across 5 categories (basic info, content, visuals, trust, differentiation)

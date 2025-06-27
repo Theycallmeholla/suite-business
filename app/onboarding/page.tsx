@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Search, AlertCircle, CheckCircle2, Loader2, Clock } from 'lucide-react';
+import { Building2, Search, AlertCircle, CheckCircle2, Loader2, Clock, RefreshCw } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { GoogleAccountSelector } from '@/components/GoogleAccountSelector';
 import { BusinessInfoForm } from './components/BusinessInfoForm';
@@ -18,54 +18,17 @@ import { BusinessClaimDialog } from './components/BusinessClaimDialog';
 import { toast } from '@/lib/toast';
 import { logger } from '@/lib/logger';
 import { BusinessAutocomplete } from '@/components/BusinessAutocomplete';
+import { useOnboardingPersistence, type OnboardingState, type BusinessLocation } from '@/lib/onboarding-persistence';
 
 type Step = 'gbp-check' | 'gbp-select' | 'gbp-search' | 'business-info' | 'industry-select' | 'manual-setup';
-
-interface BusinessLocation {
-  // Core identification
-  id: string;
-  name: string;
-  languageCode?: string;
-  storeCode?: string;
-  
-  // Contact information
-  primaryPhone?: string | null;
-  additionalPhones?: string[];
-  website?: string | null;
-  
-  // Location details
-  address: string;
-  fullAddress?: any;
-  coordinates?: any;
-  serviceArea?: any;
-  
-  // Business categorization
-  primaryCategory?: any;
-  additionalCategories?: any[];
-  
-  // Operating information
-  regularHours?: any;
-  specialHours?: any;
-  moreHours?: any[];
-  openInfo?: any;
-  
-  // Services and features
-  serviceItems?: any[];
-  profile?: any;
-  labels?: string[];
-  
-  // Metadata
-  metadata?: any;
-  relationshipData?: any;
-  adWordsLocationExtensions?: any;
-  
-  // Legacy
-  verified?: boolean;
-}
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const persistence = useOnboardingPersistence();
+  
+  // State management with initial values from persistence
+  const [isRestoringState, setIsRestoringState] = useState(true);
   const [step, setStep] = useState<Step>('gbp-check');
   const [hasGBP, setHasGBP] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +51,67 @@ export default function OnboardingPage() {
     availableAccounts?: Array<{ id: string; email: string }>;
     gbpLocationId?: string;
   } | null>(null);
+  const [manualSetupData, setManualSetupData] = useState<any>(null);
+  
+  // Save state whenever it changes
+  const saveState = useCallback(() => {
+    const state: Partial<OnboardingState> = {
+      step,
+      hasGBP,
+      selectedAccountId,
+      googleAccountEmail,
+      selectedBusiness,
+      businesses,
+      selectedIndustry,
+      detectedIndustry,
+      claimDialogData,
+      manualSetupData,
+      isCached,
+      cacheAge,
+    };
+    persistence.save(state);
+  }, [
+    step, hasGBP, selectedAccountId, googleAccountEmail, selectedBusiness,
+    businesses, selectedIndustry, detectedIndustry, claimDialogData,
+    manualSetupData, isCached, cacheAge, persistence
+  ]);
 
+  // Persist state on every change
+  useEffect(() => {
+    if (!isRestoringState) {
+      saveState();
+    }
+  }, [saveState, isRestoringState]);
+
+  // Restore state on mount
+  useEffect(() => {
+    const savedState = persistence.load();
+    if (savedState) {
+      const stateAge = persistence.getStateAge();
+      toast.info(`Resuming from where you left off ${stateAge ? `(${stateAge} minutes ago)` : ''}`);
+      
+      // Restore all state values
+      if (savedState.step) setStep(savedState.step);
+      if (savedState.hasGBP) setHasGBP(savedState.hasGBP);
+      if (savedState.selectedAccountId) setSelectedAccountId(savedState.selectedAccountId);
+      if (savedState.googleAccountEmail) setGoogleAccountEmail(savedState.googleAccountEmail);
+      if (savedState.selectedBusiness) setSelectedBusiness(savedState.selectedBusiness);
+      if (savedState.businesses) setBusinesses(savedState.businesses);
+      if (savedState.selectedIndustry) setSelectedIndustry(savedState.selectedIndustry);
+      if (savedState.detectedIndustry) setDetectedIndustry(savedState.detectedIndustry);
+      if (savedState.claimDialogData) setClaimDialogData(savedState.claimDialogData);
+      if (savedState.manualSetupData) setManualSetupData(savedState.manualSetupData);
+      if (savedState.isCached !== undefined) setIsCached(savedState.isCached);
+      if (savedState.cacheAge !== null) setCacheAge(savedState.cacheAge);
+      
+      // If we were in gbp-select, refetch businesses
+      if (savedState.step === 'gbp-select' && savedState.selectedAccountId) {
+        fetchUserBusinesses(savedState.selectedAccountId);
+      }
+    }
+    setIsRestoringState(false);
+  }, []);
+  
   // Redirect if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -96,14 +119,16 @@ export default function OnboardingPage() {
     }
   }, [status, router]);
   
-  // Clean up on unmount
+  // Clean up on unmount (only when onboarding is completed)
   useEffect(() => {
     return () => {
-      // Clean up any saved state when leaving onboarding
-      localStorage.removeItem('onboarding_step');
-      localStorage.removeItem('onboarding_resume_data');
+      // Only clear if we're not just navigating away temporarily
+      const isCompletingOnboarding = step === 'industry-select' && selectedIndustry;
+      if (isCompletingOnboarding) {
+        persistence.clear();
+      }
     };
-  }, []);
+  }, [step, selectedIndustry, persistence]);
   
   // Check if we're coming back from adding a new account
   useEffect(() => {
@@ -123,53 +148,18 @@ export default function OnboardingPage() {
     }
     
     if (fromAddAccount === 'true') {
-      // Check if we have resume data
-      const resumeDataStr = localStorage.getItem('onboarding_resume_data');
-      if (resumeDataStr) {
-        try {
-          const resumeData = JSON.parse(resumeDataStr);
-          localStorage.removeItem('onboarding_resume_data');
-          
-          // Restore the state based on where we were
-          if (resumeData.step === 'gbp-select') {
-            // We were on the "Select your business" page
-            setStep('gbp-select');
-            setHasGBP('yes');
-            
-            // Get the newly added account and select it
-            fetchAccountsAndSelectNewest();
-          } else if (resumeData.placeId) {
-            // We were searching for a business
-            setStep('gbp-search');
-            // Trigger the ownership check again
-            setTimeout(() => {
-              handleBusinessAutocompleteSelect(
-                resumeData.placeId,
-                resumeData.businessName,
-                resumeData.businessAddress
-              );
-            }, 100);
-          }
-        } catch (error) {
-          logger.error('Error parsing resume data', {}, error as Error);
-        }
-      } else {
-        // No resume data but coming from add account - restore to gbp-select
-        // This handles the case where user was already on gbp-select
-        const savedStep = localStorage.getItem('onboarding_step');
-        if (savedStep === 'gbp-select') {
-          setStep('gbp-select');
-          setHasGBP('yes');
-          fetchAccountsAndSelectNewest();
-        }
+      // We're coming back from adding account - state should be restored automatically
+      // Just fetch the newest account
+      if (step === 'gbp-select') {
+        fetchAccountsAndSelectNewest();
       }
       
       // Clean up URL
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
-  }, []);
-
+  }, [step]);
+  
   // Fetch user's Google Business Profile locations
   const fetchUserBusinesses = async (accountId?: string, forceRefresh?: boolean) => {
     setIsLoading(true);
@@ -215,8 +205,7 @@ export default function OnboardingPage() {
     });
         }
       } else {
-        logger.error('GBP API Error', { metadata: data });
-        
+        logger.error('GBP API Error', { metadata: data });        
         // Handle specific error cases
         if (response.status === 403) {
           if (data.action === 'request_access') {
@@ -267,7 +256,7 @@ export default function OnboardingPage() {
       setLoadingMessage('');
     }
   };
-
+  
   // Fetch accounts and select the newest one
   const fetchAccountsAndSelectNewest = async () => {
     try {
@@ -306,8 +295,6 @@ export default function OnboardingPage() {
     if (value === 'yes') {
       await fetchUserBusinesses(undefined, false);
       setStep('gbp-select');
-      // Save step to localStorage for recovery
-      localStorage.setItem('onboarding_step', 'gbp-select');
     } else if (value === 'no') {
       // Go directly to manual setup
       setStep('manual-setup');
@@ -318,11 +305,10 @@ export default function OnboardingPage() {
   };
 
   // Note: searchBusinessListings removed in favor of BusinessAutocomplete component
-
+  
   const handleBusinessSelect = () => {
     if (selectedBusiness) {
-      // Store the selected business and move to next step
-      localStorage.setItem('selectedGBP', selectedBusiness);
+      // Move to next step
       setStep('business-info');
     }
   };
@@ -373,7 +359,7 @@ export default function OnboardingPage() {
       setLoadingMessage('');
     }
   };
-
+  
   // Handle business autocomplete selection
   const handleBusinessAutocompleteSelect = async (placeId: string, businessName: string, address: string) => {
     setIsLoading(true);
@@ -398,7 +384,7 @@ export default function OnboardingPage() {
           ownershipStatus: ownershipData.ownershipStatus,
           hasGbpAccess: ownershipData.hasGbpAccess,
           availableAccounts: ownershipData.availableAccounts,
-          gbpLocationId: ownershipData.gbpLocationId, // Add this
+          gbpLocationId: ownershipData.gbpLocationId,
         });
         setShowClaimDialog(true);
         setIsLoading(false);
@@ -428,7 +414,7 @@ export default function OnboardingPage() {
       await proceedWithBusinessDetails(placeId, businessName, address);
     }
   };
-
+  
   // Handle claim dialog actions
   const handleClaimAction = async (action: 'import' | 'claim' | 'manual' | 'add_account') => {
     if (!claimDialogData) return;
@@ -438,14 +424,7 @@ export default function OnboardingPage() {
       setSelectedBusiness(claimDialogData.placeId);
       setStep('manual-setup');
     } else if (action === 'add_account') {
-      // Redirect to add Google account page
-      // Store current state so we can resume after adding account
-      localStorage.setItem('onboarding_resume_data', JSON.stringify({
-        step: 'gbp-search',
-        placeId: claimDialogData.placeId,
-        businessName: claimDialogData.businessName,
-        businessAddress: claimDialogData.businessAddress,
-      }));
+      // State will be automatically restored when they come back
       router.push('/add-google-account?returnTo=/onboarding');
     } else if (action === 'import') {
       // User has GBP access - use GBP data
@@ -485,11 +464,16 @@ export default function OnboardingPage() {
       );
     }
   };
-
-  if (status === 'loading') {
+  
+  if (status === 'loading' || isRestoringState) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          {isRestoringState && (
+            <p className="text-sm text-gray-500">Restoring your progress...</p>
+          )}
+        </div>
       </div>
     );
   }
@@ -497,7 +481,29 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        {/* Back button */}
+        {/* Resume progress banner */}
+        {persistence.hasValidState() && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <RefreshCw className="h-5 w-5 text-blue-600" />
+              <p className="text-sm text-blue-900">
+                Your progress has been saved automatically
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (confirm('Are you sure you want to start over? This will clear your saved progress.')) {
+                  persistence.clear();
+                  window.location.reload();
+                }
+              }}
+            >
+              Start Over
+            </Button>
+          </div>
+        )}        {/* Back button */}
         <div className="mb-6">
           <Button
             variant="ghost"
@@ -520,9 +526,7 @@ export default function OnboardingPage() {
             </svg>
             Back to Dashboard
           </Button>
-        </div>
-
-        {/* Progress indicator */}
+        </div>        {/* Progress indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div className={`flex items-center ${step === 'gbp-check' || step === 'gbp-select' || step === 'gbp-search' ? 'text-blue-600' : 'text-gray-400'}`}>
@@ -560,9 +564,7 @@ export default function OnboardingPage() {
               <span className="ml-2 text-sm font-medium hidden sm:inline">Select Industry</span>
             </div>
           </div>
-        </div>
-
-        <Card className="p-8">
+        </div>        <Card className="p-8">
           {/* Step 1: Check if they have GBP */}
           {step === 'gbp-check' && (
             <div className="space-y-6">
@@ -576,7 +578,7 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
-              <RadioGroup onValueChange={handleGBPCheck}>
+              <RadioGroup value={hasGBP} onValueChange={handleGBPCheck}>
                 <div className="space-y-3">
                   <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
                     <RadioGroupItem value="yes" />
@@ -610,9 +612,7 @@ export default function OnboardingPage() {
                 </div>
               </RadioGroup>
             </div>
-          )}
-
-          {/* Step 2: Select from their businesses */}
+          )}          {/* Step 2: Select from their businesses */}
           {step === 'gbp-select' && (
             <div className="space-y-6">
               <div className="text-center">
@@ -694,11 +694,6 @@ export default function OnboardingPage() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        // Save current state before adding account
-                        localStorage.setItem('onboarding_resume_data', JSON.stringify({
-                          step: 'gbp-select',
-                          hasGBP: 'yes'
-                        }));
                         router.push('/add-google-account?returnTo=/onboarding');
                       }}
                     >
@@ -739,9 +734,7 @@ export default function OnboardingPage() {
                 </div>
               )}
             </div>
-          )}
-
-          {/* Step 3: Search for business */}
+          )}          {/* Step 3: Search for business */}
           {step === 'gbp-search' && (
             <div className="space-y-6">
               <div className="text-center">
@@ -775,9 +768,7 @@ export default function OnboardingPage() {
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Step 4: Business confirmation */}
+          )}          {/* Step 4: Business confirmation */}
           {step === 'business-info' && (
             <BusinessConfirmation 
               business={businesses.find(b => b.id === selectedBusiness)}
@@ -801,6 +792,9 @@ export default function OnboardingPage() {
               detectedIndustry={detectedIndustry}
               onSelect={async (industry) => {
                 setSelectedIndustry(industry);
+                // Clear persistence after successful completion
+                persistence.clear();
+                
                 // Now create the site with the confirmed industry
                 try {
                   // Determine if this is a GBP location or a Place ID
@@ -847,7 +841,7 @@ export default function OnboardingPage() {
               onBack={() => setStep('business-info')}
             />
           )}
-
+          
           {/* Step: Manual Setup */}
           {step === 'manual-setup' && (
             <ManualBusinessSetup
@@ -856,8 +850,11 @@ export default function OnboardingPage() {
                 businessName: claimDialogData.businessName,
                 address: claimDialogData.businessAddress,
                 placeId: selectedBusiness,
-              } : undefined}
+              } : manualSetupData}
               onComplete={async (siteData) => {
+                // Clear persistence after successful completion
+                persistence.clear();
+                
                 // Create site with manual data
                 try {
                   const response = await fetch('/api/sites', {
@@ -884,6 +881,7 @@ export default function OnboardingPage() {
                 }
               }}
               onBack={() => setStep('gbp-check')}
+              onUpdate={(data) => setManualSetupData(data)}
             />
           )}
         </Card>
