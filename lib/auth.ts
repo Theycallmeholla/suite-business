@@ -118,10 +118,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             
             if (dbUser) {
               try {
-                await addToAgencyTeam(dbUser.id, 'owner');
-                logger.info('Added user to agency team as owner', {
-                  metadata: { email: user.email }
-                });
+                // Check if user is already in the agency team
+                const { isAgencyTeamMember } = await import('@/lib/teams');
+                const isMember = await isAgencyTeamMember(dbUser.id);
+                
+                if (!isMember) {
+                  await addToAgencyTeam(dbUser.id, 'owner');
+                  logger.info('Added user to agency team as owner', {
+                    metadata: { email: user.email }
+                  });
+                } else {
+                  logger.info('User already in agency team', {
+                    metadata: { email: user.email }
+                  });
+                }
               } catch (error) {
                 logger.error('Failed to add user to agency team', {}, error as Error);
               }
@@ -242,7 +252,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: "database",
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: false,
 });
 
 // Helper to get server session

@@ -151,16 +151,19 @@ async function sendToExternalAnalytics(
   metrics: EnhancedGenerationMetrics
 ): Promise<void> {
   // Check if external analytics is configured
-  if (!process.env.ANALYTICS_ENDPOINT) {
+  const analyticsEndpoint = typeof process !== 'undefined' ? process.env?.ANALYTICS_ENDPOINT : undefined;
+  const analyticsApiKey = typeof process !== 'undefined' ? process.env?.ANALYTICS_API_KEY : undefined;
+  
+  if (!analyticsEndpoint) {
     return;
   }
 
   try {
-    const response = await fetch(process.env.ANALYTICS_ENDPOINT, {
+    const response = await fetch(analyticsEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.ANALYTICS_API_KEY}`,
+        'Authorization': `Bearer ${analyticsApiKey}`,
       },
       body: JSON.stringify({
         event: `enhanced_generation_${event}`,

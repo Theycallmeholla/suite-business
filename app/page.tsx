@@ -6,39 +6,39 @@ import Footer from '@/components/layout/Footer';
 import Image from 'next/image';
 
 // COMPONENTS
-const FloatingIcon = ({ children, className, delay }: { children: React.ReactNode; className: string; delay: string }) => (
-    <div className={`floating-icon ${className}`} style={{ animationDelay: delay }}>
+const FloatingIcon = React.memo(({ children, className, delay }: { children: React.ReactNode; className: string; delay: string }) => (
+    <div className={`floating-icon ${className} animation-delay-${delay}`}>
         {children}
     </div>
-);
+));
 
-const HeroSection = () => (
-    <section className="py-24 md:py-40 relative overflow-hidden" style={{ backgroundColor: '#f8f9fa' }}>
-        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#dfe3f0 0.5px, transparent 0.5px)', backgroundSize: '1.5rem 1.5rem', opacity: 0.5 }}></div>
+const HeroSection = React.memo(() => (
+    <section className="py-24 md:py-40 relative overflow-hidden bg-gray-50">
+        <div className="absolute inset-0 bg-grid-pattern opacity-50"></div>
         
         <div className="container mx-auto px-6 relative">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
                 {/* Left side - Content */}
                 <div className="text-left">
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 leading-tight text-gray-900" style={{ animation: 'fadeInUp 1s ease-out 0s forwards', opacity: 0 }}>
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 leading-tight text-gray-900 animate-fade-in-up-0">
                         Your Business Website,
                         <br />
                         <span className="bg-gradient-to-r from-[#6914c1] to-purple-500 text-transparent bg-clip-text">Done For You.</span>
                     </h1>
-                    <p className="text-gray-500 text-lg md:text-xl max-w-lg mb-8 font-normal" style={{ animation: 'fadeInUp 1s ease-out 0.3s forwards', opacity: 0 }}>
+                    <p className="text-gray-500 text-lg md:text-xl max-w-lg mb-8 font-normal animate-fade-in-up-300">
                         We pull your Google Business data to instantly create a beautiful, SEO-optimized website. Comes complete with a CRM, lead management, and email & text marketing tools.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6" style={{ animation: 'fadeInUp 1s ease-out 0.6s forwards', opacity: 0 }}>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-6 animate-fade-in-up-600">
                         <Link href="/signup" className="btn-primary text-white font-bold py-4 px-8 rounded-lg text-lg">Start Free Trial</Link>
                         <a href="#how" className="font-semibold py-4 px-8 rounded-lg text-lg text-gray-700 bg-white border border-gray-200 hover:border-gray-300 transition">Learn More &rarr;</a>
                     </div>
-                    <p className="text-sm text-gray-500" style={{ animation: 'fadeInUp 1s ease-out 0.9s forwards', opacity: 0 }}>
+                    <p className="text-sm text-gray-500 animate-fade-in-up-900">
                         No credit card required • Setup in 10 minutes • Cancel anytime
                     </p>
                 </div>
 
                 {/* Right side - Hero Image */}
-                <div className="flex justify-center" style={{ animation: 'fadeInUp 1s ease-out 0.4s forwards', opacity: 0 }}>
+                <div className="flex justify-center animate-fade-in-up-400">
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl max-w-md w-full">
                         <Image 
                             src="/hoop-dreams.jpg" 
@@ -46,24 +46,25 @@ const HeroSection = () => (
                             width={500} 
                             height={300}
                             className="w-full h-auto object-cover"
+                            loading="lazy"
                         />
                     </div>
                 </div>
             </div>
         </div>
     </section>
-);
+));
 
-const StepCard = ({ number, title, description, children, delay }: { number: string; title: string; description: string; children: React.ReactNode; delay: string }) => (
-    <div className="card-glow bg-gray-900 text-white p-8 rounded-2xl card-anim" style={{ animationDelay: delay }}>
+const StepCard = React.memo(({ number, title, description, children, delay }: { number: string; title: string; description: string; children: React.ReactNode; delay: string }) => (
+    <div className={`card-glow bg-gray-900 text-white p-8 rounded-2xl card-anim animation-delay-${delay}`}>
         <div className="text-5xl font-black text-white mb-4">{number}</div>
-        <h3 className="text-2xl font-bold mb-4 text-white">{title}</h3>
-        <p className="text-gray-300 mb-6 font-normal">{description}</p>
+        <h2 className="text-2xl font-bold mb-4 text-white">{title}</h2>
+        <p className="text-gray-100 mb-6 font-normal">{description}</p>
         {children}
     </div>
-);
+));
 
-const HowItWorksSection = () => (
+const HowItWorksSection = React.memo(() => (
     <section id="how" className="py-20 bg-white">
         <div className="container mx-auto px-6">
             <div className="text-center mb-16">
@@ -77,7 +78,7 @@ const HowItWorksSection = () => (
                            <img src="https://placehold.co/40x40/EA4335/FFFFFF?text=G" className="rounded-full" alt="Google Logo" />
                            <div className="ml-3">
                                <p className="font-semibold text-sm">Tina's Apple Turnerovers</p>
-                               <p className="text-xs text-gray-400">Fetching data...</p>
+                               <p className="text-xs text-gray-100">Fetching data...</p>
                            </div>
                        </div>
                        <div className="w-full bg-gray-700 rounded-full h-1.5 mt-3">
@@ -86,7 +87,7 @@ const HowItWorksSection = () => (
                     </div>
                 </StepCard>
                 <StepCard number="02" title="AI Content & Design" description="Our system generates professional, SEO-friendly copy and crafts a beautiful, modern design tailored to your industry. Tweak anything you like in our simple editor." delay="0.4s">
-                     <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-xs text-gray-400 font-mono">
+                     <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-xs text-gray-100 font-mono">
                         <p>&gt; Analyzing business type: <span className="text-green-400">'Restaurant'</span></p>
                         <p>&gt; Generating 'About Us' section...</p>
                         <p>&gt; Crafting service descriptions...</p>
@@ -102,19 +103,19 @@ const HowItWorksSection = () => (
             </div>
         </div>
     </section>
-);
+));
 
-const FeatureCard = ({ icon, title, description, delay }: { icon: React.ReactNode; title: string; description: string; delay: string }) => (
-    <div className="feature-card rounded-2xl p-8 card-anim" style={{ animationDelay: delay }}>
+const FeatureCard = React.memo(({ icon, title, description, delay }: { icon: React.ReactNode; title: string; description: string; delay: string }) => (
+    <div className={`feature-card rounded-2xl p-8 card-anim animation-delay-${delay}`}>
         <div className="icon-bg w-14 h-14 rounded-xl flex items-center justify-center mb-5">
             {icon}
         </div>
-        <h3 className="text-xl font-bold mb-3">{title}</h3>
-        <p className="text-gray-600 font-normal">{description}</p>
+        <h2 className="text-xl font-bold mb-3">{title}</h2>
+        <p className="text-gray-500 font-normal">{description}</p>
     </div>
-);
+));
 
-const FeaturesSection = () => {
+const FeaturesSection = React.memo(() => {
     const features = [
         {
             icon: <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6914c1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
@@ -159,22 +160,22 @@ const FeaturesSection = () => {
             </div>
         </section>
     );
-};
+});
 
-const CtaSection = () => (
+const CtaSection = React.memo(() => (
     <section id="cta" className="py-24 bg-white">
         <div className="container mx-auto px-6">
             <div className="bg-gray-900 rounded-3xl p-10 md:p-20 text-center relative overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#6914c1]/10 rounded-full blur-3xl"></div>
                 <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl"></div>
                 <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-5 relative">Ready to Dominate Local Search?</h2>
-                <p className="max-w-xl mx-auto text-gray-300 text-lg mb-10 relative font-normal">Join 500+ service businesses already ranking #1 in their area</p>
+                <p className="max-w-xl mx-auto text-gray-100 text-lg mb-10 relative font-normal">Join 500+ service businesses already ranking #1 in their area</p>
                 <Link href="/signup" className="btn-primary text-white font-bold py-4 px-8 rounded-lg text-lg relative">Start Your Free Trial</Link>
                 <p className="text-gray-500 mt-4 text-sm relative">14-day free trial • No credit card required • Setup in 10 minutes</p>
             </div>
         </div>
     </section>
-);
+));
 
 
 // Main App Component

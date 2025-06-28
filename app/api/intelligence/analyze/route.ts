@@ -33,18 +33,29 @@ export async function POST(request: NextRequest) {
 
     // Construct intelligence data
     const intelligenceData: BusinessIntelligenceData = {
+      businessName: gbpData.name || gbpData.businessName || businessName,
+      industry: 'general' as any, // Will be detected
       gbp: {
-        businessName: gbpData.businessName || businessName,
-        description: gbpData.description,
-        categories: gbpData.categories || [],
+        businessName: gbpData.name || gbpData.businessName || businessName,
+        description: gbpData.description || gbpData.profile?.description,
+        categories: [
+          ...(gbpData.primaryCategory ? [gbpData.primaryCategory.displayName || gbpData.primaryCategory.name] : []),
+          ...(gbpData.additionalCategories || []).map((cat: any) => cat.displayName || cat.name || cat)
+        ].filter(Boolean),
         photos: gbpData.photos || [],
         attributes: gbpData.attributes || {},
         reviews: gbpData.reviews,
-        hours: gbpData.hours
+        hours: gbpData.hours || gbpData.regularHours
       },
       places: placesData,
       serp: serpData,
-      manual: {}
+      manual: {},
+      // Add other fields from GBP data
+      phone: gbpData.primaryPhone || gbpData.phone,
+      website: gbpData.website || gbpData.websiteUri,
+      coordinates: gbpData.coordinates || gbpData.latlng,
+      businessHours: gbpData.regularHours || gbpData.hours,
+      metaDescription: gbpData.profile?.description || gbpData.description
     }
 
     // Calculate data score

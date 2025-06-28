@@ -293,6 +293,8 @@ export default function OnboardingPage() {
     setHasGBP(value);
     
     if (value === 'yes') {
+      setIsLoading(true);
+      setLoadingMessage('Loading your Google Business Profile...');
       await fetchUserBusinesses(undefined, false);
       setStep('gbp-select');
     } else if (value === 'no') {
@@ -578,20 +580,23 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
-              <RadioGroup value={hasGBP} onValueChange={handleGBPCheck}>
+              <RadioGroup value={hasGBP} onValueChange={handleGBPCheck} disabled={isLoading}>
                 <div className="space-y-3">
-                  <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <RadioGroupItem value="yes" />
+                  <label className={`flex items-center space-x-3 p-4 border rounded-lg ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}`}>
+                    <RadioGroupItem value="yes" disabled={isLoading} />
                     <div className="flex-1">
                       <p className="font-medium">Yes, I have one</p>
                       <p className="text-sm text-gray-600">
                         I manage my business on Google
                       </p>
                     </div>
+                    {isLoading && hasGBP === 'yes' && (
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                    )}
                   </label>
                   
-                  <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <RadioGroupItem value="no" />
+                  <label className={`flex items-center space-x-3 p-4 border rounded-lg ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}`}>
+                    <RadioGroupItem value="no" disabled={isLoading} />
                     <div className="flex-1">
                       <p className="font-medium">No, I don't have one</p>
                       <p className="text-sm text-gray-600">
@@ -600,8 +605,8 @@ export default function OnboardingPage() {
                     </div>
                   </label>
                   
-                  <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <RadioGroupItem value="not-sure" />
+                  <label className={`flex items-center space-x-3 p-4 border rounded-lg ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}`}>
+                    <RadioGroupItem value="not-sure" disabled={isLoading} />
                     <div className="flex-1">
                       <p className="font-medium">I'm not sure</p>
                       <p className="text-sm text-gray-600">
@@ -790,6 +795,9 @@ export default function OnboardingPage() {
           {step === 'industry-select' && (
             <IndustrySelector
               detectedIndustry={detectedIndustry}
+              businessId={selectedBusiness.startsWith('locations/') ? selectedBusiness : undefined}
+              placeId={selectedBusiness.startsWith('ChIJ') ? selectedBusiness : undefined}
+              accountId={selectedAccountId}
               onSelect={async (industry) => {
                 setSelectedIndustry(industry);
                 // Clear persistence after successful completion

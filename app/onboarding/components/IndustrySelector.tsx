@@ -13,6 +13,7 @@ interface IndustrySelectorProps {
   detectedIndustry?: string;
   businessId?: string;
   placeId?: string;
+  accountId?: string;
   onSelect: (industry: string) => void;
   onBack: () => void;
 }
@@ -76,7 +77,7 @@ const industries = [
   },
 ];
 
-export function IndustrySelector({ detectedIndustry, businessId, placeId, onSelect, onBack }: IndustrySelectorProps) {
+export function IndustrySelector({ detectedIndustry, businessId, placeId, accountId, onSelect, onBack }: IndustrySelectorProps) {
   const [selectedIndustry, setSelectedIndustry] = useState(detectedIndustry || '');
   const [isConfirming, setIsConfirming] = useState(false);
 
@@ -205,10 +206,11 @@ export function IndustrySelector({ detectedIndustry, businessId, placeId, onSele
                   const params = new URLSearchParams({
                     industry: selectedIndustry,
                     ...(placeId && { placeId }),
-                    ...(businessId && { businessId })
+                    ...(businessId && { businessId }),
+                    ...(accountId && { accountId })
                   });
                   
-                  window.location.href = `/dashboard/sites/create-enhanced?${params.toString()}`;
+                  window.location.href = `/onboarding/enhanced-questions?${params.toString()}`;
                 }}
                 className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
               >

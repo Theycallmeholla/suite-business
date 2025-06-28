@@ -79,7 +79,16 @@
       "Bash(git --no-pager diff --stat)",
       "mcp__puppeteer__puppeteer_navigate",
       "mcp__puppeteer__puppeteer_screenshot",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(npx jest:*)",
+      "Bash(sed:*)",
+      "mcp__fetch__fetch",
+      "mcp__memory__read_graph",
+      "mcp__memory__create_relations",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "mcp__filesystem__search_files",
+      "mcp__filesystem__read_file"
     ],
     "deny": []
   },
