@@ -135,6 +135,15 @@ npm run add-agency-members-bulk
 
 ## Recent Enhancements
 
+### December 2024 (Latest)
+- **App Subdomain Architecture**: Moved authenticated app from `/(app)` route group to subdomain architecture
+  - Dashboard now lives at `app.domain.com` instead of `domain.com/dashboard`
+  - Reserved subdomains list prevents conflicts with client sites
+  - Automatic validation ensures businesses can't use system subdomains
+  - Authentication flows properly redirect to app subdomain
+  - Middleware handles routing for both app and client subdomains
+  - See `APP_SUBDOMAIN_SETUP.md` for local setup instructions
+
 ### December 2024
 - **Custom Domain Support**: Full implementation with DNS verification and SSL automation
 - **Multi-Account GBP Access**: Fixed critical bug where businesses weren't recognized across multiple Google accounts
