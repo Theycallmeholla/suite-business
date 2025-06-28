@@ -29,7 +29,8 @@
     "test:ghl": "jest --testPathPattern=ghl",
     "test:gbp": "jest --testPathPattern=gbp",
     "test:analytics": "dotenv -e .env.local -- tsx scripts/test-analytics-tracking.ts",
-    "analytics:generate": "dotenv -e .env.local -- tsx scripts/test-analytics-tracking.ts"
+    "analytics:generate": "dotenv -e .env.local -- tsx scripts/test-analytics-tracking.ts",
+    "lint:json": "node -e \"JSON.parse(require('fs').readFileSync(process.argv[1]))\" lib/data/industryExpectations.json"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.1",

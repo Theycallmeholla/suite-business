@@ -1,8 +1,8 @@
 /**
  * Climate Zone Detection Utility
  * 
- * **Created**: December 28, 2024, 4:15 PM CST
- * **Last Updated**: December 28, 2024, 4:15 PM CST
+ * **Created**: June 28, 2025, 4:15 PM CST
+ * **Last Updated**: June 28, 2025, 4:15 PM CST
  * 
  * Detects climate zones based on latitude/longitude coordinates.
  * MVP implementation uses simple rules for US regions.

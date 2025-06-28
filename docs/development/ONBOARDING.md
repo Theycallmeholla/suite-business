@@ -1,7 +1,7 @@
 # Onboarding Flow Documentation
 
 **Created**: December 23, 2024, 2:50 PM CST  
-**Last Updated**: December 28, 2024, 1:45 AM CST
+**Last Updated**: June 28, 2025, 1:45 AM CST
 
 ## Overview
 

@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Lint JSON files
+echo "🔍 Checking JSON files..."
+npm run lint:json
+
+# Run other pre-commit checks if they exist
+if [ -f "$(dirname -- "$0")/pre-commit.local" ]; then
+  . "$(dirname -- "$0")/pre-commit.local"
+fi

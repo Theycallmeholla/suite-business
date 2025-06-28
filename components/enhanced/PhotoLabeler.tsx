@@ -1,8 +1,8 @@
 /**
  * Enhanced Site Generation - Photo Labeler Component
  * 
- * **Created**: December 28, 2024, 7:45 PM CST
- * **Last Updated**: December 28, 2024, 7:45 PM CST
+ * **Created**: June 28, 2025, 7:45 PM CST
+ * **Last Updated**: June 28, 2025, 7:45 PM CST
  * 
  * Drag-and-drop interface for categorizing business photos
  */

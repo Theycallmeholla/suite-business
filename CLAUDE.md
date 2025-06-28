@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Created**: December 2024  
-**Last Updated**: December 28, 2024, 3:30 PM CST
+**Last Updated**: June 28, 2025, 3:30 PM CST
 
 ## Quick Reference: Claude Commands
 Use these slash commands for common tasks:

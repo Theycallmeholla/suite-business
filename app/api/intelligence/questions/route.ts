@@ -181,7 +181,8 @@ async function generateSmartQuestions({
           industry,
           climate_zone: zone,
           missing_count: missingExpected.length,
-          known_count: knownServices.size
+          known_count: knownServices.size,
+          expectations_version: expectations.__version || 'unknown'
         }
       }
     })

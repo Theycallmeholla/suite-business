@@ -1,8 +1,8 @@
 /**
  * Test Enhanced Site Generation API
  * 
- * **Created**: December 28, 2024, 8:20 PM CST
- * **Last Updated**: December 28, 2024, 8:20 PM CST
+ * **Created**: June 28, 2025, 8:20 PM CST
+ * **Last Updated**: June 28, 2025, 8:20 PM CST
  * 
  * Usage: npx tsx scripts/test-enhanced-api.ts
  */
