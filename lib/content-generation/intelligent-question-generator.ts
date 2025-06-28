@@ -1,6 +1,10 @@
 /**
  * Intelligent Question Generator
  * 
+ * TODO: This is the legacy question generator. 
+ * The new smart intake system is implemented in /app/api/intelligence/questions/route.ts
+ * Do not add new features here unless updating legacy wizards.
+ * 
  * Generates smart questions based on what we already know from:
  * - Google Business Profile
  * - Places API

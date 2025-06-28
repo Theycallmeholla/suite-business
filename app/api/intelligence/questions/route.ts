@@ -12,6 +12,10 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getIndustryProfile, generateServiceOptions } from '@/lib/intelligence/industry-profiles'
 import { filterQuestionsBasedOnKnownData } from '@/lib/intelligence/question-filtering'
+import { loadExpectations } from '@/lib/data/cache'
+import { getClimateZone } from '@/lib/utils/region-detector'
+import { normalizeServiceName } from '@/lib/utils/service-normalizer'
+import { EXPECTED_PREVALENCE_THRESHOLD, MAX_MISSING_EXPECTED_SERVICES } from '@/lib/constants/intake'
 import type { IndustryType } from '@/types/site-builder'
 import type { BusinessIntelligenceData } from '@/lib/intelligence/scoring'
 
@@ -51,7 +55,8 @@ export async function POST(request: NextRequest) {
     const industryProfile = getIndustryProfile(industry as IndustryType)
     
     // Generate questions based on missing data and score
-    const questions = generateSmartQuestions({
+    const questions = await generateSmartQuestions({
+      intelligenceId,
       dataScore,
       industry: industry as IndustryType,
       missingData: missingData || [],
@@ -83,18 +88,113 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function generateSmartQuestions({
+async function generateSmartQuestions({
+  intelligenceId,
   dataScore,
   industry,
   missingData,
   industryProfile
 }: {
+  intelligenceId: string
   dataScore: any
   industry: IndustryType
   missingData: string[]
   industryProfile: any
-}): SmartQuestion[] {
+}): Promise<SmartQuestion[]> {
   const questions: SmartQuestion[] = []
+  
+  // Smart intake enhancements when enabled
+  let enhancedServiceOptions: any[] | null = null
+  
+  if (process.env.SMART_INTAKE_ENABLED === 'true') {
+    // Get business intelligence data for coordinates
+    const intelligence = await prisma.businessIntelligence.findUnique({
+      where: { id: intelligenceId },
+      select: { gbpData: true, dataScore: true }
+    })
+    
+    const gbpData = intelligence?.gbpData as any
+    const existingDataScore = intelligence?.dataScore as any || {}
+    const coords = gbpData?.coordinates || gbpData?.latlng
+    
+    // Detect climate zone
+    const zone = coords ? getClimateZone(coords.lat || coords.latitude, coords.lng || coords.longitude) : 'national'
+    
+    // Load expectations
+    const expectations = loadExpectations()
+    const industryExpectations = {
+      ...expectations[industry]?.national?.services,
+      ...expectations[industry]?.[zone]?.services
+    }
+    
+    // Extract known services (de-duplicated)
+    const knownServices = new Set<string>()
+    
+    // Extract from primary category
+    if (gbpData?.primaryCategory?.serviceTypes) {
+      gbpData.primaryCategory.serviceTypes.forEach((s: any) => {
+        if (s.displayName) {
+          knownServices.add(normalizeServiceName(s.displayName))
+        }
+      })
+    }
+    
+    // Extract from additional categories
+    if (gbpData?.additionalCategories) {
+      gbpData.additionalCategories.forEach((cat: any) => {
+        if (cat.serviceTypes) {
+          cat.serviceTypes.forEach((s: any) => {
+            if (s.displayName) {
+              knownServices.add(normalizeServiceName(s.displayName))
+            }
+          })
+        }
+      })
+    }
+    
+    // Find missing expected services (cap at MAX_MISSING_EXPECTED_SERVICES)
+    const missingExpected = Object.entries(industryExpectations)
+      .filter(([key, prevalence]) => 
+        (prevalence as number) >= EXPECTED_PREVALENCE_THRESHOLD && !knownServices.has(key)
+      )
+      .map(([key]) => key)
+      .slice(0, MAX_MISSING_EXPECTED_SERVICES)
+    
+    // Update dataScore with smart intake data
+    await prisma.businessIntelligence.update({
+      where: { id: intelligenceId },
+      data: {
+        dataScore: {
+          ...existingDataScore,
+          climate_zone: zone,
+          confirmed_services: Array.from(knownServices),
+          missing_expected: missingExpected
+        }
+      }
+    })
+    
+    // Log analytics event
+    await prisma.analyticsEvent.create({
+      data: {
+        event: 'smart_intake_question_rendered',
+        properties: {
+          industry,
+          climate_zone: zone,
+          missing_count: missingExpected.length,
+          known_count: knownServices.size
+        }
+      }
+    })
+    
+    // Prepare enhanced service options
+    if (missingExpected.length > 0) {
+      const serviceOptions = generateServiceOptions(industry)
+      enhancedServiceOptions = serviceOptions.map(opt => ({
+        ...opt,
+        checked: missingExpected.includes(normalizeServiceName(opt.label))
+      }))
+    }
+  }
 
   // Priority 1: Critical Missing Data
   if (missingData.includes('services') || !dataScore.manual?.specializations) {
@@ -104,7 +204,7 @@ function generateSmartQuestions({
       priority: 1,
       category: 'critical',
       question: `Select your top ${industryProfile.patterns.maxServicesDisplay} services`,
-      options: generateServiceOptions(industry)
+      options: enhancedServiceOptions || generateServiceOptions(industry)
     })
   }
 

@@ -1,0 +1,47 @@
+# Dependencies
+node_modules
+.next
+dist
+build
+out
+
+# Cache
+.cache
+
+# Database
+*.db
+*.sqlite
+
+# Logs
+logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+
+# JSON data files
+*.json
+lib/data/*.json
+
+# Test artifacts
+coverage
+.nyc_output
+test-results
+
+# Temporary files
+tmp
+temp
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock

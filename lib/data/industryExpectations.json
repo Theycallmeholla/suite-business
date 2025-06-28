@@ -1,0 +1,206 @@
+{
+  "landscaping": {
+    "national": {
+      "services": {
+        "lawn_care": 0.89,
+        "landscape_design": 0.73,
+        "tree_trimming": 0.68,
+        "mulching": 0.82,
+        "fertilization": 0.76,
+        "weed_control": 0.84,
+        "irrigation_installation": 0.65,
+        "sod_installation": 0.71,
+        "landscape_lighting": 0.58,
+        "hardscaping": 0.62
+      }
+    },
+    "CLIMATE_ARID": {
+      "services": {
+        "xeriscaping": 0.87,
+        "drip_irrigation": 0.91,
+        "desert_landscaping": 0.89,
+        "rock_gardens": 0.78,
+        "drought_tolerant_plants": 0.93
+      }
+    },
+    "CLIMATE_COLD": {
+      "services": {
+        "snow_removal": 0.89,
+        "fall_cleanup": 0.93,
+        "spring_cleanup": 0.91,
+        "winterization": 0.86,
+        "ice_management": 0.82
+      }
+    },
+    "CLIMATE_HUMID": {
+      "services": {
+        "mosquito_control": 0.72,
+        "drainage_solutions": 0.76,
+        "fungus_treatment": 0.68,
+        "tropical_landscaping": 0.64
+      }
+    },
+    "CLIMATE_TEMPERATE": {
+      "services": {
+        "seasonal_planting": 0.79,
+        "garden_maintenance": 0.85,
+        "pruning": 0.77
+      }
+    }
+  },
+  "hvac": {
+    "national": {
+      "services": {
+        "ac_repair": 0.92,
+        "heating_repair": 0.91,
+        "maintenance_plans": 0.87,
+        "installation": 0.88,
+        "duct_cleaning": 0.73,
+        "thermostat_installation": 0.76,
+        "air_quality_testing": 0.64,
+        "energy_audits": 0.58
+      }
+    },
+    "CLIMATE_ARID": {
+      "services": {
+        "evaporative_cooling": 0.76,
+        "high_efficiency_ac": 0.89,
+        "smart_thermostats": 0.82
+      }
+    },
+    "CLIMATE_COLD": {
+      "services": {
+        "furnace_repair": 0.94,
+        "boiler_service": 0.78,
+        "heat_pump_installation": 0.71,
+        "emergency_heating": 0.86
+      }
+    },
+    "CLIMATE_HUMID": {
+      "services": {
+        "dehumidification": 0.88,
+        "mold_prevention": 0.76,
+        "high_seer_systems": 0.84
+      }
+    }
+  },
+  "plumbing": {
+    "national": {
+      "services": {
+        "drain_cleaning": 0.91,
+        "leak_repair": 0.93,
+        "water_heater_repair": 0.88,
+        "toilet_repair": 0.89,
+        "faucet_repair": 0.87,
+        "pipe_repair": 0.85,
+        "sewer_line_service": 0.76,
+        "bathroom_remodeling": 0.68,
+        "kitchen_plumbing": 0.72,
+        "water_filtration": 0.61
+      }
+    },
+    "CLIMATE_COLD": {
+      "services": {
+        "frozen_pipe_repair": 0.92,
+        "pipe_insulation": 0.78,
+        "winterization": 0.83,
+        "boiler_repair": 0.74
+      }
+    },
+    "CLIMATE_ARID": {
+      "services": {
+        "water_conservation": 0.76,
+        "low_flow_fixtures": 0.72,
+        "greywater_systems": 0.58
+      }
+    }
+  },
+  "electrical": {
+    "national": {
+      "services": {
+        "outlet_repair": 0.89,
+        "circuit_breaker_repair": 0.87,
+        "lighting_installation": 0.84,
+        "panel_upgrades": 0.76,
+        "wiring_repair": 0.82,
+        "generator_installation": 0.68,
+        "smart_home_installation": 0.71,
+        "surge_protection": 0.73,
+        "electrical_inspection": 0.69
+      }
+    },
+    "CLIMATE_COLD": {
+      "services": {
+        "heated_driveway_installation": 0.52,
+        "heat_tape_installation": 0.68
+      }
+    },
+    "CLIMATE_HUMID": {
+      "services": {
+        "outdoor_lighting": 0.82,
+        "pool_electrical": 0.74
+      }
+    }
+  },
+  "roofing": {
+    "national": {
+      "services": {
+        "roof_repair": 0.93,
+        "roof_replacement": 0.88,
+        "gutter_cleaning": 0.82,
+        "gutter_installation": 0.76,
+        "roof_inspection": 0.79,
+        "shingle_replacement": 0.85,
+        "flashing_repair": 0.77,
+        "skylight_installation": 0.58
+      }
+    },
+    "CLIMATE_COLD": {
+      "services": {
+        "ice_dam_removal": 0.86,
+        "snow_removal": 0.78,
+        "heat_cable_installation": 0.71
+      }
+    },
+    "CLIMATE_HUMID": {
+      "services": {
+        "mold_prevention": 0.72,
+        "hurricane_straps": 0.68,
+        "wind_resistant_shingles": 0.74
+      }
+    },
+    "CLIMATE_ARID": {
+      "services": {
+        "tile_roof_repair": 0.82,
+        "reflective_coating": 0.68,
+        "solar_panel_ready": 0.63
+      }
+    }
+  },
+  "cleaning": {
+    "national": {
+      "services": {
+        "regular_cleaning": 0.92,
+        "deep_cleaning": 0.88,
+        "move_in_out_cleaning": 0.84,
+        "office_cleaning": 0.76,
+        "carpet_cleaning": 0.73,
+        "window_cleaning": 0.68,
+        "post_construction_cleaning": 0.62,
+        "green_cleaning": 0.71
+      }
+    },
+    "CLIMATE_HUMID": {
+      "services": {
+        "mold_remediation": 0.74,
+        "pressure_washing": 0.82
+      }
+    },
+    "CLIMATE_ARID": {
+      "services": {
+        "dust_control": 0.78,
+        "air_duct_cleaning": 0.72
+      }
+    }
+  }
+}
