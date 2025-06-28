@@ -10,6 +10,7 @@ import { generateSubdomain } from '@/lib/utils';
 import { generateDataDrivenSections } from '@/lib/content-generation/data-driven-content';
 import { IndustryType } from '@/types/site-builder';
 import { BusinessIntelligenceData } from '@/types/intelligence';
+import { validateSubdomain } from '@/lib/constants';
 
 /**
  * Select the best premium template based on industry and business data
@@ -73,6 +74,68 @@ function detectIndustryFromCategory(category: any): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check for enhanced generation feature flag
+    if (process.env.USE_ENHANCED_GENERATION === 'true') {
+      // Check rollout percentage if configured
+      const rolloutPercentage = parseInt(process.env.ENHANCED_ROLLOUT_PERCENTAGE || '100', 10);
+      const randomValue = Math.random() * 100;
+      
+      if (randomValue <= rolloutPercentage) {
+        logger.info('Redirecting to enhanced site generation', {
+          metadata: {
+            rolloutPercentage,
+            randomValue,
+          }
+        });
+        
+        // Track analytics event
+        try {
+          const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+          await trackEnhancedGeneration('feature_flag_redirect', {
+            rolloutPercentage,
+            randomValue,
+          });
+        } catch (e) {
+          // Analytics tracking is optional
+        }
+        
+        // Clone the request and redirect to enhanced endpoint
+        const url = new URL(request.url);
+        url.pathname = '/api/sites/create-from-gbp-enhanced';
+        
+        return fetch(url.toString(), {
+          method: 'POST',
+          headers: request.headers,
+          body: JSON.stringify(await request.json()),
+        });
+      }
+    }
+    
+    // Check if user explicitly requested enhanced generation
+    const body = await request.json();
+    if (body.enhanced === true) {
+      logger.info('User requested enhanced generation explicitly');
+      
+      // Track analytics event
+      try {
+        const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+        await trackEnhancedGeneration('explicit_user_request', {
+          source: 'api_parameter',
+        });
+      } catch (e) {
+        // Analytics tracking is optional
+      }
+      
+      const url = new URL(request.url);
+      url.pathname = '/api/sites/create-from-gbp-enhanced';
+      
+      return fetch(url.toString(), {
+        method: 'POST',
+        headers: request.headers,
+        body: JSON.stringify(body),
+      });
+    }
+
     const session = await getAuthSession();
     
     if (!session?.user?.id) {
@@ -82,7 +145,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
     const { locationId, accountId, industry: providedIndustry, isPlaceId, placeData } = createFromGBPSchema.parse(body);
 
     logger.info('Creating site from GBP', {
@@ -198,10 +260,26 @@ export async function POST(request: NextRequest) {
     let subdomain = baseSubdomain;
     let counter = 1;
     
-    // Check if subdomain is already taken
-    while (await prisma.site.findUnique({ where: { subdomain } })) {
-      subdomain = `${baseSubdomain}-${counter}`;
-      counter++;
+    // Check if subdomain is already taken or reserved
+    let subdomainValid = false;
+    while (!subdomainValid) {
+      const validation = validateSubdomain(subdomain);
+      if (!validation.valid) {
+        // If the base subdomain is reserved, add a suffix
+        subdomain = `${baseSubdomain}-${counter}`;
+        counter++;
+        continue;
+      }
+      
+      // Check if it's already taken in the database
+      const existing = await prisma.site.findUnique({ where: { subdomain: subdomain.toLowerCase() } });
+      if (existing) {
+        subdomain = `${baseSubdomain}-${counter}`;
+        counter++;
+        continue;
+      }
+      
+      subdomainValid = true;
     }
 
     // Create full address string early so it can be used in business intelligence

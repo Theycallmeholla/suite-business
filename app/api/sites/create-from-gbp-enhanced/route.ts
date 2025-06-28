@@ -8,7 +8,12 @@ import { BusinessIntelligenceExtractor } from '@/lib/business-intelligence';
 import { calculateDataScore } from '@/lib/intelligence/scoring';
 import { generateSubdomain } from '@/lib/utils';
 import { IndustryType } from '@/types/site-builder';
+import { validateSubdomain } from '@/lib/constants';
 import { BusinessIntelligenceData } from '@/types/intelligence';
+
+// Import caching utilities
+const placeDataCache = new Map<string, { data: any; timestamp: number }>();
+const PLACE_CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 // Import the new multi-source system
 import { multiSourceEvaluator } from '@/lib/content-generation/multi-source-data-evaluator';
@@ -74,6 +79,9 @@ function getIndustryPopulator(industry: IndustryType) {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  const TIMEOUT_MS = 30000; // 30 second timeout
+  
   try {
     const session = await getAuthSession();
     
@@ -84,7 +92,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      logger.error('Failed to parse request body', {}, error as Error);
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      );
+    }
+    
+    let parsedData;
+    try {
+      parsedData = createFromGBPSchema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: 'Invalid data', details: error.errors },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
+    
     const { 
       locationId, 
       accountId, 
@@ -93,7 +124,7 @@ export async function POST(request: NextRequest) {
       placeData,
       userAnswers,
       generateQuestionsOnly
-    } = createFromGBPSchema.parse(body);
+    } = parsedData;
 
     logger.info('Enhanced site creation from GBP', {
       metadata: { 
@@ -106,6 +137,19 @@ export async function POST(request: NextRequest) {
         generateQuestionsOnly,
       }
     });
+    
+    // Track generation start
+    if (!generateQuestionsOnly) {
+      try {
+        const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+        await trackEnhancedGeneration('generation_started', {
+          industry: providedIndustry,
+          source: 'api',
+        }).catch(() => {});
+      } catch (e) {
+        // Analytics is optional
+      }
+    }
 
     // Step 1: Fetch GBP/Place data
     let gbpData: any = null;
@@ -126,23 +170,59 @@ export async function POST(request: NextRequest) {
         };
         business = placeData;
       } else {
-        const placeResponse = await fetch(
-          `${process.env.NEXTAUTH_URL}/api/gbp/place-details`,
-          {
-            method: 'POST',
-            headers: {
-              'Cookie': request.headers.get('cookie') || '',
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ placeId: locationId }),
-          }
-        );
-
-        if (!placeResponse.ok) {
-          throw new Error('Failed to fetch place details');
+        // Check timeout
+        if (Date.now() - startTime > TIMEOUT_MS) {
+          throw new Error('Request timeout');
         }
+        // Check cache first
+        const cacheKey = `place_${locationId}`;
+        const cached = placeDataCache.get(cacheKey);
+        
+        if (cached && Date.now() - cached.timestamp < PLACE_CACHE_TTL) {
+          logger.info('Using cached place data', {
+            metadata: { placeId: locationId, cacheAge: Date.now() - cached.timestamp }
+          });
+          placesData = cached.data;
+        } else {
+          // Fetch from Places API
+          const placeResponse = await fetch(
+            `${process.env.NEXTAUTH_URL}/api/gbp/place-details`,
+            {
+              method: 'POST',
+              headers: {
+                'Cookie': request.headers.get('cookie') || '',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ placeId: locationId }),
+              signal: AbortSignal.timeout(10000), // 10 second timeout for place fetch
+            }
+          );
 
-        placesData = await placeResponse.json();
+          if (!placeResponse.ok) {
+            const errorText = await placeResponse.text();
+            logger.error('Failed to fetch place details', {
+              metadata: { 
+                status: placeResponse.status,
+                error: errorText,
+                placeId: locationId,
+              }
+            });
+            throw new Error(`Failed to fetch place details: ${placeResponse.status}`);
+          }
+
+          placesData = await placeResponse.json();
+          
+          // Cache the result
+          placeDataCache.set(cacheKey, {
+            data: placesData,
+            timestamp: Date.now(),
+          });
+          
+          logger.info('Cached place data', {
+            metadata: { placeId: locationId }
+          });
+        }
+        
         business = {
           name: placesData.name,
           title: placesData.name,
@@ -196,43 +276,46 @@ export async function POST(request: NextRequest) {
     // Detect industry if not provided
     const industry = (providedIndustry || detectIndustryFromCategory(business.primaryCategory) || 'general') as IndustryType;
 
+    // Check timeout before expensive operations
+    if (Date.now() - startTime > TIMEOUT_MS) {
+      throw new Error('Request timeout');
+    }
+    
     // Step 2: Fetch SERP data from DataForSEO
     let serpData: any = null;
     try {
-      if (process.env.DATAFORSEO_API_KEY) {
-        // Get the business location for SERP analysis
-        const city = business.fullAddress?.locality || 
-                    business.address?.split(',')[1]?.trim() || 
-                    'local';
-        
-        // Search for competitive insights
-        const serpQuery = `${industry} services ${city}`;
-        
-        // This is a mock - you'd integrate with DataForSEO API here
-        serpData = {
-          topKeywords: [`${industry} ${city}`, `${industry} near me`, `best ${industry}`],
-          competitorServices: ['installation', 'repair', 'maintenance'],
-          commonTrustSignals: ['Licensed', 'Insured'],
-          competitorPricingTransparency: 'hidden',
+      // Get the business location for SERP analysis
+      const city = business.fullAddress?.locality || 
+                  business.address?.split(',')[1]?.trim() || 
+                  'local';
+      
+      // Import and use the DataForSEO client
+      const { dataForSEOClient } = await import('@/lib/integrations/dataforseo-client');
+      
+      // Get competitive analysis with timeout
+      const serpPromise = dataForSEOClient.getCompetitiveAnalysis(
+        business.name || business.title,
+        city,
+        industry
+      );
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('SERP fetch timeout')), 5000)
+      );
+      
+      serpData = await Promise.race([serpPromise, timeoutPromise]);
+      
+      logger.info('SERP data fetched', {
+        metadata: {
           location: city,
-          peopleAlsoAsk: [
-            {
-              question: `How much does ${industry} service cost?`,
-              answer: 'Prices vary based on the specific service...'
-            }
-          ]
-        };
-        
-        logger.info('SERP data fetched', {
-          metadata: {
-            query: serpQuery,
-            keywordsFound: serpData.topKeywords.length,
-          }
-        });
-      }
+          keywordsFound: serpData.topKeywords.length,
+          competitorsFound: serpData.competitors.length,
+          servicesFound: serpData.competitorServices.length,
+        }
+      });
     } catch (error) {
-      logger.error('Failed to fetch SERP data', {}, error as Error);
-      // Continue without SERP data
+      logger.warn('Failed to fetch SERP data, continuing without it', {}, error as Error);
+      // Continue without SERP data - not critical
     }
 
     // Step 3: Prepare multi-source data
@@ -268,12 +351,42 @@ export async function POST(request: NextRequest) {
 
       // Return questions for the user to answer
       if (generateQuestionsOnly) {
+        // Track analytics
+        try {
+          const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+          
+          // Add timeout for analytics
+          const analyticsPromise = trackEnhancedGeneration('questions_generated', {
+            industry,
+            questionsCount: questions.length,
+            dataQuality: insights.overallQuality,
+            businessName: insights.confirmed.businessName,
+          });
+          
+          const analyticsTimeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Analytics timeout')), 2000)
+          );
+          
+          await Promise.race([analyticsPromise, analyticsTimeout]);
+        } catch (e) {
+          logger.debug('Analytics tracking failed', {}, e as Error);
+          // Analytics is optional - don't break the flow
+        }
+
         return NextResponse.json({
           questions,
           insights: {
             businessName: insights.confirmed.businessName,
             dataQuality: insights.overallQuality,
             sourceQuality: insights.sourceQuality,
+          },
+          businessData: {
+            name: business.name || business.title,
+            address: business.address || business.fullAddress?.addressLines?.join(', '),
+            phone: business.primaryPhone,
+            website: business.website,
+            coordinates: business.coordinates,
+            industry,
           },
           requiresAnswers: questions.length > 0,
         });
@@ -325,12 +438,33 @@ export async function POST(request: NextRequest) {
     let subdomain = baseSubdomain;
     let counter = 1;
     
-    // Check if subdomain is already taken
-    while (await prisma.site.findUnique({ where: { subdomain } })) {
-      subdomain = `${baseSubdomain}-${counter}`;
-      counter++;
+    // Check if subdomain is already taken or reserved
+    let subdomainValid = false;
+    while (!subdomainValid) {
+      const validation = validateSubdomain(subdomain);
+      if (!validation.valid) {
+        // If the base subdomain is reserved, add a suffix
+        subdomain = `${baseSubdomain}-${counter}`;
+        counter++;
+        continue;
+      }
+      
+      // Check if it's already taken in the database
+      const existing = await prisma.site.findUnique({ where: { subdomain: subdomain.toLowerCase() } });
+      if (existing) {
+        subdomain = `${baseSubdomain}-${counter}`;
+        counter++;
+        continue;
+      }
+      
+      subdomainValid = true;
     }
 
+    // Check timeout before database operations
+    if (Date.now() - startTime > TIMEOUT_MS) {
+      throw new Error('Request timeout');
+    }
+    
     // Create GoHighLevel sub-account if enabled
     let ghlLocationId = null;
     let ghlApiKey = null;
@@ -343,7 +477,8 @@ export async function POST(request: NextRequest) {
         
         const ghlClient = createGHLProClient();
 
-        ghlLocation = await ghlClient.createSaasSubAccount({
+        // Add timeout for GHL operations
+        const ghlPromise = ghlClient.createSaasSubAccount({
           businessName: insights.confirmed.businessName,
           email: session.user.email!,
           phone: insights.confirmed.primaryPhone || '',
@@ -351,23 +486,44 @@ export async function POST(request: NextRequest) {
           website: insights.confirmed.website || '',
           industry,
         });
+        
+        const ghlTimeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('GHL sub-account creation timeout')), 10000)
+        );
+        
+        ghlLocation = await Promise.race([ghlPromise, ghlTimeoutPromise]) as any;
 
         ghlLocationId = ghlLocation.id;
         ghlApiKey = ghlLocation.apiKey || null;
         ghlEnabled = !ghlLocation.requiresManualApiKeySetup;
       }
     } catch (error) {
-      logger.error('Failed to create GHL sub-account', {}, error as Error);
-      // Continue without GHL
+      logger.warn('Failed to create GHL sub-account, continuing without it', {}, error as Error);
+      // Continue without GHL - not critical
     }
 
     // Create a team for this business
-    const { createClientTeam } = await import('@/lib/teams');
-    const team = await createClientTeam(
-      insights.confirmed.businessName,
-      session.user.id,
-      ghlLocation?.id
-    );
+    let team;
+    try {
+      const { createClientTeam } = await import('@/lib/teams');
+      team = await createClientTeam(
+        insights.confirmed.businessName,
+        session.user.id,
+        ghlLocation?.id
+      );
+      
+      if (!team?.id) {
+        throw new Error('Team creation returned invalid data');
+      }
+    } catch (error) {
+      logger.error('Failed to create team', {
+        metadata: { 
+          businessName: insights.confirmed.businessName,
+          userId: session.user.id,
+        }
+      }, error as Error);
+      throw new Error('Failed to create business team');
+    }
 
     // Extract colors from the populated sections or use defaults
     const extractedColors = {
@@ -376,6 +532,11 @@ export async function POST(request: NextRequest) {
       accent: templateSelection.colorScheme?.accent || '#FFA500',
     };
 
+    // Check timeout before final database operations
+    if (Date.now() - startTime > TIMEOUT_MS) {
+      throw new Error('Request timeout');
+    }
+    
     // Create the site with enhanced data
     const site = await prisma.site.create({
       data: {
@@ -549,6 +710,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const duration = Date.now() - startTime;
+    
     logger.info('Enhanced site created successfully', {
       metadata: {
         siteId: site.id,
@@ -558,8 +721,26 @@ export async function POST(request: NextRequest) {
         template: templateSelection.selectedTemplate,
         competitivePositioning: templateSelection.competitiveStrategy.positioning,
         dataQuality: insights.overallQuality,
+        duration,
       }
     });
+
+    // Track success analytics
+    try {
+      const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+      await trackEnhancedGeneration('generation_completed', {
+        industry,
+        template: templateSelection.selectedTemplate,
+        dataQuality: insights.overallQuality,
+        generationTime: duration,
+        hasUserAnswers: !!userAnswers,
+        hasGbpData: !!gbpData,
+        hasPlacesData: !!placesData,
+        hasSerpData: !!serpData,
+      }).catch(() => {}); // Fire and forget
+    } catch (e) {
+      // Analytics is optional
+    }
 
     return NextResponse.json({
       id: site.id,
@@ -569,12 +750,32 @@ export async function POST(request: NextRequest) {
       template: templateSelection.selectedTemplate,
       competitiveStrategy: templateSelection.competitiveStrategy,
       dataQuality: insights.overallQuality,
+      duration,
     });
 
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const isTimeout = errorMessage.includes('timeout');
+    
     logger.error('Enhanced create site error', {
-      metadata: { error }
+      metadata: { 
+        error: errorMessage,
+        isTimeout,
+        duration: Date.now() - startTime,
+      }
     });
+    
+    // Track error analytics
+    try {
+      const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+      await trackEnhancedGeneration('generation_failed', {
+        errorMessage,
+        errorStep: isTimeout ? 'timeout' : 'unknown',
+        generationTime: Date.now() - startTime,
+      }).catch(() => {});
+    } catch (e) {
+      // Analytics is optional
+    }
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -583,8 +784,40 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    if (isTimeout) {
+      return NextResponse.json(
+        { 
+          error: 'Request timeout', 
+          message: 'The operation took too long. Please try again with a smaller request or check your connection.',
+          duration: Date.now() - startTime,
+        },
+        { status: 504 }
+      );
+    }
+    
+    if (errorMessage.includes('Unauthorized')) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Please sign in to continue.' },
+        { status: 401 }
+      );
+    }
+    
+    if (errorMessage.includes('fetch')) {
+      return NextResponse.json(
+        { 
+          error: 'External API error', 
+          message: 'Failed to fetch data from external services. Please try again.',
+        },
+        { status: 502 }
+      );
+    }
+    
+    // Generic error response
     return NextResponse.json(
-      { error: 'Failed to create site' },
+      { 
+        error: 'Failed to create site',
+        message: process.env.NODE_ENV === 'development' ? errorMessage : 'An unexpected error occurred. Please try again.',
+      },
       { status: 500 }
     );
   }

@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import Image from 'next/image';
 
 // COMPONENTS
 const FloatingIcon = ({ children, className, delay }: { children: React.ReactNode; className: string; delay: string }) => (

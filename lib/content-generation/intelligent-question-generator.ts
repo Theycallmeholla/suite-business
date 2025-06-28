@@ -13,7 +13,7 @@ import { DataInsights } from './multi-source-data-evaluator';
 
 export interface IntelligentQuestion {
   id: string;
-  type: 'text' | 'text-list' | 'single' | 'multiple' | 'boolean' | 'photo-label' | 'confirm' | 'number';
+  type: 'text' | 'text-list' | 'single' | 'multiple' | 'boolean' | 'yes-no' | 'this-or-that' | 'photo-label' | 'confirm' | 'number' | 'style-picker' | 'font-pairing';
   question: string;
   category?: string;
   context?: string; // Why we're asking
@@ -105,6 +105,20 @@ export class IntelligentQuestionGenerator {
     // 10. Pricing transparency preference
     if (insights.missingData.includes('price_range') && !this.hasPricingInfo(insights)) {
       questions.push(this.createPricingQuestion());
+    }
+    
+    // 11. Visual style preferences - always ask for brand consistency
+    questions.push(this.createStyleQuestion(industry));
+    
+    // 12. Typography preferences - always ask for personality
+    questions.push(this.createFontPairingQuestion(industry));
+    
+    // 13. Business personality - for conversational tone
+    questions.push(this.createPersonalityQuestion());
+    
+    // 14. Emergency service availability - yes/no for trust building
+    if (['plumbing', 'hvac', 'electrical'].includes(industry)) {
+      questions.push(this.createEmergencyServiceQuestion());
     }
     
     return questions;
@@ -199,15 +213,27 @@ export class IntelligentQuestionGenerator {
    * Create team question
    */
   private createTeamQuestion(industry: string): IntelligentQuestion {
-    const options = this.getTeamSizeOptions(industry);
-    
+    // Use this-or-that for team size - simplified to 2 main options
     return {
       id: 'team-info',
-      type: 'single',
-      question: 'Tell us about your team',
+      type: 'this-or-that',
+      question: 'What\'s your team size?',
       category: 'about',
-      context: 'Customers trust businesses that share team information',
-      options,
+      context: 'Both approaches build trust in different ways',
+      options: [
+        {
+          value: 'small',
+          label: 'Small & Personal',
+          description: 'Owner-operated or small team (1-5 people)',
+          icon: '👤',
+        },
+        {
+          value: 'established',
+          label: 'Established Team',
+          description: 'Larger crew ready for any project (6+ people)',
+          icon: '👥',
+        },
+      ],
       required: false,
     };
   }
@@ -308,27 +334,109 @@ export class IntelligentQuestionGenerator {
    * Create pricing question
    */
   private createPricingQuestion(): IntelligentQuestion {
+    // Use this-or-that for pricing since it's essentially a binary choice
     return {
       id: 'pricing-approach',
-      type: 'single',
+      type: 'this-or-that',
       question: 'How would you like to handle pricing on your website?',
       category: 'pricing',
       context: '67% of customers want to see pricing information',
       options: [
         {
           value: 'transparent',
-          label: 'Show starting prices',
-          description: 'Builds trust and pre-qualifies leads',
-        },
-        {
-          value: 'ranges',
-          label: 'Show price ranges',
-          description: 'Gives customers an idea without specifics',
+          label: 'Show Pricing',
+          description: 'Display prices or ranges upfront',
+          icon: '💰',
         },
         {
           value: 'contact',
-          label: 'Contact for pricing',
-          description: 'Better for complex or custom projects',
+          label: 'Quote Only',
+          description: 'Customers contact for pricing',
+          icon: '📞',
+        },
+      ],
+      required: false,
+    };
+  }
+
+  /**
+   * Create style preference question
+   */
+  private createStyleQuestion(industry: string): IntelligentQuestion {
+    return {
+      id: 'visual-style',
+      type: 'style-picker',
+      question: 'Which visual style best represents your business?',
+      category: 'design',
+      context: 'This helps us create a website that matches your brand personality',
+      options: this.getStyleOptions(industry),
+      required: false,
+    };
+  }
+
+  /**
+   * Create font pairing question
+   */
+  private createFontPairingQuestion(industry: string): IntelligentQuestion {
+    return {
+      id: 'typography',
+      type: 'font-pairing',
+      question: 'Choose a font combination that reflects your brand',
+      category: 'design',
+      context: 'Typography sets the tone for your entire website',
+      options: this.getFontPairingOptions(industry),
+      required: false,
+    };
+  }
+
+  /**
+   * Create business personality question
+   */
+  private createPersonalityQuestion(): IntelligentQuestion {
+    return {
+      id: 'business-personality',
+      type: 'this-or-that',
+      question: 'How would you describe your business personality?',
+      category: 'brand',
+      context: 'This helps us write content that sounds like you',
+      options: [
+        {
+          value: 'professional',
+          label: 'Professional & Formal',
+          description: 'Traditional, trustworthy, expert',
+          icon: '👔',
+        },
+        {
+          value: 'friendly',
+          label: 'Friendly & Approachable',
+          description: 'Warm, conversational, helpful',
+          icon: '😊',
+        },
+      ],
+      required: false,
+    };
+  }
+
+  /**
+   * Create emergency service question
+   */
+  private createEmergencyServiceQuestion(): IntelligentQuestion {
+    return {
+      id: 'emergency-service',
+      type: 'yes-no',
+      question: 'Do you offer 24/7 emergency services?',
+      category: 'services',
+      context: 'Emergency availability is a major selling point',
+      options: [
+        {
+          value: 'yes',
+          label: 'Yes',
+          color: 'green',
+        },
+        {
+          value: 'no',
+          label: 'No',
+          color: 'red',
         },
       ],
       required: false,
@@ -521,6 +629,140 @@ export class IntelligentQuestionGenerator {
     }
     
     return '';
+  }
+
+  /**
+   * Get visual style options for the industry
+   */
+  private getStyleOptions(industry: string): any[] {
+    const baseStyles = [
+      {
+        value: 'modern-clean',
+        label: 'Modern & Clean',
+        preview: {
+          primaryColor: '#1a1a1a',
+          secondaryColor: '#ffffff',
+          accentColor: '#0066cc',
+          layout: 'minimal',
+          imagery: 'geometric',
+        },
+        description: 'Minimalist design with strong typography',
+      },
+      {
+        value: 'warm-friendly',
+        label: 'Warm & Friendly',
+        preview: {
+          primaryColor: '#2c5530',
+          secondaryColor: '#f5f3f0',
+          accentColor: '#e88d67',
+          layout: 'organic',
+          imagery: 'natural',
+        },
+        description: 'Approachable design with natural colors',
+      },
+      {
+        value: 'bold-confident',
+        label: 'Bold & Confident',
+        preview: {
+          primaryColor: '#0052cc',
+          secondaryColor: '#ffffff',
+          accentColor: '#ff5630',
+          layout: 'dynamic',
+          imagery: 'high-contrast',
+        },
+        description: 'Strong colors and dynamic layouts',
+      },
+      {
+        value: 'classic-trust',
+        label: 'Classic & Trustworthy',
+        preview: {
+          primaryColor: '#1e3a5f',
+          secondaryColor: '#f8f8f8',
+          accentColor: '#c9a961',
+          layout: 'traditional',
+          imagery: 'professional',
+        },
+        description: 'Traditional design that builds confidence',
+      },
+    ];
+
+    // Industry-specific adjustments
+    if (industry === 'landscaping') {
+      baseStyles[1].preview.primaryColor = '#2d5016'; // Deeper green
+      baseStyles[1].label = 'Natural & Organic';
+    } else if (industry === 'hvac') {
+      baseStyles[0].preview.accentColor = '#0088ff'; // Cool blue
+      baseStyles[0].label = 'Technical & Modern';
+    } else if (industry === 'plumbing') {
+      baseStyles[3].preview.primaryColor = '#003d7a'; // Deep blue
+      baseStyles[3].label = 'Professional & Reliable';
+    }
+
+    return baseStyles;
+  }
+
+  /**
+   * Get font pairing options for the industry
+   */
+  private getFontPairingOptions(industry: string): any[] {
+    return [
+      {
+        value: 'modern-sans',
+        label: 'Modern Sans',
+        heading: 'Inter',
+        body: 'Inter',
+        preview: {
+          headingWeight: '700',
+          bodyWeight: '400',
+          headingSize: '2.5rem',
+          bodySize: '1rem',
+        },
+        description: 'Clean and highly readable',
+        recommended: ['tech', 'hvac', 'electrical'],
+      },
+      {
+        value: 'classic-serif',
+        label: 'Classic Elegance',
+        heading: 'Playfair Display',
+        body: 'Source Sans Pro',
+        preview: {
+          headingWeight: '700',
+          bodyWeight: '400',
+          headingSize: '2.5rem',
+          bodySize: '1rem',
+        },
+        description: 'Sophisticated and professional',
+        recommended: ['landscaping', 'high-end'],
+      },
+      {
+        value: 'friendly-rounded',
+        label: 'Friendly & Approachable',
+        heading: 'Nunito',
+        body: 'Open Sans',
+        preview: {
+          headingWeight: '800',
+          bodyWeight: '400',
+          headingSize: '2.5rem',
+          bodySize: '1rem',
+        },
+        description: 'Warm and inviting',
+        recommended: ['cleaning', 'residential'],
+      },
+      {
+        value: 'bold-impact',
+        label: 'Bold Impact',
+        heading: 'Montserrat',
+        body: 'Lato',
+        preview: {
+          headingWeight: '900',
+          bodyWeight: '400',
+          headingSize: '2.5rem',
+          bodySize: '1rem',
+        },
+        description: 'Strong and confident',
+        recommended: ['roofing', 'construction'],
+      },
+    ];
   }
 }
 

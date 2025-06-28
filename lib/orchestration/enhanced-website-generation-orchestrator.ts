@@ -18,11 +18,9 @@ import { seoGenerator } from '@/lib/seo-generator';
 import { emailTemplateGenerator } from '@/lib/email-templates';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
-
-// Import industry populators (will create these next)
-// import { enhancedHVACPopulator } from '@/lib/content-generation/industry-populators/enhanced-hvac-populator';
-// import { enhancedPlumbingPopulator } from '@/lib/content-generation/industry-populators/enhanced-plumbing-populator';
-// import { enhancedCleaningPopulator } from '@/lib/content-generation/industry-populators/enhanced-cleaning-populator';
+import { enhancedHVACPopulator } from '@/lib/content-generation/industry-populators/enhanced-hvac-populator';
+import { enhancedPlumbingPopulator } from '@/lib/content-generation/industry-populators/enhanced-plumbing-populator';
+import { enhancedCleaningPopulator } from '@/lib/content-generation/industry-populators/enhanced-cleaning-populator';
 
 export interface EnhancedWebsiteGenerationRequest {
   userId: string;
@@ -83,21 +81,97 @@ export class EnhancedWebsiteGenerationOrchestrator {
   }
 
   /**
+   * Generate questions only (for two-step process)
+   */
+  async generateQuestions(
+    businessData: any,
+    placesData: any,
+    serpData: any,
+    industry: IndustryType
+  ): Promise<{
+    questions: any[];
+    insights: any;
+  }> {
+    try {
+      logger.info('Generating intelligent questions', {
+        metadata: {
+          industry,
+          hasBusinessData: !!businessData,
+          hasPlacesData: !!placesData,
+          hasSerpData: !!serpData,
+        }
+      });
+
+      // Prepare multi-source data
+      const multiSourceData = {
+        gbp: businessData,
+        places: placesData,
+        serp: serpData,
+        userAnswers: {},
+      };
+
+      // Evaluate data sources
+      const insights = multiSourceEvaluator.evaluateAllSources(multiSourceData);
+      
+      // Generate questions based on gaps
+      const questions = questionGenerator.generateQuestions(insights, industry);
+
+      // Track analytics
+      try {
+        const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+        await trackEnhancedGeneration('questions_generated', {
+          industry,
+          questionsCount: questions.length,
+          dataQuality: insights.overallQuality,
+          sourceQuality: insights.sourceQuality,
+        });
+      } catch (e) {
+        // Analytics is optional
+      }
+
+      logger.info('Questions generated successfully', {
+        metadata: {
+          questionsCount: questions.length,
+          categories: [...new Set(questions.map(q => q.category))],
+          overallQuality: insights.overallQuality,
+        }
+      });
+
+      return {
+        questions,
+        insights: {
+          businessName: insights.confirmed.businessName,
+          dataQuality: insights.overallQuality,
+          sourceQuality: insights.sourceQuality,
+          confirmed: insights.confirmed,
+          missingData: insights.missingData,
+        },
+      };
+    } catch (error) {
+      logger.error('Failed to generate questions', {}, error as Error);
+      throw error;
+    }
+  }
+
+  /**
    * Get the appropriate industry populator
    */
   private getIndustryPopulator(industry: IndustryType) {
     switch (industry) {
       case 'landscaping':
         return enhancedLandscapingPopulator;
-      // case 'hvac':
-      //   return enhancedHVACPopulator;
-      // case 'plumbing':
-      //   return enhancedPlumbingPopulator;
-      // case 'cleaning':
-      //   return enhancedCleaningPopulator;
+      case 'hvac':
+        return enhancedHVACPopulator;
+      case 'plumbing':
+        return enhancedPlumbingPopulator;
+      case 'cleaning':
+        return enhancedCleaningPopulator;
+      case 'roofing':
+      case 'electrical':
+      case 'general':
       default:
-        // Fallback to landscaping populator for now
-        logger.warn(`No enhanced populator for industry: ${industry}, using landscaping`);
+        // Fallback to landscaping populator for industries without specific populators
+        logger.warn(`No specific enhanced populator for industry: ${industry}, using landscaping as fallback`);
         return enhancedLandscapingPopulator;
     }
   }
@@ -111,16 +185,34 @@ export class EnhancedWebsiteGenerationOrchestrator {
   ): Promise<GeneratedWebsite> {
     const startTime = Date.now();
     const progressId = `gen_${Date.now()}`;
+    const MAX_GENERATION_TIME = 5 * 60 * 1000; // 5 minutes timeout
     
     if (onProgress) {
       this.progressCallbacks.set(progressId, onProgress);
     }
 
+    // Track analytics
+    try {
+      const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+      await trackEnhancedGeneration('generation_started', {
+        industry: request.industry,
+        hasGbpData: !!request.multiSourceData.gbp,
+        hasPlacesData: !!request.multiSourceData.places,
+        hasSerpData: !!request.multiSourceData.serp,
+        hasUserAnswers: Object.keys(request.multiSourceData.userAnswers).length > 0,
+      });
+    } catch (e) {
+      // Analytics is optional
+    }
+
     try {
       logger.info('Starting enhanced website generation', {
-        userId: request.userId,
-        businessIntelligenceId: request.businessIntelligenceId,
-        industry: request.industry,
+        metadata: {
+          userId: request.userId,
+          businessIntelligenceId: request.businessIntelligenceId,
+          industry: request.industry,
+          options: request.options,
+        }
       });
 
       // Step 1: Evaluate multi-source data
@@ -250,12 +342,29 @@ export class EnhancedWebsiteGenerationOrchestrator {
       const generationTime = Date.now() - startTime;
 
       logger.info('Enhanced website generation completed', {
-        userId: request.userId,
-        websiteId: website.id,
-        generationTime,
-        competitiveStrategy: templateSelection.competitiveStrategy.positioning,
-        dataQuality: insights.overallQuality,
+        metadata: {
+          userId: request.userId,
+          websiteId: website.id,
+          generationTime,
+          competitiveStrategy: templateSelection.competitiveStrategy.positioning,
+          dataQuality: insights.overallQuality,
+        }
       });
+
+      // Track successful completion
+      try {
+        const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+        await trackEnhancedGeneration('generation_completed', {
+          industry: request.industry,
+          generationTime,
+          questionsAnswered: Object.keys(request.multiSourceData.userAnswers).length,
+          dataQuality: insights.overallQuality,
+          template: templateSelection.selectedTemplate,
+          competitivePositioning: templateSelection.competitiveStrategy.positioning,
+        });
+      } catch (e) {
+        // Analytics is optional
+      }
 
       return {
         id: website.id,
@@ -278,10 +387,29 @@ export class EnhancedWebsiteGenerationOrchestrator {
       };
 
     } catch (error) {
+      const errorTime = Date.now() - startTime;
+      
       logger.error('Enhanced website generation failed', {
-        userId: request.userId,
-        businessIntelligenceId: request.businessIntelligenceId,
+        metadata: {
+          userId: request.userId,
+          businessIntelligenceId: request.businessIntelligenceId,
+          errorTime,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
       }, error as Error);
+
+      // Track error
+      try {
+        const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+        await trackEnhancedGeneration('generation_failed', {
+          industry: request.industry,
+          errorTime,
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorStep: this.progressCallbacks.get(progressId) ? 'in_progress' : 'initialization',
+        });
+      } catch (e) {
+        // Analytics is optional
+      }
 
       this.updateProgress(progressId, {
         step: 'error',
