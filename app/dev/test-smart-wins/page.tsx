@@ -106,10 +106,114 @@ export default function TestSmartWinsPage() {
   const [loadingLocation, setLoadingLocation] = useState(false)
   const [realLocationData, setRealLocationData] = useState<any>(null)
   
+  const fetchRealLocation = async () => {
+    if (!locationId.trim()) {
+      setError('Please enter a location ID')
+      return
+    }
+    
+    setLoadingLocation(true)
+    setError(null)
+    setRealLocationData(null)
+    setResult(null)
+    
+    try {
+      // Fetch the real GBP location data
+      const locationResponse = await fetch(`/api/gbp/location/${encodeURIComponent(locationId)}`)
+      
+      if (!locationResponse.ok) {
+        const errorData = await locationResponse.json()
+        throw new Error(errorData.error || 'Failed to fetch location data')
+      }
+      
+      const locationData = await locationResponse.json()
+      setRealLocationData(locationData)
+      
+      // Now run the smart intake pipeline with real data
+      const analyzeResponse = await fetch('/api/intelligence/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: locationData.title || locationData.name,
+          gbpData: locationData,
+          placeId: locationData.name || locationId
+        })
+      })
+      
+      if (!analyzeResponse.ok) {
+        throw new Error('Failed to analyze business data')
+      }
+      
+      const { intelligenceId, dataScore } = await analyzeResponse.json()
+      
+      // Determine industry from categories
+      const industry = detectIndustryFromCategories(locationData.categories)
+      
+      // Get the questions
+      const questionsResponse = await fetch('/api/intelligence/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          intelligenceId,
+          industry,
+          dataScore,
+          missingData: ['services']
+        })
+      })
+      
+      if (!questionsResponse.ok) {
+        throw new Error('Failed to generate questions')
+      }
+      
+      const { questions: generatedQuestions } = await questionsResponse.json()
+      
+      // Calculate what was extracted/suppressed from real data
+      const extractedData = {
+        serviceRadius: locationData.serviceArea ? 'Calculated from service area' : 'Not available',
+        yearsInBusiness: locationData.metadata?.establishedDate ? 
+          `${new Date().getFullYear() - parseInt(locationData.metadata.establishedDate)} years` : 
+          locationData.profile?.description?.match(/since (\d{4})/i) ? 'Extracted from description' : 'Not found',
+        phoneNumber: locationData.phoneNumbers?.primaryPhone ? 'Available' : 'Missing',
+        businessHours: locationData.regularHours ? 'Available' : 'Missing',
+        website: locationData.websiteUri ? 'Available' : 'Missing',
+        address: locationData.storefrontAddress ? 'Available' : 'Service area only'
+      }
+      
+      setResult({
+        scenario: `Real Location: ${locationData.title || locationData.name}`,
+        questionsGenerated: generatedQuestions,
+        extractedData,
+        questionCount: generatedQuestions.length,
+        isRealData: true
+      })
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setLoadingLocation(false)
+    }
+  }
+  
+  const detectIndustryFromCategories = (categories: any): string => {
+    if (!categories) return 'general'
+    
+    const categoryString = JSON.stringify(categories).toLowerCase()
+    
+    if (categoryString.includes('landscap') || categoryString.includes('lawn')) return 'landscaping'
+    if (categoryString.includes('hvac') || categoryString.includes('heating') || categoryString.includes('cooling')) return 'hvac'
+    if (categoryString.includes('plumb')) return 'plumbing'
+    if (categoryString.includes('clean')) return 'cleaning'
+    if (categoryString.includes('roof')) return 'roofing'
+    if (categoryString.includes('electric')) return 'electrical'
+    
+    return 'general'
+  }
+  
   const testScenario = async () => {
     setLoading(true)
     setError(null)
     setResult(null)
+    setRealLocationData(null)
     
     const scenario = scenarios[selectedScenario]
     
@@ -188,6 +292,72 @@ export default function TestSmartWinsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Real Location Input */}
+          <Card className="border-2 border-blue-200 bg-blue-50/50">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <Building2 className="h-5 w-5 text-blue-600 mt-1" />
+                <div className="flex-1">
+                  <Label htmlFor="locationId" className="text-base font-semibold text-blue-900">
+                    Test with Real GBP Location
+                  </Label>
+                  <p className="text-sm text-blue-700 mt-1 mb-3">
+                    Enter a Google Business Profile location ID to test with real data
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      id="locationId"
+                      type="text"
+                      placeholder="e.g., accounts/123/locations/456"
+                      value={locationId}
+                      onChange={(e) => setLocationId(e.target.value)}
+                      className="flex-1 bg-white"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          fetchRealLocation()
+                        }
+                      }}
+                    />
+                    <Button 
+                      onClick={fetchRealLocation}
+                      disabled={loadingLocation || !locationId.trim()}
+                      variant="default"
+                    >
+                      {loadingLocation ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Fetching...
+                        </>
+                      ) : (
+                        'Fetch Location'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              {realLocationData && (
+                <Alert className="mt-4 border-blue-200 bg-blue-100/50">
+                  <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                  <AlertDescription>
+                    <strong>Loaded:</strong> {realLocationData.title || realLocationData.name}
+                    {realLocationData.categories?.[0]?.displayName && (
+                      <span className="text-gray-600"> • {realLocationData.categories[0].displayName}</span>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500">Or use test scenarios</span>
+            </div>
+          </div>
+          
           {/* Scenario Selection */}
           <div>
             <h3 className="text-sm font-medium mb-3">Select Test Scenario:</h3>
@@ -218,30 +388,68 @@ export default function TestSmartWinsPage() {
           </div>
           
           {/* Data Preview */}
-          <Card className="bg-gray-50">
-            <CardContent className="pt-4">
-              <h4 className="font-medium mb-2">Available Data:</h4>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <strong>Service Area:</strong>{' '}
-                  {currentScenario.gbpData.serviceArea ? '✅ Polygon data' : '❌ Not available'}
+          {!realLocationData && (
+            <Card className="bg-gray-50">
+              <CardContent className="pt-4">
+                <h4 className="font-medium mb-2">Available Data:</h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <strong>Service Area:</strong>{' '}
+                    {currentScenario.gbpData.serviceArea ? '✅ Polygon data' : '❌ Not available'}
+                  </div>
+                  <div>
+                    <strong>Established Date:</strong>{' '}
+                    {currentScenario.gbpData.metadata?.establishedDate || 
+                     (currentScenario.gbpData.description?.includes('since') ? '✅ In description' : '❌ Not available')}
+                  </div>
+                  <div>
+                    <strong>Phone:</strong>{' '}
+                    {currentScenario.gbpData.phoneNumbers?.primaryPhone ? '✅ Available' : '❌ Missing'}
+                  </div>
+                  <div>
+                    <strong>Hours:</strong>{' '}
+                    {currentScenario.gbpData.regularHours ? '✅ Available' : '❌ Missing'}
+                  </div>
                 </div>
-                <div>
-                  <strong>Established Date:</strong>{' '}
-                  {currentScenario.gbpData.metadata?.establishedDate || 
-                   (currentScenario.gbpData.description?.includes('since') ? '✅ In description' : '❌ Not available')}
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* Real Location Data Preview */}
+          {realLocationData && (
+            <Card className="bg-blue-50">
+              <CardContent className="pt-4">
+                <h4 className="font-medium mb-2">Real Location Data:</h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <strong>Service Area:</strong>{' '}
+                    {realLocationData.serviceArea ? '✅ Available' : '❌ Not available'}
+                  </div>
+                  <div>
+                    <strong>Established Date:</strong>{' '}
+                    {realLocationData.metadata?.establishedDate || 
+                     (realLocationData.profile?.description?.includes('since') ? '✅ In description' : '❌ Not available')}
+                  </div>
+                  <div>
+                    <strong>Phone:</strong>{' '}
+                    {realLocationData.phoneNumbers?.primaryPhone ? '✅ Available' : '❌ Missing'}
+                  </div>
+                  <div>
+                    <strong>Hours:</strong>{' '}
+                    {realLocationData.regularHours ? '✅ Available' : '❌ Missing'}
+                  </div>
+                  <div>
+                    <strong>Website:</strong>{' '}
+                    {realLocationData.websiteUri ? '✅ Available' : '❌ Missing'}
+                  </div>
+                  <div>
+                    <strong>Address:</strong>{' '}
+                    {realLocationData.storefrontAddress ? '✅ Available' : '⚡ Service area only'}
+                  </div>
                 </div>
-                <div>
-                  <strong>Phone:</strong>{' '}
-                  {currentScenario.gbpData.phoneNumbers?.primaryPhone ? '✅ Available' : '❌ Missing'}
-                </div>
-                <div>
-                  <strong>Hours:</strong>{' '}
-                  {currentScenario.gbpData.regularHours ? '✅ Available' : '❌ Missing'}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
           
           {/* Test Button */}
           <Button 
@@ -280,9 +488,14 @@ export default function TestSmartWinsPage() {
               </Alert>
               
               {/* Extracted Data */}
-              <Card>
+              <Card className={result.isRealData ? 'border-blue-200' : ''}>
                 <CardHeader>
-                  <CardTitle className="text-base">Extracted/Calculated Data</CardTitle>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    Extracted/Calculated Data
+                    {result.isRealData && (
+                      <span className="text-xs font-normal text-blue-600">(Real GBP Data)</span>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm">
@@ -302,6 +515,18 @@ export default function TestSmartWinsPage() {
                       <span>Business Hours:</span>
                       <span className="font-medium">{result.extractedData.businessHours}</span>
                     </div>
+                    {result.isRealData && (
+                      <>
+                        <div className="flex justify-between">
+                          <span>Website:</span>
+                          <span className="font-medium">{result.extractedData.website}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Address:</span>
+                          <span className="font-medium">{result.extractedData.address}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>

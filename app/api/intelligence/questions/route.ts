@@ -77,10 +77,21 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Get suppression info if available
+    const suppressionInfo = await prisma.businessIntelligence.findUnique({
+      where: { id: intelligenceId },
+      select: { 
+        dataScore: true 
+      }
+    })
+    
+    const dataScoreObj = suppressionInfo?.dataScore as any || {}
+    
     return NextResponse.json({
       success: true,
       questions,
-      totalQuestions: questions.length
+      totalQuestions: questions.length,
+      suppressionInfo: dataScoreObj.suppression_info || null
     })
   } catch (error) {
     console.error('Error generating questions:', error)
@@ -331,6 +342,22 @@ async function generateSmartQuestions({
   const originalQuestionCount = questions.length
   const { questions: filteredQuestions, suppressedCount, suppressionReasons } = 
     applyQuestionSuppression(questions, suppressionContext)
+  
+  // Store suppression info in dataScore for retrieval
+  if (suppressedCount > 0) {
+    await prisma.businessIntelligence.update({
+      where: { id: intelligenceId },
+      data: {
+        dataScore: {
+          ...existingDataScore,
+          suppression_info: {
+            count: suppressedCount,
+            reasons: suppressionReasons
+          }
+        }
+      }
+    })
+  }
   
   // Log suppression analytics
   if (suppressedCount > 0) {

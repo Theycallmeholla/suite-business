@@ -2,7 +2,7 @@
  * Question Suppression Logic
  * 
  * **Created**: June 28, 2025, 9:30 PM CST
- * **Last Updated**: June 28, 2025, 9:30 PM CST
+ * **Last Updated**: June 29, 2025, 5:45 PM CST
  * 
  * Determines whether to ask specific questions based on available data
  * and confidence levels, making the onboarding flow truly intelligent.
@@ -22,9 +22,11 @@ interface SuppressionRule {
 }
 
 /**
- * Core suppression rules for common questions
+ * Core suppression rules based on GBP field mapping
+ * Confidence threshold: 0.7 for most fields
  */
 const suppressionRules: SuppressionRule[] = [
+  // Service radius - calculated from serviceArea or places
   {
     questionId: 'service-radius',
     condition: (ctx) => {
@@ -33,56 +35,98 @@ const suppressionRules: SuppressionRule[] = [
     },
     reason: 'Service radius calculated from service area data'
   },
+  
+  // Years in business - from metadata.establishedDate or description
   {
-    questionId: 'years-in-business',
+    questionId: 'business-stage',
     condition: (ctx) => {
-      // Suppress if we extracted years with any confidence
-      return ctx.confidence.years_in_business > 0
+      // Suppress if we extracted years with confidence >= 0.7
+      return ctx.confidence.years_in_business >= 0.7
     },
     reason: 'Years in business extracted from profile data'
   },
+  
+  // Business hours - from regularHours.periods
   {
     questionId: 'business-hours',
     condition: (ctx) => {
-      // Suppress if we have regular hours from GBP
-      return !!ctx.gbpData?.regularHours?.periods?.length
+      // Suppress if we have any valid regular hours
+      const hasHours = ctx.gbpData?.regularHours?.periods?.length > 0
+      return hasHours && ctx.gbpData.regularHours.periods.some((p: any) => 
+        p.openTime && p.closeTime && p.openDay && p.closeDay
+      )
     },
     reason: 'Business hours available from Google Business Profile'
   },
+  
+  // Business description - from profile.description
   {
     questionId: 'business-description',
     condition: (ctx) => {
-      // Suppress if we have a good description from GBP
+      // Suppress if we have a non-generic description > 100 chars
       const description = ctx.gbpData?.profile?.description || ctx.gbpData?.description
-      return description && description.length > 100
+      if (!description || description.length <= 100) return false
+      
+      // Check for generic/low-value patterns
+      const genericPatterns = [
+        /^welcome to/i,
+        /^we are a/i,
+        /^call us today/i,
+        /best prices in town/i
+      ]
+      
+      return !genericPatterns.some(pattern => pattern.test(description))
     },
     reason: 'Business description available from profile'
   },
+  
+  // Phone number - from primaryPhone
   {
     questionId: 'primary-phone',
     condition: (ctx) => {
-      // Suppress if we have phone from GBP
-      return !!ctx.gbpData?.phoneNumbers?.primaryPhone
+      // Suppress if we have valid phone format
+      const phone = ctx.gbpData?.phoneNumbers?.primaryPhone
+      if (!phone) return false
+      
+      // Basic phone validation
+      const phoneRegex = /^\+?1?\s*\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/
+      return phoneRegex.test(phone.replace(/\s+/g, ''))
     },
     reason: 'Phone number available from Google Business Profile'
   },
+  
+  // Website - from websiteUri
   {
     questionId: 'website',
     condition: (ctx) => {
-      // Suppress if we have website from GBP
-      return !!ctx.gbpData?.websiteUri
+      // Suppress if we have valid URL that's not just social media
+      const website = ctx.gbpData?.websiteUri
+      if (!website) return false
+      
+      try {
+        const url = new URL(website)
+        // Don't suppress if it's only a social media page
+        const socialDomains = ['facebook.com', 'instagram.com', 'twitter.com', 'yelp.com']
+        return !socialDomains.some(domain => url.hostname.includes(domain))
+      } catch {
+        return false
+      }
     },
     reason: 'Website available from Google Business Profile'
   },
+  
+  // Business email - inferred from website or other fields
   {
     questionId: 'business-email',
     condition: (ctx) => {
-      // Suppress if we can infer from website domain
+      // Suppress if we can confidently infer from website domain
       const website = ctx.gbpData?.websiteUri
       if (website) {
         try {
           const domain = new URL(website).hostname
-          return !domain.includes('facebook') && !domain.includes('google')
+          // Only suppress for actual business domains
+          const genericDomains = ['facebook', 'google', 'yelp', 'instagram', 'twitter']
+          return !genericDomains.some(d => domain.includes(d))
         } catch {
           return false
         }
@@ -90,6 +134,41 @@ const suppressionRules: SuppressionRule[] = [
       return false
     },
     reason: 'Email can be inferred from website domain'
+  },
+  
+  // Street address - from storefrontAddress (not for service-area-only)
+  {
+    questionId: 'street-address',
+    condition: (ctx) => {
+      // Suppress if we have valid address lines
+      const address = ctx.gbpData?.storefrontAddress
+      if (!address) return false
+      
+      // Check it's not service-area-only
+      const hasValidAddress = address.addressLines?.length > 0 && 
+                            address.addressLines[0]?.length > 0 &&
+                            !ctx.gbpData?.serviceArea?.businessType?.includes('SERVICE_AREA')
+      
+      return hasValidAddress
+    },
+    reason: 'Street address available from Google Business Profile'
+  },
+  
+  // Service area cities - from serviceArea.places
+  {
+    questionId: 'service-areas',
+    condition: (ctx) => {
+      // Suppress if we have city list or polygon
+      const serviceArea = ctx.gbpData?.serviceArea
+      if (!serviceArea) return false
+      
+      const hasCities = serviceArea.places?.placeInfos?.length > 0
+      const hasPolygon = serviceArea.polygon?.coordinates?.length > 0
+      const hasRadius = serviceArea.radius?.radiusKm > 0
+      
+      return hasCities || hasPolygon || hasRadius
+    },
+    reason: 'Service areas available from Google Business Profile'
   }
 ]
 
@@ -146,20 +225,60 @@ export function applyQuestionSuppression(
 
 /**
  * Calculate confidence scores from various data sources
+ * Based on GBP field mapping document
  */
 export function calculateConfidenceScores(
   dataScore: any,
   gbpData: any
 ): Record<string, number> {
-  return {
-    service_radius: dataScore.radius_confidence || 0,
-    years_in_business: dataScore.years_confidence || 0,
-    services: dataScore.services_confidence || 0,
-    business_hours: gbpData?.regularHours ? 1 : 0,
-    contact_info: gbpData?.phoneNumbers?.primaryPhone ? 0.9 : 0,
-    location: gbpData?.storefrontAddress ? 1 : 0,
-    description: (gbpData?.profile?.description?.length || 0) > 100 ? 0.8 : 0
+  const confidence: Record<string, number> = {}
+  
+  // Service radius confidence
+  if (dataScore.radius_confidence) {
+    confidence.service_radius = dataScore.radius_confidence
+  } else if (gbpData?.serviceArea) {
+    // Calculate based on service area quality
+    if (gbpData.serviceArea.polygon?.coordinates?.length > 0) {
+      confidence.service_radius = 0.9 // High confidence from polygon
+    } else if (gbpData.serviceArea.places?.placeInfos?.length > 0) {
+      confidence.service_radius = 0.8 // Good confidence from city list
+    } else if (gbpData.serviceArea.radius?.radiusKm > 0) {
+      confidence.service_radius = 0.85 // Good confidence from radius
+    }
   }
+  
+  // Years in business confidence
+  if (dataScore.years_confidence) {
+    confidence.years_in_business = dataScore.years_confidence
+  } else if (gbpData?.metadata?.establishedDate?.year) {
+    confidence.years_in_business = 1.0 // Perfect confidence from metadata
+  } else if (gbpData?.metadata?.openingDate?.year) {
+    confidence.years_in_business = 1.0 // Perfect confidence from opening date
+  } else if (gbpData?.profile?.description?.match(/since \d{4}/i)) {
+    confidence.years_in_business = 0.8 // Good confidence from description
+  }
+  
+  // Other fields with direct mapping
+  confidence.business_hours = gbpData?.regularHours?.periods?.length > 0 ? 1.0 : 0
+  confidence.contact_info = gbpData?.phoneNumbers?.primaryPhone ? 0.9 : 0
+  confidence.location = gbpData?.storefrontAddress?.addressLines?.length > 0 ? 1.0 : 0
+  confidence.website = gbpData?.websiteUri ? 0.95 : 0
+  
+  // Description confidence based on length and quality
+  const description = gbpData?.profile?.description || gbpData?.description
+  if (description) {
+    if (description.length > 200) {
+      confidence.description = 0.9
+    } else if (description.length > 100) {
+      confidence.description = 0.8
+    } else {
+      confidence.description = 0.5
+    }
+  } else {
+    confidence.description = 0
+  }
+  
+  return confidence
 }
 
 /**
