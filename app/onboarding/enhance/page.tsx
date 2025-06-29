@@ -158,9 +158,57 @@ export default function EnhancedOnboardingPage() {
       const industry = searchParams.get('industry') || 'general'
       const businessName = searchParams.get('name') || 'Your Business'
 
+      // Check if smart intake is enabled
+      const smartIntakeEnabled = process.env.NEXT_PUBLIC_SMART_INTAKE_ENABLED === 'true'
+
       // If no business ID, use a different endpoint or provide manual data
       if (!placeId && !businessId) {
-        // Generate questions based on industry alone
+        // If smart intake is enabled, still try to get intelligent questions
+        if (smartIntakeEnabled) {
+          try {
+            // Create a minimal intelligence record
+            const analyzeResponse = await fetch('/api/intelligence/analyze', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                businessName,
+                industry,
+                gbpData: null
+              })
+            })
+
+            if (analyzeResponse.ok) {
+              const { intelligenceId, dataScore } = await analyzeResponse.json()
+              
+              // Get questions from smart intake
+              const questionsResponse = await fetch('/api/intelligence/questions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  intelligenceId,
+                  industry,
+                  dataScore,
+                  missingData: ['services', 'description', 'differentiation']
+                })
+              })
+
+              if (questionsResponse.ok) {
+                const { questions: generatedQuestions } = await questionsResponse.json()
+                setState(prev => ({
+                  ...prev,
+                  questions: generatedQuestions || [],
+                  businessData: { name: businessName, industry }
+                }))
+                setLoading(false)
+                return
+              }
+            }
+          } catch (err) {
+            console.log('Smart intake failed, falling back to basic questions', err)
+          }
+        }
+
+        // Fallback to basic questions
         const basicQuestions = [
           {
             id: 'business-name',
@@ -178,10 +226,10 @@ export default function EnhancedOnboardingPage() {
           },
           {
             id: 'services',
-            type: 'multiple-choice',
+            type: 'service-grid',
             question: 'What services do you offer?',
             category: 'services',
-            options: getIndustryServices(industry),
+            options: getIndustryServices(industry).map(service => ({ label: service, value: service })),
             multiple: true,
             required: true
           }
@@ -256,6 +304,55 @@ export default function EnhancedOnboardingPage() {
 
       const data = await response.json()
       console.log('API Response:', data)
+      
+      // If smart intake is enabled, enhance questions with location-based pre-selections
+      if (smartIntakeEnabled && data.businessData) {
+        try {
+          // First analyze the business data
+          const analyzeResponse = await fetch('/api/intelligence/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              businessName: data.businessData.name,
+              gbpData: data.businessData,
+              placeId: placeId || businessId
+            })
+          })
+
+          if (analyzeResponse.ok) {
+            const { intelligenceId, dataScore } = await analyzeResponse.json()
+            
+            // Get enhanced questions with smart intake
+            const questionsResponse = await fetch('/api/intelligence/questions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                intelligenceId,
+                industry,
+                dataScore,
+                missingData: data.missingData || ['services', 'differentiation']
+              })
+            })
+
+            if (questionsResponse.ok) {
+              const { questions: smartQuestions } = await questionsResponse.json()
+              console.log('Smart intake questions:', smartQuestions?.length || 0)
+              
+              setState(prev => ({
+                ...prev,
+                questions: smartQuestions || data.questions || [],
+                insights: data.insights,
+                placeId: placeId || data.businessData?.placeId,
+                businessData: data.businessData
+              }))
+              setLoading(false)
+              return
+            }
+          }
+        } catch (err) {
+          console.log('Smart intake enhancement failed, using standard questions', err)
+        }
+      }
       
       // If no questions needed, generate the site immediately
       if (!data.requiresAnswers || data.questions.length === 0) {
@@ -446,6 +543,22 @@ export default function EnhancedOnboardingPage() {
           />
         )
       
+      case 'service-grid':
+        // Service grid with pre-checked options
+        return (
+          <MultipleChoice
+            question={question.question}
+            subtext={question.context}
+            options={question.options}
+            onSelect={(values) => handleAnswer(values)}
+            selected={state.answers[question.id]}
+            multiSelect={true}
+            variant="cards"
+            columns={2}
+            initialChecked={question.options?.filter((opt: any) => opt.checked).map((opt: any) => opt.value || opt.label)}
+          />
+        )
+        
       case 'multiple':
         // Check if it's a claim verification question
         if (question.category === 'verification') {
@@ -486,6 +599,7 @@ export default function EnhancedOnboardingPage() {
             onSelect={(values) => handleAnswer(values)}
             selected={state.answers[question.id]}
             multiSelect={true}
+            initialChecked={question.options?.filter((opt: any) => opt.checked).map((opt: any) => opt.value || opt.label)}
           />
         )
       

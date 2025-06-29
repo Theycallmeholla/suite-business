@@ -22,6 +22,9 @@ export interface ChoiceOption {
   popular?: boolean
   recommended?: boolean
   disabled?: boolean
+  checked?: boolean // Pre-selected based on smart intake
+  confidence?: number // 0-1 confidence score for smart selections
+  tooltip?: string // Explanation for why this was selected
 }
 
 interface MultipleChoiceProps {
@@ -36,6 +39,7 @@ interface MultipleChoiceProps {
   columns?: 1 | 2 | 3 | 4
   variant?: 'cards' | 'buttons' | 'chips'
   className?: string
+  initialChecked?: string[] // Initial pre-checked values
 }
 
 export function MultipleChoice({
@@ -49,10 +53,21 @@ export function MultipleChoice({
   maxSelect,
   columns = 2,
   variant = 'cards',
-  className
+  className,
+  initialChecked = []
 }: MultipleChoiceProps) {
+  // Initialize with pre-checked values if provided
+  const initialSelection = initialChecked.length > 0 ? initialChecked : 
+    (Array.isArray(selected) ? selected : (selected ? [selected] : []))
   const selectedArray = Array.isArray(selected) ? selected : (selected ? [selected] : [])
   const [hoveredOption, setHoveredOption] = useState<string | null>(null)
+  
+  // Set initial checked values on first render
+  React.useEffect(() => {
+    if (initialChecked.length > 0 && selectedArray.length === 0) {
+      onSelect(multiSelect ? initialChecked : initialChecked[0] || '')
+    }
+  }, []) // Only run once on mount
 
   const handleSelect = (value: string) => {
     if (multiSelect) {
@@ -112,6 +127,34 @@ export function MultipleChoice({
               {option.popular ? "Popular" : "Recommended"}
             </span>
           </div>
+        )}
+        
+        {/* Smart intake pre-selected indicator with enhanced styling */}
+        {option.checked && initialChecked.includes(option.value) && (
+          <motion.div 
+            className="absolute -top-3 left-2 group"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 500 }}
+          >
+            <span className="text-xs px-3 py-1.5 rounded-full font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg flex items-center gap-1">
+              Smart pick ✨
+              {option.confidence && (
+                <span className="text-[10px] opacity-90">
+                  {Math.round(option.confidence * 100)}%
+                </span>
+              )}
+            </span>
+            {/* Tooltip on hover */}
+            {option.tooltip && (
+              <div className="absolute top-full left-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                <div className="bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                  {option.tooltip}
+                  <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45" />
+                </div>
+              </div>
+            )}
+          </motion.div>
         )}
 
         <div className="flex items-start gap-3">

@@ -59,46 +59,114 @@ export function QuestionFlowOrchestrator({
   const [useTemplatePreview, setUseTemplatePreview] = useState(true) // Toggle for preview mode
 
   useEffect(() => {
-    // Initialize orchestrator and inference engine
-    const orch = new QuestionOrchestrator(businessData)
-    const inference = new InferenceEngine(businessData.industry as IndustryType)
-    
-    setOrchestrator(orch)
-    setInferenceEngine(inference)
-    
-    // Convert adaptive questions to conversational format
-    const adaptiveQuestions = []
-    let currentQuestion = orch.getCurrentQuestion()
-    
-    while (currentQuestion && adaptiveQuestions.length < 5) {
-      adaptiveQuestions.push(currentQuestion)
-      // Simulate advancing to get next question for preview
-      orch.skipQuestion('preview')
-      currentQuestion = orch.getCurrentQuestion()
+    const loadQuestions = async () => {
+      // Check if smart intake is enabled
+      const smartIntakeEnabled = process.env.NEXT_PUBLIC_SMART_INTAKE_ENABLED === 'true'
+      
+      if (smartIntakeEnabled && businessData) {
+        try {
+          // First analyze the business data
+          const analyzeResponse = await fetch('/api/intelligence/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              businessName: businessData.name,
+              gbpData: businessData.gbpData || businessData,
+              placeId: businessData.placeId
+            })
+          })
+
+          if (analyzeResponse.ok) {
+            const { intelligenceId, dataScore } = await analyzeResponse.json()
+            
+            // Get enhanced questions with smart intake
+            const questionsResponse = await fetch('/api/intelligence/questions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                intelligenceId,
+                industry: businessData.industry,
+                dataScore,
+                missingData: ['services', 'differentiation', 'positioning', 'style']
+              })
+            })
+
+            if (questionsResponse.ok) {
+              const { questions: smartQuestions } = await questionsResponse.json()
+              console.log('Smart intake questions loaded:', smartQuestions?.length || 0)
+              
+              // Convert to conversational format
+              const conversational = smartQuestions.map((q: any) => convertToConversational(q))
+              setConversationalQuestions(conversational)
+              
+              // Initialize preview data with smart defaults
+              setPreviewData({
+                businessName: businessData.name || 'Your Business',
+                industry: businessData.industry || 'general',
+                services: businessData.services || [],
+                differentiators: [],
+                positioning: 'quality',
+                colorScheme: 'trust-blue',
+                typography: 'professional',
+                availability: 'business-hours',
+                location: businessData.location?.address,
+                phone: businessData.phone,
+                description: businessData.description,
+                tagline: businessData.tagline,
+                keywords: businessData.keywords
+              })
+              
+              return
+            }
+          }
+        } catch (err) {
+          console.log('Smart intake failed, falling back to orchestrator', err)
+        }
+      }
+      
+      // Fallback to original orchestrator logic
+      const orch = new QuestionOrchestrator(businessData)
+      const inference = new InferenceEngine(businessData.industry as IndustryType)
+      
+      setOrchestrator(orch)
+      setInferenceEngine(inference)
+      
+      // Convert adaptive questions to conversational format
+      const adaptiveQuestions = []
+      let currentQuestion = orch.getCurrentQuestion()
+      
+      while (currentQuestion && adaptiveQuestions.length < 5) {
+        adaptiveQuestions.push(currentQuestion)
+        // Simulate advancing to get next question for preview
+        orch.skipQuestion('preview')
+        currentQuestion = orch.getCurrentQuestion()
+      }
+      
+      // Reset orchestrator
+      setOrchestrator(new QuestionOrchestrator(businessData))
+      
+      const conversational = adaptiveQuestions.map(q => convertToConversational(q))
+      setConversationalQuestions(conversational)
+      
+      // Initialize preview data
+      setPreviewData({
+        businessName: businessData.name || 'Your Business',
+        industry: businessData.industry || 'general',
+        services: businessData.services || [],
+        differentiators: [],
+        positioning: 'quality',
+        colorScheme: 'trust-blue',
+        typography: 'professional',
+        availability: 'business-hours',
+        location: businessData.location?.address,
+        phone: businessData.phone,
+        description: businessData.description,
+        tagline: businessData.tagline,
+        keywords: businessData.keywords
+      })
     }
     
-    // Reset orchestrator
-    setOrchestrator(new QuestionOrchestrator(businessData))
-    
-    const conversational = adaptiveQuestions.map(q => convertToConversational(q))
-    setConversationalQuestions(conversational)
-    
-    // Initialize preview data
-    setPreviewData({
-      businessName: businessData.name || 'Your Business',
-      industry: businessData.industry || 'general',
-      services: businessData.services || [],
-      differentiators: [],
-      positioning: 'quality',
-      colorScheme: 'trust-blue',
-      typography: 'professional',
-      availability: 'business-hours',
-      location: businessData.location?.address,
-      phone: businessData.phone,
-      description: businessData.description,
-      tagline: businessData.tagline,
-      keywords: businessData.keywords
-    })
+    loadQuestions()
   }, [businessData])
 
   const convertToConversational = (adaptiveQuestion: any): ConversationalQuestion => {
@@ -141,7 +209,9 @@ export function QuestionFlowOrchestrator({
       maxSelections: adaptiveQuestion.maxSelections,
       allowUnsure: adaptiveQuestion.allowUnsure,
       icon: getQuestionIcon(adaptiveQuestion.category),
-      color: getQuestionColor(adaptiveQuestion.category)
+      color: getQuestionColor(adaptiveQuestion.category),
+      // Pass through the entire question for proper handling
+      originalQuestion: adaptiveQuestion
     }
   }
 

@@ -16,6 +16,9 @@ import { loadExpectations } from '@/lib/data/cache'
 import { getClimateZone } from '@/lib/utils/region-detector'
 import { normalizeServiceName } from '@/lib/utils/service-normalizer'
 import { EXPECTED_PREVALENCE_THRESHOLD, MAX_MISSING_EXPECTED_SERVICES } from '@/lib/constants/intake'
+import { calculateServiceRadius, shouldAskServiceRadiusQuestion } from '@/lib/utils/service-radius-calculator'
+import { extractBusinessAge, shouldAskYearsInBusinessQuestion } from '@/lib/utils/business-age-extractor'
+import { applyQuestionSuppression, calculateConfidenceScores, getSuppressionSummary } from '@/lib/intelligence/question-suppression'
 import type { IndustryType } from '@/types/site-builder'
 import type { BusinessIntelligenceData } from '@/lib/intelligence/scoring'
 
@@ -105,6 +108,9 @@ async function generateSmartQuestions({
   
   // Smart intake enhancements when enabled
   let enhancedServiceOptions: any[] | null = null
+  let gbpData: any = null
+  let existingDataScore: any = {}
+  let coords: any = null
   
   if (process.env.SMART_INTAKE_ENABLED === 'true') {
     // Get business intelligence data for coordinates
@@ -113,9 +119,9 @@ async function generateSmartQuestions({
       select: { gbpData: true, dataScore: true }
     })
     
-    const gbpData = intelligence?.gbpData as any
-    const existingDataScore = intelligence?.dataScore as any || {}
-    const coords = gbpData?.coordinates || gbpData?.latlng
+    gbpData = intelligence?.gbpData as any
+    existingDataScore = intelligence?.dataScore as any || {}
+    coords = gbpData?.coordinates || gbpData?.latlng
     
     // Detect climate zone
     const zone = coords ? getClimateZone(coords.lat || coords.latitude, coords.lng || coords.longitude) : 'national'
@@ -187,13 +193,21 @@ async function generateSmartQuestions({
       }
     })
     
-    // Prepare enhanced service options
+    // Prepare enhanced service options with confidence and tooltips
     if (missingExpected.length > 0) {
       const serviceOptions = generateServiceOptions(industry)
-      enhancedServiceOptions = serviceOptions.map(opt => ({
-        ...opt,
-        checked: missingExpected.includes(normalizeServiceName(opt.label))
-      }))
+      enhancedServiceOptions = serviceOptions.map(opt => {
+        const normalizedName = normalizeServiceName(opt.label)
+        const isExpected = missingExpected.includes(normalizedName)
+        const prevalence = industryExpectations[normalizedName] as number || 0
+        
+        return {
+          ...opt,
+          checked: isExpected,
+          confidence: isExpected ? prevalence : undefined,
+          tooltip: isExpected ? `${Math.round(prevalence * 100)}% of ${industry} businesses in ${zone.replace('CLIMATE_', '').toLowerCase()} climates offer this` : undefined
+        }
+      })
     }
   }
 
@@ -245,8 +259,9 @@ async function generateSmartQuestions({
     })
   }
 
-  // Priority 3: Business Stage
-  if (dataScore.total < 60 && !dataScore.manual?.yearsInBusiness) {
+  // Priority 3: Business Stage - Only ask if we can't extract it
+  const businessAge = extractBusinessAge(gbpData)
+  if (shouldAskYearsInBusinessQuestion(businessAge) && dataScore.total < 60 && !dataScore.manual?.yearsInBusiness) {
     questions.push({
       id: 'business-stage',
       type: 'quick-select',
@@ -260,10 +275,23 @@ async function generateSmartQuestions({
         { value: '10+', label: '10+ Years', popular: true }
       ]
     })
+  } else if (businessAge.yearsInBusiness) {
+    // Store the extracted years in dataScore
+    await prisma.businessIntelligence.update({
+      where: { id: intelligenceId },
+      data: {
+        dataScore: {
+          ...existingDataScore,
+          extracted_years_in_business: businessAge.yearsInBusiness,
+          years_confidence: businessAge.confidence
+        }
+      }
+    })
   }
 
-  // Priority 3: Service Areas
-  if (!dataScore.serviceAreas) {
+  // Priority 3: Service Areas - Only ask if we can't calculate from polygons
+  const serviceRadius = calculateServiceRadius(gbpData?.serviceArea, coords)
+  if (shouldAskServiceRadiusQuestion(serviceRadius) && !dataScore.serviceAreas) {
     questions.push({
       id: 'service-radius',
       type: 'quick-select',
@@ -277,10 +305,55 @@ async function generateSmartQuestions({
         { value: '50-miles', label: '50+ miles' }
       ]
     })
+  } else if (serviceRadius.confidence > 0.5) {
+    // Store the calculated radius in dataScore
+    await prisma.businessIntelligence.update({
+      where: { id: intelligenceId },
+      data: {
+        dataScore: {
+          ...existingDataScore,
+          calculated_service_radius: serviceRadius.radius,
+          radius_confidence: serviceRadius.confidence,
+          radius_method: serviceRadius.method
+        }
+      }
+    })
+  }
+
+  // Apply question suppression based on available data
+  const confidence = calculateConfidenceScores(existingDataScore, gbpData)
+  const suppressionContext = {
+    dataScore: existingDataScore,
+    gbpData,
+    confidence
+  }
+  
+  const originalQuestionCount = questions.length
+  const { questions: filteredQuestions, suppressedCount, suppressionReasons } = 
+    applyQuestionSuppression(questions, suppressionContext)
+  
+  // Log suppression analytics
+  if (suppressedCount > 0) {
+    const summary = getSuppressionSummary(originalQuestionCount, filteredQuestions.length, suppressionReasons)
+    
+    await prisma.analyticsEvent.create({
+      data: {
+        event: 'smart_intake_questions_suppressed',
+        properties: {
+          industry,
+          original_count: originalQuestionCount,
+          final_count: filteredQuestions.length,
+          suppressed_count: suppressedCount,
+          reduction_percentage: summary.reductionPercentage,
+          suppressed_questions: summary.suppressedQuestions,
+          efficiency: summary.efficiency
+        }
+      }
+    })
   }
 
   // Only return top 5 questions, sorted by priority
-  return questions
+  return filteredQuestions
     .sort((a, b) => a.priority - b.priority)
     .slice(0, 5)
 }
