@@ -2,10 +2,11 @@
  * Business Age Extractor
  * 
  * **Created**: June 28, 2025, 9:20 PM CST
- * **Last Updated**: June 28, 2025, 9:20 PM CST
+ * **Last Updated**: June 29, 2025, 6:20 PM CST
  * 
  * Extracts years in business from various Google Business Profile data points
  * to avoid asking users for information we can infer.
+ * Enhanced to better extract patterns like "over 40 years".
  */
 
 interface BusinessAgeResult {
@@ -106,10 +107,12 @@ function extractFromDescription(description: string, currentYear: number): Busin
     /founded\s+(?:in\s+)?(\d{4})/i,
     // "Serving since 1995"
     /serving\s+(?:since\s+)?(\d{4})/i,
-    // "25 years of experience" or "25+ years"
-    /(\d+)\+?\s+years?\s+(?:of\s+)?(?:experience|service|business)/i,
-    // "Over 25 years"
-    /over\s+(\d+)\s+years?/i,
+    // "25 years of experience" or "25+ years" - ENHANCED
+    /(\d+)\+?\s+years?\s+(?:of\s+)?(?:experience|service|business|grinding)/i,
+    // "Over 25 years" - ENHANCED to catch "over 40 years of grinding"
+    /(?:over|more than)\s+(\d+)\s+years?\s+(?:of\s+)?(?:experience|service|business|grinding)?/i,
+    // "has 40 years" pattern
+    /has\s+(?:over\s+)?(\d+)\s+years?\s+(?:of\s+)?(?:experience|service|business)?/i,
     // "Est. 1995"
     /est\.?\s+(\d{4})/i
   ]

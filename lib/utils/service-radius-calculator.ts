@@ -224,8 +224,8 @@ export function formatServiceRadius(radius: number): string {
  * Determine if we should ask the service radius question
  */
 export function shouldAskServiceRadiusQuestion(result: ServiceRadiusResult): boolean {
-  // Ask if confidence is below threshold (0.7 based on GBP mapping)
-  return result.confidence < 0.7
+  // Ask if confidence is below threshold (0.5 for aggressive suppression)
+  return result.confidence < 0.5
 }
 
 /**

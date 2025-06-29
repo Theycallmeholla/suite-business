@@ -2,10 +2,11 @@
  * Question Suppression Logic
  * 
  * **Created**: June 28, 2025, 9:30 PM CST
- * **Last Updated**: June 29, 2025, 5:45 PM CST
+ * **Last Updated**: June 29, 2025, 6:15 PM CST
  * 
  * Determines whether to ask specific questions based on available data
  * and confidence levels, making the onboarding flow truly intelligent.
+ * Enhanced with aggressive suppression rules for all GBP fields.
  */
 
 interface SuppressionContext {
@@ -30,8 +31,8 @@ const suppressionRules: SuppressionRule[] = [
   {
     questionId: 'service-radius',
     condition: (ctx) => {
-      // Suppress if we have high confidence calculated radius
-      return ctx.confidence.service_radius >= 0.7
+      // Suppress if we have ANY confidence in calculated radius
+      return ctx.confidence.service_radius >= 0.5 // Lowered from 0.7
     },
     reason: 'Service radius calculated from service area data'
   },
@@ -40,8 +41,8 @@ const suppressionRules: SuppressionRule[] = [
   {
     questionId: 'business-stage',
     condition: (ctx) => {
-      // Suppress if we extracted years with confidence >= 0.7
-      return ctx.confidence.years_in_business >= 0.7
+      // Suppress if we extracted years with ANY confidence
+      return ctx.confidence.years_in_business > 0 // Changed from >= 0.7
     },
     reason: 'Years in business extracted from profile data'
   },
@@ -169,6 +170,107 @@ const suppressionRules: SuppressionRule[] = [
       return hasCities || hasPolygon || hasRadius
     },
     reason: 'Service areas available from Google Business Profile'
+  },
+  
+  // Emergency service - for 24/7 businesses
+  {
+    questionId: 'emergency-service',
+    condition: (ctx) => {
+      // Suppress if business is 24/7 (always available for emergencies)
+      return ctx.dataScore?.is24Hours === true
+    },
+    reason: 'Business operates 24/7 - emergency service implied'
+  },
+  
+  // Differentiators - from description analysis
+  {
+    questionId: 'differentiators',
+    condition: (ctx) => {
+      // Suppress if description mentions experience, years, expertise, etc.
+      const description = ctx.gbpData?.profile?.description || ctx.gbpData?.description || ''
+      const hasExperience = /\d+\s*(?:year|yr)s?|experience|expert|specializ|professional|certified|licensed|award/i.test(description)
+      const hasYears = ctx.dataScore?.yearsInBusiness > 0
+      
+      return hasExperience || hasYears
+    },
+    reason: 'Business differentiators found in description or years of experience'
+  },
+  
+  // Delivery service - from moreHours
+  {
+    questionId: 'delivery-service',
+    condition: (ctx) => {
+      // Suppress if delivery hours are specified
+      return ctx.dataScore?.hasDelivery === true
+    },
+    reason: 'Delivery service hours found in business data'
+  },
+  
+  // Service types - from categories
+  {
+    questionId: 'service-types',
+    condition: (ctx) => {
+      // Suppress if we have detailed additional categories
+      const hasCategories = (ctx.gbpData?.additionalCategories?.length || 0) > 0
+      const hasServiceItems = (ctx.gbpData?.serviceItems?.length || 0) > 0
+      
+      return hasCategories || hasServiceItems
+    },
+    reason: 'Service types inferred from business categories'
+  },
+  
+  // Operating hours preferences - from special hours
+  {
+    questionId: 'special-hours',
+    condition: (ctx) => {
+      // Suppress if special hours are defined
+      return ctx.gbpData?.specialHours?.specialHourPeriods?.length > 0
+    },
+    reason: 'Special hours already defined in business profile'
+  },
+  
+  // Menu/pricing - from menuUrl
+  {
+    questionId: 'menu-pricing',
+    condition: (ctx) => {
+      // Suppress if menu URL exists (for applicable businesses)
+      return !!ctx.gbpData?.menuUrl
+    },
+    reason: 'Menu/pricing information available via menu URL'
+  },
+  
+  // Social media presence - from various fields
+  {
+    questionId: 'social-media',
+    condition: (ctx) => {
+      // Suppress if we have social links or can infer from website
+      const hasSocialLinks = !!ctx.gbpData?.url || !!ctx.dataScore?.socialLinks
+      const hasWebsite = !!ctx.gbpData?.websiteUri
+      
+      return hasSocialLinks || hasWebsite
+    },
+    reason: 'Social media presence available or inferable'
+  },
+  
+  // Business features/amenities - from attributes
+  {
+    questionId: 'amenities',
+    condition: (ctx) => {
+      // Suppress if attributes are populated
+      const attributes = ctx.gbpData?.attributes || ctx.dataScore?.businessFeatures
+      return attributes && Object.keys(attributes).length > 0
+    },
+    reason: 'Business amenities/features already specified'
+  },
+  
+  // Languages spoken - from languageCode
+  {
+    questionId: 'languages',
+    condition: (ctx) => {
+      // Suppress if language code is specified
+      return !!ctx.gbpData?.languageCode
+    },
+    reason: 'Language preferences already specified'
   }
 ]
 
@@ -225,7 +327,7 @@ export function applyQuestionSuppression(
 
 /**
  * Calculate confidence scores from various data sources
- * Based on GBP field mapping document
+ * Based on GBP field mapping document - AGGRESSIVE MODE
  */
 export function calculateConfidenceScores(
   dataScore: any,
@@ -233,50 +335,68 @@ export function calculateConfidenceScores(
 ): Record<string, number> {
   const confidence: Record<string, number> = {}
   
-  // Service radius confidence
-  if (dataScore.radius_confidence) {
-    confidence.service_radius = dataScore.radius_confidence
+  // Service radius confidence - MORE AGGRESSIVE
+  if (dataScore.serviceRadius || dataScore.radius_confidence) {
+    confidence.service_radius = 1.0 // Perfect confidence if we calculated it
   } else if (gbpData?.serviceArea) {
-    // Calculate based on service area quality
+    // Any service area data = high confidence
     if (gbpData.serviceArea.polygon?.coordinates?.length > 0) {
-      confidence.service_radius = 0.9 // High confidence from polygon
+      confidence.service_radius = 1.0
     } else if (gbpData.serviceArea.places?.placeInfos?.length > 0) {
-      confidence.service_radius = 0.8 // Good confidence from city list
+      confidence.service_radius = 0.9 // Increased from 0.8
     } else if (gbpData.serviceArea.radius?.radiusKm > 0) {
-      confidence.service_radius = 0.85 // Good confidence from radius
+      confidence.service_radius = 0.95 // Increased from 0.85
     }
   }
   
-  // Years in business confidence
-  if (dataScore.years_confidence) {
+  // Years in business confidence - MORE AGGRESSIVE
+  if (dataScore.yearsInBusiness) {
+    confidence.years_in_business = 1.0 // Perfect if extracted
+  } else if (dataScore.years_confidence) {
     confidence.years_in_business = dataScore.years_confidence
   } else if (gbpData?.metadata?.establishedDate?.year) {
-    confidence.years_in_business = 1.0 // Perfect confidence from metadata
+    confidence.years_in_business = 1.0
   } else if (gbpData?.metadata?.openingDate?.year) {
-    confidence.years_in_business = 1.0 // Perfect confidence from opening date
-  } else if (gbpData?.profile?.description?.match(/since \d{4}/i)) {
-    confidence.years_in_business = 0.8 // Good confidence from description
+    confidence.years_in_business = 1.0
+  } else if (gbpData?.profile?.description?.match(/(\d+)\s*(?:year|yr)s?|since \d{4}/i)) {
+    confidence.years_in_business = 0.9 // Increased from 0.8
   }
   
-  // Other fields with direct mapping
+  // Other fields - ALL SET TO 1.0 IF ANY DATA EXISTS
   confidence.business_hours = gbpData?.regularHours?.periods?.length > 0 ? 1.0 : 0
-  confidence.contact_info = gbpData?.phoneNumbers?.primaryPhone ? 0.9 : 0
-  confidence.location = gbpData?.storefrontAddress?.addressLines?.length > 0 ? 1.0 : 0
-  confidence.website = gbpData?.websiteUri ? 0.95 : 0
+  confidence.contact_info = (gbpData?.phoneNumbers?.primaryPhone || gbpData?.primaryPhone) ? 1.0 : 0
+  confidence.location = (gbpData?.storefrontAddress || gbpData?.fullAddress) ? 1.0 : 0
+  confidence.website = (gbpData?.websiteUri || gbpData?.website) ? 1.0 : 0
   
-  // Description confidence based on length and quality
-  const description = gbpData?.profile?.description || gbpData?.description
+  // Emergency service - if 24/7
+  confidence.emergency_service = dataScore.is24Hours ? 1.0 : 0
+  
+  // Differentiators - from description or years
+  const description = gbpData?.profile?.description || gbpData?.description || ''
+  const hasDifferentiators = /\d+\s*(?:year|yr)s?|experience|expert|specializ|professional/i.test(description)
+  confidence.differentiators = hasDifferentiators || dataScore.yearsInBusiness > 0 ? 1.0 : 0
+  
+  // Service types - from categories
+  confidence.service_types = (gbpData?.additionalCategories?.length > 0 || gbpData?.serviceItems?.length > 0) ? 1.0 : 0
+  
+  // Description confidence - MORE LENIENT
   if (description) {
-    if (description.length > 200) {
-      confidence.description = 0.9
-    } else if (description.length > 100) {
-      confidence.description = 0.8
+    if (description.length > 50) { // Lowered from 100
+      confidence.description = 1.0 // Any decent description = perfect
     } else {
-      confidence.description = 0.5
+      confidence.description = 0.7
     }
   } else {
     confidence.description = 0
   }
+  
+  // Additional confidence scores for new fields
+  confidence.delivery_service = dataScore.hasDelivery ? 1.0 : 0
+  confidence.special_hours = gbpData?.specialHours?.specialHourPeriods?.length > 0 ? 1.0 : 0
+  confidence.menu_pricing = gbpData?.menuUrl ? 1.0 : 0
+  confidence.social_media = (gbpData?.url || gbpData?.websiteUri) ? 0.9 : 0
+  confidence.amenities = (gbpData?.attributes && Object.keys(gbpData.attributes).length > 0) ? 1.0 : 0
+  confidence.languages = gbpData?.languageCode ? 1.0 : 0
   
   return confidence
 }
