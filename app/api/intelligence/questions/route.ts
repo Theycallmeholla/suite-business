@@ -91,7 +91,10 @@ export async function POST(request: NextRequest) {
       success: true,
       questions,
       totalQuestions: questions.length,
-      suppressionInfo: dataScoreObj.suppression_info || null
+      suppressionInfo: {
+        reasons: dataScoreObj.suppression_info?.reasons || {},
+        count: dataScoreObj.suppression_info?.count || 0
+      }
     })
   } catch (error) {
     console.error('Error generating questions:', error)

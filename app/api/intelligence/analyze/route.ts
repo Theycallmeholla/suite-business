@@ -73,9 +73,8 @@ export async function POST(request: NextRequest) {
     // Calculate service radius from city list
     const serviceRadiusFromCities = calculateServiceRadiusFromCities(gbpData.serviceArea)
     
-    // Enhanced data score with ALL mapped GBP fields
-    const dataScore = {
-      ...baseDataScore,
+    // Extract all mapped fields
+    const mappedFields = {
       // Direct mappings from GBP field mapping document
       phone: gbpData.phoneNumbers?.primaryPhone || gbpData.primaryPhone || gbpData.phone,
       secondaryPhone: gbpData.adWordsLocationExtensions?.phoneNumber,
@@ -108,6 +107,27 @@ export async function POST(request: NextRequest) {
       coordinates: gbpData.coordinates || gbpData.latlng,
       languageCode: gbpData.languageCode,
       storeCode: gbpData.storeCode
+    }
+    
+    // Calculate detailed contribution breakdown
+    const contributions = {
+      phone: mappedFields.phone ? 15 : 0,
+      hours: mappedFields.businessHours ? 15 : 0,
+      website: mappedFields.website ? 10 : 0,
+      address: mappedFields.streetAddress ? 15 : 0,
+      serviceArea: (mappedFields.serviceRadius || mappedFields.serviceAreaCities?.length) ? 10 : 0,
+      yearsInBusiness: mappedFields.yearsInBusiness ? 15 : 0,
+      description: (mappedFields.businessDescription && mappedFields.businessDescription.length > 100) ? 10 : 0,
+    }
+    const total = Object.values(contributions).reduce((a, b) => a + b, 0)
+    
+    // Enhanced data score with breakdown
+    const dataScore = {
+      ...baseDataScore,
+      ...mappedFields,
+      // Add the detailed breakdown
+      total,
+      breakdown: contributions
     }
     
     // Detect industry
