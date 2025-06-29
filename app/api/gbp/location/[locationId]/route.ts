@@ -4,6 +4,36 @@ import { prisma } from '@/lib/prisma';
 import { google } from 'googleapis';
 import { logger } from '@/lib/logger';
 
+// --- GBP → internal key map ----------------------------
+const FIELD_MAP = {
+  primaryPhone:           'phoneNumbers.primaryPhone',
+  website:                'websiteUri',
+  fullAddress:            'storefrontAddress',
+  serviceArea:            'serviceArea',
+  categories:             'categories.primaryCategory.displayName',
+  additionalCategories:   'categories.additionalCategories',
+  regularHours:           'regularHours',
+  specialHours:           'specialHours',
+  moreHours:              'moreHours',
+  description:            'profile.description',
+  metadata:               'metadata',
+  coordinates:            'latlng',
+  businessName:           'title',
+  languageCode:           'languageCode',
+  storeCode:              'storeCode',
+  openInfo:               'openInfo',
+  labels:                 'labels',
+  serviceItems:           'serviceItems',
+  relationshipData:       'relationshipData',
+} as const;
+
+/**
+ * Safely traverse nested properties using dot notation
+ */
+function getNestedProperty(obj: any, path: string): any {
+  return path.split('.').reduce((curr, prop) => curr?.[prop], obj);
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ locationId: string }> }
@@ -193,52 +223,42 @@ export async function GET(
 
       const location = response.data;
 
-      // Transform the data to match our expected format
-      const transformedLocation = {
+      // Transform the data using FIELD_MAP for consistency
+      const transformedLocation: any = {
         id: location.name,
         name: location.title,
-        languageCode: location.languageCode,
-        storeCode: location.storeCode,
-        
-        // Contact
-        primaryPhone: location.phoneNumbers?.primaryPhone,
-        additionalPhones: location.phoneNumbers?.additionalPhones || [],
-        website: location.websiteUri,
-        
-        // Address
-        address: location.storefrontAddress ? 
-          [
-            location.storefrontAddress.addressLines?.join(', '),
-            location.storefrontAddress.locality,
-            location.storefrontAddress.administrativeArea,
-            location.storefrontAddress.postalCode
-          ].filter(Boolean).join(', ') : 'Address not available',
-        fullAddress: location.storefrontAddress,
-        
-        // Location
-        coordinates: location.latlng ? {
+      };
+      
+      // Apply all field mappings
+      for (const [outputKey, sourcePath] of Object.entries(FIELD_MAP)) {
+        const value = getNestedProperty(location, sourcePath);
+        if (value !== undefined && value !== null) {
+          transformedLocation[outputKey] = value;
+        }
+      }
+      
+      // Special handling for coordinates to maintain lat/lng structure
+      if (location.latlng) {
+        transformedLocation.coordinates = {
           latitude: location.latlng.latitude,
           longitude: location.latlng.longitude
-        } : null,
-        serviceArea: location.serviceArea,
-        
-        // Categories
-        primaryCategory: location.categories?.primaryCategory,
-        additionalCategories: location.categories?.additionalCategories || [],
-        
-        // Hours
-        regularHours: location.regularHours,
-        specialHours: location.specialHours,
-        moreHours: location.moreHours || [],
-        openInfo: location.openInfo,
-        
-        // Business info
-        profile: location.profile,
-        labels: location.labels || [],
-        metadata: location.metadata,
-        relationshipData: location.relationshipData,
-        serviceItems: location.serviceItems || [],
-      };
+        };
+      }
+      
+      // Create a formatted address string for backwards compatibility
+      if (location.storefrontAddress) {
+        transformedLocation.address = [
+          location.storefrontAddress.addressLines?.join(', '),
+          location.storefrontAddress.locality,
+          location.storefrontAddress.administrativeArea,
+          location.storefrontAddress.postalCode
+        ].filter(Boolean).join(', ') || 'Address not available';
+      }
+      
+      // Additional fields not in FIELD_MAP but needed for compatibility
+      transformedLocation.additionalPhones = location.phoneNumbers?.additionalPhones || [];
+      transformedLocation.primaryCategory = location.categories?.primaryCategory;
+      transformedLocation.profile = location.profile;
 
       logger.info('Successfully fetched GBP location', {
       metadata: { 
