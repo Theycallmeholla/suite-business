@@ -25,6 +25,24 @@ Commands are defined in `.claude/commands/`
 ## Project Overview
 Sitebango is a multi-industry SaaS platform for service-based businesses (landscaping, HVAC, plumbing, cleaning, roofing, electrical). It's a self-hosted solution with flexible onboarding - users can start with or without Google Business Profile, leveraging Google Places API for real business search and optional GoHighLevel Pro Plan's SaaS Mode.
 
+## ✅ GBP OAuth Access – TL;DR
+
+* **All GBP service accounts are already connected**
+   * Tokens live under **Holliday's** `userId`
+   * Emails:
+      * `adrian.grindmastersinc@gmail.com` → ✅ valid
+      * `theycallmeholla@gmail.com` → ⚠️ expired but auto-refreshable
+      * `holliday@cursivemedia.com` → ✅ valid
+* **Do NOT create new User records for these** - They're service accounts, not app users
+* **Use this to check token status or debug**:
+   ```bash
+   npm run unlock-gbp adrian.grindmastersinc@gmail.com
+   npx tsx scripts/gbp-account-summary.ts
+   ```
+* **Docs**: `/docs/oauth-gbp.md` explains everything 📌 Covers schema, flow, errors, and best practices
+
+This is now a **no-touch zone** unless a token actually breaks.
+
 ### Quick Commands Reference
 - `npm run add-agency-member email "name" role` - Add team member
 - `npm run setup:agency` - Initial agency setup
