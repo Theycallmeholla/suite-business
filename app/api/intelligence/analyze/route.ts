@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       metaDescription: gbpData.profile?.description || gbpData.description
     }
 
-    // Calculate base data score
+    // Calculate base data score with breakdown
     const baseDataScore = calculateDataScore(intelligenceData)
     
     // Extract years from description if available

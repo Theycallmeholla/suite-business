@@ -4,6 +4,64 @@ import { prisma } from '@/lib/prisma';
 import { google } from 'googleapis';
 import { logger } from '@/lib/logger';
 
+/**
+ * Outbound keys exposed to the frontend & intelligence layer.
+ * Keep in sync with lib/intelligence/question-suppression.ts and UI tests.
+ */
+const FIELD_MAP = {
+  // Contact Information
+  primaryPhone: 'phoneNumbers.primaryPhone',
+  secondaryPhone: 'adWordsLocationExtensions.phoneNumber',
+  website: 'websiteUri',
+  
+  // Address & Location
+  fullAddress: 'storefrontAddress',
+  storefrontCity: 'storefrontAddress.locality',
+  streetAddress: 'storefrontAddress.addressLines',
+  coordinates: 'latlng',
+  
+  // Service Area
+  serviceArea: 'serviceArea',
+  serviceAreaRadius: 'serviceArea.radius',
+  serviceAreaCities: 'serviceArea.places',
+  
+  // Business Information
+  businessName: 'title',
+  businessDescription: 'profile.description',
+  primaryCategory: 'categories.primaryCategory.displayName',
+  additionalCategories: 'categories.additionalCategories',
+  
+  // Hours & Operations
+  businessHours: 'regularHours.periods',
+  specialHours: 'specialHours',
+  
+  // Business Age & Metadata
+  yearEstablished: 'metadata.openingDate.year',
+  openingDate: 'openInfo.openingDate',
+  
+  // Additional Assets
+  menuUrl: 'menuUrl',
+  photos: 'photos',
+  attributes: 'attributes',
+  socialLinks: 'url',
+  
+  // Service Items & Features
+  serviceItems: 'serviceItems',
+  labels: 'labels',
+  
+  // Internal References
+  languageCode: 'languageCode',
+  storeCode: 'storeCode',
+  locationId: 'name',
+} as const;
+
+/**
+ * Safely traverse nested properties using dot notation
+ */
+function getNestedProperty(obj: any, path: string): any {
+  return path.split('.').reduce((curr, prop) => curr?.[prop], obj);
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ locationId: string }> }
@@ -188,57 +246,50 @@ export async function GET(
       // Now fetch the full details
       const response = await mybusinessbusinessinformation.locations.get({
         name: resourceName,
-        readMask: 'name,title,phoneNumbers,storefrontAddress,websiteUri,regularHours,specialHours,categories,languageCode,storeCode,profile,relationshipData,moreHours,serviceArea,labels,adWordsLocationExtensions,latlng,openInfo,metadata,serviceItems'
+        readMask: 'name,title,phoneNumbers,storefrontAddress,websiteUri,regularHours,specialHours,categories,languageCode,storeCode,profile,relationshipData,moreHours,serviceArea,labels,adWordsLocationExtensions,latlng,openInfo,metadata,serviceItems,menuUrl,photos,attributes,url'
       });
 
       const location = response.data;
 
-      // Transform the data to match our expected format
-      const transformedLocation = {
-        id: location.name,
-        name: location.title,
-        languageCode: location.languageCode,
-        storeCode: location.storeCode,
-        
-        // Contact
-        primaryPhone: location.phoneNumbers?.primaryPhone,
-        additionalPhones: location.phoneNumbers?.additionalPhones || [],
-        website: location.websiteUri,
-        
-        // Address
-        address: location.storefrontAddress ? 
-          [
-            location.storefrontAddress.addressLines?.join(', '),
-            location.storefrontAddress.locality,
-            location.storefrontAddress.administrativeArea,
-            location.storefrontAddress.postalCode
-          ].filter(Boolean).join(', ') : 'Address not available',
-        fullAddress: location.storefrontAddress,
-        
-        // Location
-        coordinates: location.latlng ? {
+      // Transform the data using FIELD_MAP for consistency
+      const transformedLocation: any = {};
+      
+      // Apply all field mappings
+      for (const [outputKey, sourcePath] of Object.entries(FIELD_MAP)) {
+        const value = getNestedProperty(location, sourcePath);
+        if (value !== undefined && value !== null) {
+          transformedLocation[outputKey] = value;
+        }
+      }
+      
+      // Special handling for coordinates to maintain lat/lng structure
+      if (location.latlng) {
+        transformedLocation.coordinates = {
           latitude: location.latlng.latitude,
           longitude: location.latlng.longitude
-        } : null,
-        serviceArea: location.serviceArea,
-        
-        // Categories
-        primaryCategory: location.categories?.primaryCategory,
-        additionalCategories: location.categories?.additionalCategories || [],
-        
-        // Hours
-        regularHours: location.regularHours,
-        specialHours: location.specialHours,
-        moreHours: location.moreHours || [],
-        openInfo: location.openInfo,
-        
-        // Business info
-        profile: location.profile,
-        labels: location.labels || [],
-        metadata: location.metadata,
-        relationshipData: location.relationshipData,
-        serviceItems: location.serviceItems || [],
-      };
+        };
+      }
+      
+      // Create a formatted address string for backwards compatibility
+      if (location.storefrontAddress) {
+        transformedLocation.address = [
+          location.storefrontAddress.addressLines?.join(', '),
+          location.storefrontAddress.locality,
+          location.storefrontAddress.administrativeArea,
+          location.storefrontAddress.postalCode
+        ].filter(Boolean).join(', ') || 'Address not available';
+      }
+      
+      // Additional fields not in FIELD_MAP but needed for compatibility
+      transformedLocation.id = location.name;
+      transformedLocation.name = location.title;
+      transformedLocation.regularHours = location.regularHours;
+      transformedLocation.moreHours = location.moreHours || [];
+      transformedLocation.openInfo = location.openInfo;
+      transformedLocation.profile = location.profile;
+      transformedLocation.metadata = location.metadata;
+      transformedLocation.relationshipData = location.relationshipData;
+      transformedLocation.additionalPhones = location.phoneNumbers?.additionalPhones || [];
 
       logger.info('Successfully fetched GBP location', {
       metadata: { 

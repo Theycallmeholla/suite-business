@@ -14,13 +14,14 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed": "ts-node --transpile-only scripts/seed.ts",
-    "seed:test-scenarios": "ts-node --transpile-only scripts/seed-test-scenarios.ts",
+    "db:seed": "ts-node --project tsconfig.node.json scripts/seed.ts",
+    "seed:test-scenarios": "ts-node --project tsconfig.node.json scripts/seed-test-scenarios.ts",
     "setup": "npm install && npm run docker:up && sleep 5 && npm run db:push && npm run db:generate",
-    "setup:agency": "ts-node scripts/setup-agency.ts",
-    "add-agency-member": "ts-node scripts/add-agency-member.ts",
-    "add-agency-members-bulk": "ts-node scripts/add-agency-members-bulk.ts",
-    "demo:landscaping": "ts-node scripts/create-demo-landscaping.ts"
+    "setup:agency": "ts-node --project tsconfig.node.json scripts/setup-agency.ts",
+    "add-agency-member": "ts-node --project tsconfig.node.json scripts/add-agency-member.ts",
+    "add-agency-members-bulk": "ts-node --project tsconfig.node.json scripts/add-agency-members-bulk.ts",
+    "demo:landscaping": "ts-node --project tsconfig.node.json scripts/create-demo-landscaping.ts",
+    "unlock-gbp": "ts-node --project tsconfig.node.json scripts/unlock-gbp-access.ts"
   },
   "dependencies": {
     "@googleapis/mybusiness": "^0.8.0",

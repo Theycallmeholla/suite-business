@@ -15,6 +15,7 @@ import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Loader2, Building2, CheckCircle2, XCircle, Info, Sparkles } from 'lucide-react'
 
 export default function TestSmartRealPage() {
@@ -25,7 +26,8 @@ export default function TestSmartRealPage() {
   const [locationData, setLocationData] = useState<any>(null)
   const [intelligenceData, setIntelligenceData] = useState<any>(null)
   const [questions, setQuestions] = useState<any[]>([])
-  const [suppressedQuestions, setSuppressedQuestions] = useState<Record<string, string>>>({})
+  const [suppressedQuestions, setSuppressedQuestions] = useState<Record<string, string>>({})
+  
   const [error, setError] = useState<string | null>(null)
   
   useEffect(() => {
@@ -71,7 +73,7 @@ export default function TestSmartRealPage() {
       setIntelligenceData(intelligence)
       
       // Step 3: Detect industry from categories
-      const industry = detectIndustryFromCategories(locData.categories)
+      const industry = detectIndustryFromCategories(locData)
       
       // Step 4: Generate smart questions
       const questionsResponse = await fetch('/api/intelligence/questions', {
@@ -104,8 +106,14 @@ export default function TestSmartRealPage() {
     }
   }
   
-  const detectIndustryFromCategories = (categories: any): string => {
-    if (!categories) return 'general'
+  const detectIndustryFromCategories = (locationData: any): string => {
+    if (!locationData) return 'general'
+    
+    // Check both primaryCategory and additionalCategories
+    const categories = [
+      locationData.primaryCategory,
+      ...(locationData.additionalCategories || [])
+    ].filter(Boolean)
     
     const categoryString = JSON.stringify(categories).toLowerCase()
     
@@ -125,14 +133,14 @@ export default function TestSmartRealPage() {
     let score = 0
     
     // Check for key data points with enhanced scoring
-    if (locationData.phoneNumbers?.primaryPhone) score += 15
+    if (locationData.primaryPhone) score += 15
     if (locationData.regularHours?.periods?.length > 0) score += 15
-    if (locationData.websiteUri) score += 10
-    if (locationData.storefrontAddress || locationData.serviceArea) score += 15
+    if (locationData.website) score += 10
+    if (locationData.fullAddress || locationData.address || locationData.serviceArea) score += 15
     if (locationData.serviceArea?.polygon || locationData.serviceArea?.places?.placeInfos?.length > 0) score += 10
     if (locationData.metadata?.establishedDate || locationData.profile?.description?.match(/since \d{4}/i)) score += 15
     if (locationData.profile?.description?.length > 100) score += 10
-    if (locationData.categories?.additionalCategories?.length > 0) score += 10
+    if (locationData.additionalCategories?.length > 0) score += 10
     
     if (score >= 80) return { score, label: 'Rich Data', color: 'green' }
     if (score >= 50) return { score, label: 'Partial Data', color: 'yellow' }
@@ -192,11 +200,11 @@ export default function TestSmartRealPage() {
                     <Building2 className="h-5 w-5" />
                     {locationData.title || locationData.name}
                   </CardTitle>
-                  {locationData.categories?.[0] && (
+                  {locationData.primaryCategory && (
                     <CardDescription>
-                      {locationData.categories[0].displayName}
-                      {locationData.storefrontAddress?.locality && (
-                        <span> • {locationData.storefrontAddress.locality}</span>
+                      {locationData.primaryCategory.displayName}
+                      {locationData.fullAddress?.locality && (
+                        <span> • {locationData.fullAddress.locality}</span>
                       )}
                     </CardDescription>
                   )}
@@ -212,7 +220,7 @@ export default function TestSmartRealPage() {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <strong>Phone:</strong>{' '}
-                      {locationData.phoneNumbers?.primaryPhone ? '✅ Available' : '❌ Missing'}
+                      {locationData.primaryPhone ? '✅ Available' : '❌ Missing'}
                     </div>
                     <div>
                       <strong>Hours:</strong>{' '}
@@ -220,11 +228,11 @@ export default function TestSmartRealPage() {
                     </div>
                     <div>
                       <strong>Website:</strong>{' '}
-                      {locationData.websiteUri ? '✅ Available' : '❌ Missing'}
+                      {locationData.website ? '✅ Available' : '❌ Missing'}
                     </div>
                     <div>
                       <strong>Address:</strong>{' '}
-                      {locationData.storefrontAddress ? '✅ Physical' : '⚡ Service area only'}
+                      {locationData.fullAddress ? '✅ Physical' : '⚡ Service area only'}
                     </div>
                     <div>
                       <strong>Service Area:</strong>{' '}
@@ -244,11 +252,27 @@ export default function TestSmartRealPage() {
                   <Info className="h-4 w-4 text-purple-600" />
                   <AlertDescription>
                     <strong>Intelligence Score:</strong> {intelligenceData.dataScore?.total || 0}/100
-                    <span className="text-gray-600 ml-2">
-                      (Basic: {intelligenceData.dataScore?.breakdown?.basic || 0}, 
-                      Content: {intelligenceData.dataScore?.breakdown?.content || 0}, 
-                      Trust: {intelligenceData.dataScore?.breakdown?.trust || 0})
-                    </span>
+                    {intelligenceData.dataScore?.breakdown && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="ml-2 text-purple-600 underline decoration-dotted cursor-help">
+                              (view breakdown)
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="space-y-1">
+                              {Object.entries(intelligenceData.dataScore.breakdown).map(([category, points]) => (
+                                <div key={category} className="flex justify-between gap-4">
+                                  <span className="capitalize">{category}:</span>
+                                  <span className="font-medium">+{points}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                   </AlertDescription>
                 </Alert>
               )}
@@ -330,9 +354,9 @@ export default function TestSmartRealPage() {
                         ) : (
                           // Fallback to data-based inference
                           <ul className="space-y-1 text-sm text-gray-600">
-                            {locationData.phoneNumbers?.primaryPhone && <li>✓ Phone number (already have it)</li>}
+                            {locationData.primaryPhone && <li>✓ Phone number (already have it)</li>}
                             {locationData.regularHours?.periods?.length > 0 && <li>✓ Business hours (already have them)</li>}
-                            {locationData.websiteUri && <li>✓ Website (already have it)</li>}
+                            {locationData.website && <li>✓ Website (already have it)</li>}
                             {(locationData.metadata?.establishedDate || locationData.profile?.description?.match(/since \d{4}/i)) && <li>✓ Years in business (can extract from data)</li>}
                             {locationData.serviceArea && <li>✓ Service radius (calculated from service area)</li>}
                           </ul>

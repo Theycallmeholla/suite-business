@@ -1,0 +1,260 @@
+{
+  "name": "locations/6848695004722343500",
+  "languageCode": "en",
+  "title": "Everlast Energy",
+  "phoneNumbers": {
+    "primaryPhone": "(713) 324-8861"
+  },
+  "categories": {
+    "primaryCategory": {
+      "name": "categories/gcid:corporate_office",
+      "displayName": "Corporate office",
+      "serviceTypes": [
+        {
+          "serviceTypeId": "job_type_id:cleaning",
+          "displayName": "Cleaning"
+        },
+        {
+          "serviceTypeId": "job_type_id:guards",
+          "displayName": "Guards"
+        },
+        {
+          "serviceTypeId": "job_type_id:security_services",
+          "displayName": "Security services"
+        }
+      ],
+      "moreHoursTypes": [
+        {
+          "hoursTypeId": "ACCESS",
+          "displayName": "Access",
+          "localizedDisplayName": "Access"
+        },
+        {
+          "hoursTypeId": "BREAKFAST",
+          "displayName": "Breakfast",
+          "localizedDisplayName": "Breakfast"
+        },
+        {
+          "hoursTypeId": "BRUNCH",
+          "displayName": "Brunch",
+          "localizedDisplayName": "Brunch"
+        },
+        {
+          "hoursTypeId": "DELIVERY",
+          "displayName": "Delivery",
+          "localizedDisplayName": "Delivery"
+        },
+        {
+          "hoursTypeId": "DINNER",
+          "displayName": "Dinner",
+          "localizedDisplayName": "Dinner"
+        },
+        {
+          "hoursTypeId": "DRIVE_THROUGH",
+          "displayName": "Drive through",
+          "localizedDisplayName": "Drive through"
+        },
+        {
+          "hoursTypeId": "HAPPY_HOUR",
+          "displayName": "Happy hours",
+          "localizedDisplayName": "Happy hours"
+        },
+        {
+          "hoursTypeId": "KITCHEN",
+          "displayName": "Kitchen",
+          "localizedDisplayName": "Kitchen"
+        },
+        {
+          "hoursTypeId": "LUNCH",
+          "displayName": "Lunch",
+          "localizedDisplayName": "Lunch"
+        },
+        {
+          "hoursTypeId": "ONLINE_SERVICE_HOURS",
+          "displayName": "Online service hours",
+          "localizedDisplayName": "Online service hours"
+        },
+        {
+          "hoursTypeId": "PICKUP",
+          "displayName": "Pickup",
+          "localizedDisplayName": "Pickup"
+        },
+        {
+          "hoursTypeId": "TAKEOUT",
+          "displayName": "Takeout",
+          "localizedDisplayName": "Takeout"
+        },
+        {
+          "hoursTypeId": "SENIOR_HOURS",
+          "displayName": "Senior hours",
+          "localizedDisplayName": "Senior hours"
+        }
+      ]
+    },
+    "additionalCategories": [
+      {
+        "name": "categories/gcid:energy_supplier",
+        "displayName": "Energy supplier",
+        "moreHoursTypes": [
+          {
+            "hoursTypeId": "ACCESS",
+            "displayName": "Access",
+            "localizedDisplayName": "Access"
+          },
+          {
+            "hoursTypeId": "BREAKFAST",
+            "displayName": "Breakfast",
+            "localizedDisplayName": "Breakfast"
+          },
+          {
+            "hoursTypeId": "BRUNCH",
+            "displayName": "Brunch",
+            "localizedDisplayName": "Brunch"
+          },
+          {
+            "hoursTypeId": "DELIVERY",
+            "displayName": "Delivery",
+            "localizedDisplayName": "Delivery"
+          },
+          {
+            "hoursTypeId": "DINNER",
+            "displayName": "Dinner",
+            "localizedDisplayName": "Dinner"
+          },
+          {
+            "hoursTypeId": "DRIVE_THROUGH",
+            "displayName": "Drive through",
+            "localizedDisplayName": "Drive through"
+          },
+          {
+            "hoursTypeId": "HAPPY_HOUR",
+            "displayName": "Happy hours",
+            "localizedDisplayName": "Happy hours"
+          },
+          {
+            "hoursTypeId": "KITCHEN",
+            "displayName": "Kitchen",
+            "localizedDisplayName": "Kitchen"
+          },
+          {
+            "hoursTypeId": "LUNCH",
+            "displayName": "Lunch",
+            "localizedDisplayName": "Lunch"
+          },
+          {
+            "hoursTypeId": "ONLINE_SERVICE_HOURS",
+            "displayName": "Online service hours",
+            "localizedDisplayName": "Online service hours"
+          },
+          {
+            "hoursTypeId": "PICKUP",
+            "displayName": "Pickup",
+            "localizedDisplayName": "Pickup"
+          },
+          {
+            "hoursTypeId": "TAKEOUT",
+            "displayName": "Takeout",
+            "localizedDisplayName": "Takeout"
+          },
+          {
+            "hoursTypeId": "SENIOR_HOURS",
+            "displayName": "Senior hours",
+            "localizedDisplayName": "Senior hours"
+          }
+        ]
+      }
+    ]
+  },
+  "storefrontAddress": {
+    "regionCode": "US",
+    "languageCode": "en",
+    "postalCode": "77042",
+    "administrativeArea": "TX",
+    "locality": "Houston",
+    "addressLines": [
+      "9801 Westheimer Road #300"
+    ]
+  },
+  "websiteUri": "https://everlastenergy.com/",
+  "regularHours": {
+    "periods": [
+      {
+        "openDay": "MONDAY",
+        "openTime": {
+          "hours": 9
+        },
+        "closeDay": "MONDAY",
+        "closeTime": {
+          "hours": 17
+        }
+      },
+      {
+        "openDay": "TUESDAY",
+        "openTime": {
+          "hours": 9
+        },
+        "closeDay": "TUESDAY",
+        "closeTime": {
+          "hours": 17
+        }
+      },
+      {
+        "openDay": "WEDNESDAY",
+        "openTime": {
+          "hours": 9
+        },
+        "closeDay": "WEDNESDAY",
+        "closeTime": {
+          "hours": 17
+        }
+      },
+      {
+        "openDay": "THURSDAY",
+        "openTime": {
+          "hours": 9
+        },
+        "closeDay": "THURSDAY",
+        "closeTime": {
+          "hours": 17
+        }
+      },
+      {
+        "openDay": "FRIDAY",
+        "openTime": {
+          "hours": 9
+        },
+        "closeDay": "FRIDAY",
+        "closeTime": {
+          "hours": 17
+        }
+      }
+    ]
+  },
+  "serviceArea": {
+    "businessType": "CUSTOMER_AND_BUSINESS_LOCATION",
+    "places": {
+      "placeInfos": [
+        {
+          "placeName": "Houston, TX, USA",
+          "placeId": "ChIJAYWNSLS4QIYROwVl894CDco"
+        }
+      ]
+    },
+    "regionCode": "US"
+  },
+  "latlng": {
+    "latitude": 29.7365787,
+    "longitude": -95.541632
+  },
+  "openInfo": {
+    "status": "OPEN",
+    "canReopen": true
+  },
+  "metadata": {
+    "canDelete": true,
+    "canModifyServiceList": true,
+    "placeId": "ChIJazacH6fBQIYR_PpFv7NCdPo",
+    "mapsUri": "https://maps.google.com/maps?cid=18047122946556033788",
+    "newReviewUri": "https://search.google.com/local/writereview?placeid=ChIJazacH6fBQIYR_PpFv7NCdPo"
+  }
+}

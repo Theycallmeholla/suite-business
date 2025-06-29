@@ -101,7 +101,7 @@ const suppressionRules: SuppressionRule[] = [
     questionId: 'website',
     condition: (ctx) => {
       // Suppress if we have valid URL that's not just social media
-      const website = ctx.gbpData?.websiteUri
+      const website = ctx.gbpData?.website
       if (!website) return false
       
       try {
@@ -121,7 +121,7 @@ const suppressionRules: SuppressionRule[] = [
     questionId: 'business-email',
     condition: (ctx) => {
       // Suppress if we can confidently infer from website domain
-      const website = ctx.gbpData?.websiteUri
+      const website = ctx.gbpData?.website
       if (website) {
         try {
           const domain = new URL(website).hostname
@@ -142,7 +142,7 @@ const suppressionRules: SuppressionRule[] = [
     questionId: 'street-address',
     condition: (ctx) => {
       // Suppress if we have valid address lines
-      const address = ctx.gbpData?.storefrontAddress
+      const address = ctx.gbpData?.fullAddress
       if (!address) return false
       
       // Check it's not service-area-only
@@ -245,7 +245,7 @@ const suppressionRules: SuppressionRule[] = [
     condition: (ctx) => {
       // Suppress if we have social links or can infer from website
       const hasSocialLinks = !!ctx.gbpData?.url || !!ctx.dataScore?.socialLinks
-      const hasWebsite = !!ctx.gbpData?.websiteUri
+      const hasWebsite = !!ctx.gbpData?.website
       
       return hasSocialLinks || hasWebsite
     },
@@ -365,7 +365,7 @@ export function calculateConfidenceScores(
   // Other fields - ALL SET TO 1.0 IF ANY DATA EXISTS
   confidence.business_hours = gbpData?.regularHours?.periods?.length > 0 ? 1.0 : 0
   confidence.contact_info = (gbpData?.phoneNumbers?.primaryPhone || gbpData?.primaryPhone) ? 1.0 : 0
-  confidence.location = (gbpData?.storefrontAddress || gbpData?.fullAddress) ? 1.0 : 0
+  confidence.location = (gbpData?.fullAddress || gbpData?.address) ? 1.0 : 0
   confidence.website = (gbpData?.websiteUri || gbpData?.website) ? 1.0 : 0
   
   // Emergency service - if 24/7
@@ -394,7 +394,7 @@ export function calculateConfidenceScores(
   confidence.delivery_service = dataScore.hasDelivery ? 1.0 : 0
   confidence.special_hours = gbpData?.specialHours?.specialHourPeriods?.length > 0 ? 1.0 : 0
   confidence.menu_pricing = gbpData?.menuUrl ? 1.0 : 0
-  confidence.social_media = (gbpData?.url || gbpData?.websiteUri) ? 0.9 : 0
+  confidence.social_media = (gbpData?.url || gbpData?.website) ? 0.9 : 0
   confidence.amenities = (gbpData?.attributes && Object.keys(gbpData.attributes).length > 0) ? 1.0 : 0
   confidence.languages = gbpData?.languageCode ? 1.0 : 0
   
