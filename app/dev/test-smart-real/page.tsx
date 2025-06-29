@@ -253,25 +253,14 @@ export default function TestSmartRealPage() {
                   <AlertDescription>
                     <strong>Intelligence Score:</strong> {intelligenceData.dataScore?.total || 0}/100
                     {intelligenceData.dataScore?.breakdown && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="ml-2 text-purple-600 underline decoration-dotted cursor-help">
-                              (view breakdown)
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="space-y-1">
-                              {Object.entries(intelligenceData.dataScore.breakdown).map(([category, points]) => (
-                                <div key={category} className="flex justify-between gap-4">
-                                  <span className="capitalize">{category}:</span>
-                                  <span className="font-medium">+{points}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <details className="ml-2 cursor-pointer inline">
+                        <summary className="inline text-xs text-gray-500">breakdown</summary>
+                        <div className="mt-1 ml-4 space-y-1">
+                          {Object.entries(intelligenceData.dataScore.breakdown).map(([k, v]) => (
+                            <div key={k}>{k}: +{v}</div>
+                          ))}
+                        </div>
+                      </details>
                     )}
                   </AlertDescription>
                 </Alert>
@@ -338,19 +327,19 @@ export default function TestSmartRealPage() {
                       <div className="space-y-2">
                         {/* Show actual suppressed questions from API */}
                         {Object.entries(suppressedQuestions).length > 0 ? (
-                          Object.entries(suppressedQuestions).map(([questionId, reason]) => (
-                            <div key={questionId} className="flex items-start gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5" />
-                              <div className="flex-1">
-                                <span className="font-medium capitalize">
-                                  {questionId.replace(/-/g, ' ')}
-                                </span>
-                                <span className="text-gray-500 text-xs block">
-                                  {reason}
-                                </span>
-                              </div>
+                          <TooltipProvider>
+                            <div className="flex flex-wrap gap-3">
+                              {Object.entries(suppressedQuestions).map(([id, reason]) => (
+                                <Tooltip key={id}>
+                                  <TooltipTrigger className="flex items-center gap-1">
+                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    <span className="capitalize">{id.replace(/-/g, ' ')}</span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>{reason}</TooltipContent>
+                                </Tooltip>
+                              ))}
                             </div>
-                          ))
+                          </TooltipProvider>
                         ) : (
                           // Fallback to data-based inference
                           <ul className="space-y-1 text-sm text-gray-600">
