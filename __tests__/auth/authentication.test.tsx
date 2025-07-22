@@ -29,7 +29,7 @@ describe('Authentication', () => {
       render(<SignInPage />);
       
       expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /continue with google/i })).toBeInTheDocument();
     });
   });
 
@@ -38,7 +38,7 @@ describe('Authentication', () => {
       render(<SignUpPage />);
       
       expect(screen.getByText(/start your free trial/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /continue with google/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /sign up with google/i })).toBeInTheDocument();
     });
   });
 });

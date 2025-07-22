@@ -70,6 +70,14 @@ export function SectionRenderer({ sections, siteData }: SectionRendererProps) {
                 siteData={siteData}
               />
             );
+          case 'testimonials':
+            return (
+              <SectionComponents.Testimonials
+                key={section.id}
+                data={section.data || {}}
+                siteData={siteData}
+              />
+            );
           case 'faq':
             return (
               <SectionComponents.FAQ
@@ -78,6 +86,7 @@ export function SectionRenderer({ sections, siteData }: SectionRendererProps) {
                 siteData={siteData}
               />
             );
+          case 'service-areas':
           case 'serviceAreas':
             return (
               <SectionComponents.ServiceAreas
@@ -87,6 +96,7 @@ export function SectionRenderer({ sections, siteData }: SectionRendererProps) {
               />
             );
           default:
+            console.warn(`Unknown section type: ${section.type}`);
             return null;
         }
       })}

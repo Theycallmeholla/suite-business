@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,7 @@ interface ManualBusinessSetupProps {
   };
   onComplete: (data: any) => void;
   onBack: () => void;
+  onUpdate?: (data: any) => void;
 }
 
 const INDUSTRIES = [
@@ -111,7 +112,7 @@ const DAYS_OF_WEEK = [
   { key: 'sunday', label: 'Sunday' },
 ];
 
-export function ManualBusinessSetup({ initialData, onComplete, onBack }: ManualBusinessSetupProps) {
+export function ManualBusinessSetup({ initialData, onComplete, onBack, onUpdate }: ManualBusinessSetupProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState<'basic' | 'hours' | 'services'>('basic');
   
@@ -173,6 +174,17 @@ export function ManualBusinessSetup({ initialData, onComplete, onBack }: ManualB
     saturday: { open: false, openTime: '09:00', closeTime: '17:00' },
     sunday: { open: false, openTime: '09:00', closeTime: '17:00' },
   });
+
+  // Call onUpdate whenever form data changes
+  useEffect(() => {
+    if (onUpdate) {
+      onUpdate({
+        ...formData,
+        businessHours,
+        gbpPlaceId: initialData?.placeId,
+      });
+    }
+  }, [formData, businessHours, initialData?.placeId, onUpdate]);
 
   const handleBasicInfoSubmit = (e: React.FormEvent) => {
     e.preventDefault();

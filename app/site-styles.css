@@ -1,0 +1,357 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Site-specific CSS - separate from SaaS platform styles */
+@custom-variant dark (&:is(.dark *));
+
+/* Root color defaults - will be overridden by ThemeProvider */
+:root {
+  --color-primary: #22C55E;
+  --color-primary-light: #4ADE80;
+  --color-primary-dark: #16A34A;
+  --color-secondary: #0EA5E9;
+  --color-secondary-light: #38BDF8;
+  --color-secondary-dark: #0284C7;
+  --color-accent: #F59E0B;
+  --color-accent-light: #FCD34D;
+  --color-accent-dark: #D97706;
+  --color-neutral: #6B7280;
+  --color-neutral-light: #9CA3AF;
+  --color-neutral-dark: #4B5563;
+  --color-background: #FFFFFF;
+  --color-foreground: #111827;
+  --color-muted: #F3F4F6;
+  --color-muted-foreground: #6B7280;
+  --color-border: #E5E7EB;
+  --color-ring: #3B82F6;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #111827;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary-foreground: #FFFFFF;
+  --color-accent-foreground: #FFFFFF;
+  
+  /* Border radius */
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  --font-body: var(--font-geist-sans);
+}
+
+@theme inline {
+  /* Use CSS variables */
+  --color-primary: var(--color-primary);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-light: var(--color-secondary-light);
+  --color-secondary-dark: var(--color-secondary-dark);
+  --color-accent: var(--color-accent);
+  --color-accent-light: var(--color-accent-light);
+  --color-accent-dark: var(--color-accent-dark);
+  --color-neutral: var(--color-neutral);
+  --color-neutral-light: var(--color-neutral-light);
+  --color-neutral-dark: var(--color-neutral-dark);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-border: var(--color-border);
+  --color-ring: var(--color-ring);
+  --color-card: var(--color-card);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-secondary-foreground: var(--color-secondary-foreground);
+  --color-accent-foreground: var(--color-accent-foreground);
+}
+
+/* Base layer styles for all sites */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading, inherit);
+  }
+}
+
+/* Component styles */
+@layer components {
+  /* Container utilities */
+  .container {
+    @apply mx-auto w-full px-4 sm:px-6 lg:px-8;
+    max-width: 1280px;
+  }
+  
+  /* Section spacing */
+  .section {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+  
+  .section-compact {
+    @apply py-12 sm:py-16 lg:py-20;
+  }
+  
+  /* Button base styles */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+  
+  .btn-ghost {
+    @apply hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  .btn-lg {
+    @apply h-11 px-8 text-base;
+  }
+  
+  .btn-md {
+    @apply h-10 px-4 py-2;
+  }
+  
+  .btn-sm {
+    @apply h-9 px-3 text-sm;
+  }
+}
+
+/* Section-specific styles */
+@layer components {
+  /* Hero section */
+  .hero-section {
+    @apply relative min-h-[600px] lg:min-h-[700px] flex items-center;
+  }
+  
+  .hero-content {
+    @apply relative z-10 text-center lg:text-left max-w-4xl mx-auto;
+  }
+  
+  /* Services section */
+  .services-grid {
+    @apply grid gap-6 sm:grid-cols-2 lg:grid-cols-3;
+  }
+  
+  .service-card {
+    @apply p-6 rounded-lg border bg-card hover:shadow-lg transition-shadow;
+  }
+  
+  /* Features section */
+  .feature-item {
+    @apply flex gap-4 p-4;
+  }
+  
+  .feature-icon {
+    @apply flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center;
+  }
+  
+  /* Testimonials */
+  .testimonial-card {
+    @apply p-6 rounded-lg bg-muted;
+  }
+  
+  /* Gallery */
+  .gallery-grid {
+    @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
+  }
+  
+  .gallery-item {
+    @apply relative aspect-video rounded-lg overflow-hidden;
+  }
+  
+  /* Contact section */
+  .contact-form {
+    @apply space-y-4;
+  }
+  
+  .form-input {
+    @apply w-full px-4 py-2 rounded-md border bg-background;
+  }
+  
+  /* CTA section */
+  .cta-section {
+    @apply relative py-20 lg:py-24 text-center;
+  }
+  
+  .cta-content {
+    @apply relative z-10 max-w-2xl mx-auto;
+  }
+}
+
+/* Animation utilities */
+@layer utilities {
+  /* Fade animations */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out;
+  }
+  
+  .animate-fade-in-down {
+    animation: fadeInDown 0.8s ease-out;
+  }
+  
+  /* Float animation for decorative elements */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  /* Pulse for CTAs */
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+/* Keyframe animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px) rotate(5deg);
+  }
+  50% {
+    transform: translateY(10px) translateX(-10px) rotate(-3deg);
+  }
+  75% {
+    transform: translateY(-15px) translateX(15px) rotate(8deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .8;
+  }
+}
+
+/* Template-specific modifiers */
+.template-dream-garden {
+  --template-accent: #8BC34A;
+}
+
+.template-nature-premium {
+  --template-accent: #4CAF50;
+}
+
+.template-emerald-elegance {
+  --template-accent: #10B981;
+}
+
+.template-artistry-minimal {
+  --template-accent: #6B7280;
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+  .section {
+    @apply py-12;
+  }
+  
+  .section-compact {
+    @apply py-8;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Custom scrollbar for site content */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-muted);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted-foreground);
+}
+
+/* Accessibility improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Selection styles */
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+}

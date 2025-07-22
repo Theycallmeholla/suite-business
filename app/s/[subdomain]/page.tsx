@@ -6,6 +6,7 @@ import { generateDefaultSections } from '@/lib/site-builder';
 import { SectionRenderer } from '@/components/SectionRenderer';
 import { ThemeProvider } from '@/contexts/ThemeProvider';
 import TemplateRenderer from '@/components/TemplateRenderer';
+import EnhancedTemplateRenderer from '@/components/EnhancedTemplateRenderer';
 import { getDefaultTemplateForIndustry } from '@/lib/template-registry';
 import { Phone } from 'lucide-react';
 
@@ -51,28 +52,28 @@ export default async function SubdomainPage({
     getDefaultTemplateForIndustry(site.template) : 
     getDefaultTemplateForIndustry(site.industry);
   
-  // Determine if we should use template renderer
-  const useTemplateRenderer = template && (
-    site.template === 'dream-garden' || 
-    site.template === 'nature-premium' || 
-    site.template === 'emerald-elegance' ||
-    site.template === 'artistry-minimal'
-  );
+  // Check if this is a premium template
+  const premiumTemplates = ['emerald-elegance', 'dream-garden', 'nature-premium', 'artistry-minimal'];
+  const isPremiumTemplate = site.template && premiumTemplates.includes(site.template);
   
-  // Get page content - either from database or generate default
+  // Always get sections - either from database or generate default
   let sections;
+  const homePage = site.pages.find(p => p.type === 'home');
   
-  if (!useTemplateRenderer) {
-    // Use legacy section renderer
-    const homePage = site.pages.find(p => p.type === 'home');
-    if (homePage && homePage.content && typeof homePage.content === 'object' && 'sections' in homePage.content) {
-      sections = (homePage.content as any).sections;
-    } else {
-      // Generate default sections based on available data
-      sections = generateDefaultSections(site);
-    }
+  if (homePage && homePage.content && typeof homePage.content === 'object' && 'sections' in homePage.content) {
+    // Use sections from database (our data-driven sections)
+    sections = (homePage.content as any).sections;
+  } else {
+    // Generate default sections as fallback
+    sections = generateDefaultSections(site);
   }
+  
+  // Use template renderer for premium templates, section renderer for others
+  const useTemplateRenderer = isPremiumTemplate;
 
+  // Add template class for styling
+  const templateClass = site.template ? `template-${site.template}` : '';
+  
   return (
     <ThemeProvider 
       primaryColor={site.primaryColor}
@@ -81,8 +82,9 @@ export default async function SubdomainPage({
       template={site.template}
       industry={site.industry}
     >
-      {/* Simple header */}
-      <header className="absolute top-0 w-full z-50 bg-white/90 backdrop-blur-sm border-b">
+      <div className={templateClass}>
+        {/* Simple header */}
+        <header className="absolute top-0 w-full z-50 bg-white/90 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
@@ -117,7 +119,12 @@ export default async function SubdomainPage({
       {/* Main content */}
       <main className="pt-16">
         {useTemplateRenderer ? (
-          <TemplateRenderer template={template} site={site} isEditable={false} />
+          <EnhancedTemplateRenderer 
+            template={template} 
+            site={site}
+            sections={sections}
+            isEditable={false} 
+          />
         ) : (
           <SectionRenderer sections={sections} siteData={site} />
         )}
@@ -162,12 +169,13 @@ export default async function SubdomainPage({
         </div>
       </footer>
 
-      {/* Analytics tracking */}
-      <script 
-        src="/analytics.js" 
-        data-site-id={site.id}
-        defer
-      />
+        {/* Analytics tracking */}
+        <script 
+          src="/analytics.js" 
+          data-site-id={site.id}
+          defer
+        />
+      </div>
     </ThemeProvider>
   );
 }

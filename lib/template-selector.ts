@@ -125,58 +125,64 @@ function checkTemplateRequirements(
   
   // Check color requirements
   const { colors } = template.requirements;
-  const businessColors = business.colorScheme;
-  let colorCount = 0;
-  if (businessColors?.primary) colorCount++;
-  if (businessColors?.secondary) colorCount++;
-  if (businessColors?.accent) colorCount++;
-  
-  if (colors.primary && !businessColors?.primary) {
-    missing.push('Primary color is required');
-  }
-  if (colors.secondary && !businessColors?.secondary) {
-    missing.push('Secondary color is required');
-  }
-  if (colors.accent && !businessColors?.accent) {
-    missing.push('Accent color is required');
-  }
-  if (colorCount < colors.minimumCount) {
-    missing.push(`At least ${colors.minimumCount} colors required`);
+  if (colors) {
+    const businessColors = business.colorScheme;
+    let colorCount = 0;
+    if (businessColors?.primary) colorCount++;
+    if (businessColors?.secondary) colorCount++;
+    if (businessColors?.accent) colorCount++;
+    
+    if (colors.primary && !businessColors?.primary) {
+      missing.push('Primary color is required');
+    }
+    if (colors.secondary && !businessColors?.secondary) {
+      missing.push('Secondary color is required');
+    }
+    if (colors.accent && !businessColors?.accent) {
+      missing.push('Accent color is required');
+    }
+    if (colors.minimumCount && colorCount < colors.minimumCount) {
+      missing.push(`At least ${colors.minimumCount} colors required`);
+    }
   }
   
   // Check content requirements
   const { content } = template.requirements;
-  if (content.businessName && !business.businessName) {
-    missing.push('Business name is required');
-  }
-  if (content.tagline && !business.tagline) {
-    missing.push('Tagline is required');
-  }
-  if (content.description?.required && !business.description) {
-    missing.push('Business description is required');
-  }
-  if (content.description?.minLength && business.description) {
-    if (business.description.length < content.description.minLength) {
-      missing.push(`Description must be at least ${content.description.minLength} characters`);
+  if (content) {
+    if (content.businessName && !business.businessName) {
+      missing.push('Business name is required');
     }
-  }
-  
-  // Check services
-  if (business.services.length < content.services.min) {
-    missing.push(`At least ${content.services.min} services required`);
+    if (content.tagline && !business.tagline) {
+      missing.push('Tagline is required');
+    }
+    if (content.description?.required && !business.description) {
+      missing.push('Business description is required');
+    }
+    if (content.description?.minLength && business.description) {
+      if (business.description.length < content.description.minLength) {
+        missing.push(`Description must be at least ${content.description.minLength} characters`);
+      }
+    }
+    
+    // Check services
+    if (content.services && business.services && business.services.length < content.services.min) {
+      missing.push(`At least ${content.services.min} services required`);
+    }
   }
   
   // Check media requirements
   const { media } = template.requirements;
-  if (media.logo && !business.logo) {
-    missing.push('Logo is required');
-  }
-  if (media.heroImage && !business.images.hero) {
-    missing.push('Hero image is required');
-  }
-  if (media.galleryImages && business.images.gallery) {
-    if (business.images.gallery.length < media.galleryImages.min) {
-      missing.push(`At least ${media.galleryImages.min} gallery images required`);
+  if (media) {
+    if (media.logo && !business.logo) {
+      missing.push('Logo is required');
+    }
+    if (media.heroImage && !business.images?.hero) {
+      missing.push('Hero image is required');
+    }
+    if (media.galleryImages && business.images?.gallery) {
+      if (business.images.gallery.length < media.galleryImages.min) {
+        missing.push(`At least ${media.galleryImages.min} gallery images required`);
+      }
     }
   }
   

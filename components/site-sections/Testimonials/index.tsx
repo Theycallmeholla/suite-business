@@ -312,4 +312,3 @@ export default function Testimonials(props: TestimonialsProps) {
   }
 }
 
-// All variants are already exported above

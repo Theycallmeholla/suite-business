@@ -455,3 +455,104 @@
   opacity: 0;
   animation: fadeInUp 1s ease-out forwards;
 }
+body {
+    background-color: #f8f9fa; /* Light, clean background */
+    color: #1a1a1a;
+    font-weight: 300; /* Thinner font weight for body text */
+}
+h1, h2, h3, .font-bold {
+    font-weight: 600; /* Bolder for headings */
+}
+.font-extrabold {
+    font-weight: 900;
+}
+.gradient-text {
+    background: linear-gradient(90deg, #6914c1, #9333ea, #EC4899); /* Using Sitebango purple */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.card-glow {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.card-glow:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300%;
+    height: 300%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.8s ease;
+}
+.card-glow:hover:before {
+    transform: translate(-50%, -50%) scale(1);
+}
+.card-glow:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+}
+.feature-card {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+.icon-bg {
+    background-color: #f3f4f6;
+}
+.btn-primary {
+    background: linear-gradient(90deg, #6914c1, #7e22ce); /* Sitebango purple gradient */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 14px rgba(105,20,193,0.25);
+}
+.section-title {
+    animation: fadeIn 1s ease-out;
+}
+.card-anim {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.card-anim.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.bg-grid-pattern {
+    background-image: radial-gradient(#dfe3f0 0.5px, transparent 0.5px);
+    background-size: 1.5rem 1.5rem;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+.floating-icon {
+    animation: float 6s ease-in-out infinite;
+    position: absolute;
+    color: #6914c1;
+    opacity: 0.05;
+}

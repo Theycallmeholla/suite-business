@@ -7,7 +7,38 @@ import { createGHLProClient } from '@/lib/ghl';
 import { BusinessIntelligenceExtractor } from '@/lib/business-intelligence';
 import { calculateDataScore } from '@/lib/intelligence/scoring';
 import { generateSubdomain } from '@/lib/utils';
-import { detectIndustry } from '@/lib/site-builder';
+import { generateDataDrivenSections } from '@/lib/content-generation/data-driven-content';
+import { IndustryType } from '@/types/site-builder';
+import { BusinessIntelligenceData } from '@/types/intelligence';
+import { validateSubdomain } from '@/lib/constants';
+
+/**
+ * Select the best premium template based on industry and business data
+ */
+function selectPremiumTemplate(industry: IndustryType, businessData?: BusinessIntelligenceData | null): string {
+  // For landscaping and related industries
+  if (['landscaping', 'gardening', 'lawn-care', 'tree-service'].includes(industry)) {
+    // Use emerald-elegance for established/premium businesses
+    if (businessData?.basicInfo?.years_in_business && businessData.basicInfo.years_in_business > 5) {
+      return 'emerald-elegance';
+    }
+    // Use dream-garden for others
+    return 'dream-garden';
+  }
+  
+  // For HVAC, plumbing, electrical - more technical industries
+  if (['hvac', 'plumbing', 'electrical'].includes(industry)) {
+    return 'nature-premium'; // Clean, professional look
+  }
+  
+  // For cleaning, roofing, and general services
+  if (['cleaning', 'roofing', 'general'].includes(industry)) {
+    return 'artistry-minimal'; // Minimal, modern aesthetic
+  }
+  
+  // Default to emerald-elegance for unmatched industries
+  return 'emerald-elegance';
+}
 
 const createFromGBPSchema = z.object({
   locationId: z.string(), // Can be either GBP location ID or Place ID
@@ -26,17 +57,8 @@ const createFromGBPSchema = z.object({
   }).optional(),
 });
 
-// Generate subdomain from business name
-function generateSubdomain(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .substring(0, 30);
-}
-
-// Detect industry from category
-function detectIndustry(category: any): string {
+// Helper function to detect industry from GBP category
+function detectIndustryFromCategory(category: any): string {
   if (!category?.displayName) return 'general';
   const categoryName = category.displayName.toLowerCase();
   
@@ -52,6 +74,68 @@ function detectIndustry(category: any): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check for enhanced generation feature flag
+    if (process.env.USE_ENHANCED_GENERATION === 'true') {
+      // Check rollout percentage if configured
+      const rolloutPercentage = parseInt(process.env.ENHANCED_ROLLOUT_PERCENTAGE || '100', 10);
+      const randomValue = Math.random() * 100;
+      
+      if (randomValue <= rolloutPercentage) {
+        logger.info('Redirecting to enhanced site generation', {
+          metadata: {
+            rolloutPercentage,
+            randomValue,
+          }
+        });
+        
+        // Track analytics event
+        try {
+          const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+          await trackEnhancedGeneration('feature_flag_redirect', {
+            rolloutPercentage,
+            randomValue,
+          });
+        } catch (e) {
+          // Analytics tracking is optional
+        }
+        
+        // Clone the request and redirect to enhanced endpoint
+        const url = new URL(request.url);
+        url.pathname = '/api/sites/create-from-gbp-enhanced';
+        
+        return fetch(url.toString(), {
+          method: 'POST',
+          headers: request.headers,
+          body: JSON.stringify(await request.json()),
+        });
+      }
+    }
+    
+    // Check if user explicitly requested enhanced generation
+    const body = await request.json();
+    if (body.enhanced === true) {
+      logger.info('User requested enhanced generation explicitly');
+      
+      // Track analytics event
+      try {
+        const { trackEnhancedGeneration } = await import('@/lib/analytics/enhanced-generation-tracker');
+        await trackEnhancedGeneration('explicit_user_request', {
+          source: 'api_parameter',
+        });
+      } catch (e) {
+        // Analytics tracking is optional
+      }
+      
+      const url = new URL(request.url);
+      url.pathname = '/api/sites/create-from-gbp-enhanced';
+      
+      return fetch(url.toString(), {
+        method: 'POST',
+        headers: request.headers,
+        body: JSON.stringify(body),
+      });
+    }
+
     const session = await getAuthSession();
     
     if (!session?.user?.id) {
@@ -61,7 +145,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
     const { locationId, accountId, industry: providedIndustry, isPlaceId, placeData } = createFromGBPSchema.parse(body);
 
     logger.info('Creating site from GBP', {
@@ -177,10 +260,26 @@ export async function POST(request: NextRequest) {
     let subdomain = baseSubdomain;
     let counter = 1;
     
-    // Check if subdomain is already taken
-    while (await prisma.site.findUnique({ where: { subdomain } })) {
-      subdomain = `${baseSubdomain}-${counter}`;
-      counter++;
+    // Check if subdomain is already taken or reserved
+    let subdomainValid = false;
+    while (!subdomainValid) {
+      const validation = validateSubdomain(subdomain);
+      if (!validation.valid) {
+        // If the base subdomain is reserved, add a suffix
+        subdomain = `${baseSubdomain}-${counter}`;
+        counter++;
+        continue;
+      }
+      
+      // Check if it's already taken in the database
+      const existing = await prisma.site.findUnique({ where: { subdomain: subdomain.toLowerCase() } });
+      if (existing) {
+        subdomain = `${baseSubdomain}-${counter}`;
+        counter++;
+        continue;
+      }
+      
+      subdomainValid = true;
     }
 
     // Create full address string early so it can be used in business intelligence
@@ -290,7 +389,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Detect industry if not provided
-    const industry = providedIndustry || detectIndustry(business.primaryCategory) || 'general';
+    const industry = (providedIndustry || detectIndustryFromCategory(business.primaryCategory) || 'general') as IndustryType;
 
     // Extract services from categories (if from GBP)
     const services = isFromGBP ? [
@@ -367,6 +466,58 @@ export async function POST(request: NextRequest) {
       ghlLocation?.id
     );
 
+    // Generate data-driven sections before creating the site
+    let sections = [];
+    try {
+      sections = generateDataDrivenSections({
+        businessData: businessIntelligence || {
+          basicInfo: {
+            name: business.name || business.title,
+            description: business.profile?.description,
+            address: fullAddress,
+            service_area: serviceAreaPlaces.join(', '),
+            primary_phone: business.primaryPhone,
+            email: session.user.email,
+            coordinates: business.coordinates,
+            hours: business.regularHours || business.openingHours,
+          },
+          services: {
+            services: services,
+            primary_service: services[0],
+            service_details: {},
+            pricing_type: 'custom',
+            emergency_service: false,
+          },
+          reputation: business.rating ? {
+            average_rating: business.rating,
+            total_reviews: business.userRatingCount || 0,
+            google_reviews: [],
+          } : undefined,
+          visuals: {
+            photos: businessIntelligence?.photos || [],
+            hero_image: businessIntelligence?.photos?.[0]?.url,
+          },
+          differentiation: {
+            unique_selling_points: [],
+            certifications: [],
+            guarantees: [],
+          },
+        },
+        industry,
+        gbpData: business,
+        userAnswers: {},
+      });
+      
+      logger.info('Generated data-driven sections', {
+        metadata: {
+          sectionsCount: sections.length,
+          sectionTypes: sections.map(s => s.type),
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to generate data-driven sections', {}, error as Error);
+    }
+
     // Create the site
     const site = await prisma.site.create({
       data: {
@@ -404,8 +555,8 @@ export async function POST(request: NextRequest) {
         ghlApiKey,
         ghlEnabled,
         
-        // Configuration
-        template: 'modern',
+        // Configuration - use premium template based on industry
+        template: selectPremiumTemplate(industry, businessIntelligence),
         primaryColor: extractedColors?.primary || '#22C55E',
         secondaryColor: extractedColors?.secondary,
         accentColor: extractedColors?.accent,
@@ -423,9 +574,11 @@ export async function POST(request: NextRequest) {
         title: 'Home',
         type: 'home',
         content: {
+          sections: sections, // Use our data-driven sections
+          // Keep legacy data for backwards compatibility
           hero: {
-            title: aiContent?.heroTitle || `Welcome to ${business.name || business.title}`,
-            subtitle: aiContent?.heroSubtitle || business.profile?.description || `Professional ${industry} services you can trust`,
+            title: sections.find(s => s.type === 'hero')?.data?.headline || `Welcome to ${business.name || business.title}`,
+            subtitle: sections.find(s => s.type === 'hero')?.data?.subheadline || business.profile?.description || `Professional ${industry} services you can trust`,
             backgroundImage: businessIntelligence?.photos?.[0]?.url,
           },
           services: services.slice(0, 6),

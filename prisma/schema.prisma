@@ -608,3 +608,13 @@ model GeneratedContent {
   @@index([contentType, sectionType])
   @@index([industry])
 }
+
+// Analytics tracking for enhanced generation
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  event       String
+  properties  Json?
+  timestamp   DateTime @default(now())
+  
+  @@index([event, timestamp])
+}

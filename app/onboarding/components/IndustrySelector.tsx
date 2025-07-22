@@ -11,6 +11,9 @@ import {
 
 interface IndustrySelectorProps {
   detectedIndustry?: string;
+  businessId?: string;
+  placeId?: string;
+  accountId?: string;
   onSelect: (industry: string) => void;
   onBack: () => void;
 }
@@ -74,7 +77,7 @@ const industries = [
   },
 ];
 
-export function IndustrySelector({ detectedIndustry, onSelect, onBack }: IndustrySelectorProps) {
+export function IndustrySelector({ detectedIndustry, businessId, placeId, accountId, onSelect, onBack }: IndustrySelectorProps) {
   const [selectedIndustry, setSelectedIndustry] = useState(detectedIndustry || '');
   const [isConfirming, setIsConfirming] = useState(false);
 
@@ -160,28 +163,59 @@ export function IndustrySelector({ detectedIndustry, onSelect, onBack }: Industr
 
       {/* Enhanced Question Flow Option */}
       {selectedIndustry && (
-        <Card className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+        <Card className="relative p-6 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 border-2 border-purple-200 shadow-lg overflow-visible">
+          <div className="absolute -top-3 -right-3 z-10">
+            <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+              BETA
+            </span>
+          </div>
           <div className="text-center">
-            <Sparkles className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold mb-2">Want an Even Better Website?</h3>
-            <p className="text-gray-600 mb-4">
-              Answer 3-5 quick questions and we'll create a website that's perfectly tailored to your business. 
-              See changes happen in real-time!
-            </p>
+            <div className="flex items-center justify-center space-x-2 mb-3">
+              <Sparkles className="h-8 w-8 text-purple-600 animate-pulse" />
+              <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                Enhanced Site Generation
+              </h3>
+            </div>
+            <div className="space-y-3 mb-6">
+              <p className="text-gray-700 font-medium">
+                Get a website that outperforms your competition!
+              </p>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center justify-center space-x-2 text-gray-600">
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span>6-9 smart questions</span>
+                </div>
+                <div className="flex items-center justify-center space-x-2 text-gray-600">
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span>2-3 minutes total</span>
+                </div>
+                <div className="flex items-center justify-center space-x-2 text-gray-600">
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span>AI-powered content</span>
+                </div>
+                <div className="flex items-center justify-center space-x-2 text-gray-600">
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span>Competitive analysis</span>
+                </div>
+              </div>
+            </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={() => {
                   // Redirect to enhanced question flow
                   const params = new URLSearchParams({
-                    name: 'Your Business', // This would come from business data
-                    industry: selectedIndustry
+                    industry: selectedIndustry,
+                    ...(placeId && { placeId }),
+                    ...(businessId && { businessId }),
+                    ...(accountId && { accountId })
                   });
-                  window.location.href = `/onboarding/enhance?${params.toString()}`;
+                  
+                  window.location.href = `/onboarding/enhanced-questions?${params.toString()}`;
                 }}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                Enhance My Website
+                Try Enhanced (Beta)
               </Button>
               <Button
                 variant="outline"
@@ -189,7 +223,7 @@ export function IndustrySelector({ detectedIndustry, onSelect, onBack }: Industr
                 disabled={isConfirming}
                 className="flex-1"
               >
-                Create Basic Website
+                Continue with Standard
               </Button>
             </div>
           </div>

@@ -1,5 +1,34 @@
 import '@testing-library/jest-dom';
 
+// Polyfill for ReadableStream
+// This is needed because NextRequest uses ReadableStream, which is a Web API not available in Node.js by default.
+global.ReadableStream = global.ReadableStream || class ReadableStream {
+  constructor(options: any) {
+    this.options = options;
+    this._chunk = undefined;
+    this._done = false;
+  }
+
+  getReader() {
+    return {
+      read: async () => {
+        if (this.options.start) {
+          const controller = {
+            enqueue: (chunk: any) => { this._chunk = chunk; },
+            close: () => { this._done = true; },
+          };
+          await this.options.start(controller);
+        }
+        if (this._done) {
+          return { value: undefined, done: true };
+        }
+        return { value: this._chunk, done: false };
+      },
+      releaseLock: () => {},
+    };
+  }
+} as any;
+
 // Mock environment variables for tests
 process.env.NEXTAUTH_URL = 'http://localhost:3000';
 process.env.NEXTAUTH_SECRET = 'test-secret';
@@ -220,15 +249,27 @@ global.NextRequest = class NextRequest {
   }
 } as any;
 
-global.NextResponse = {
-  json: (data: any, init?: ResponseInit) => {
-    return {
-      json: async () => data,
-      status: init?.status || 200,
-      headers: new Headers(init?.headers),
-    };
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: jest.fn((data, init) => {
+      return {
+        json: () => Promise.resolve(data),
+        status: init?.status || 200,
+        headers: new Headers(init?.headers),
+      };
+    }),
   },
-} as any;
+  NextRequest: jest.fn().mockImplementation((input, init) => {
+    const url = new URL(input);
+    return {
+      url: url.toString(),
+      method: init?.method || 'GET',
+      headers: new Headers(init?.headers),
+      json: () => Promise.resolve(JSON.parse(init?.body || '{}')),
+      text: () => Promise.resolve(init?.body || ''),
+    };
+  }),
+}));
 
 // Suppress console errors during tests
 const originalError = console.error;
@@ -253,10 +294,42 @@ jest.mock('@/lib/subdomains', () => ({
 // Mock Google Business Profile
 jest.mock('@/lib/google-business-profile', () => ({
   GoogleBusinessProfile: jest.fn().mockImplementation(() => ({
-    getLocations: jest.fn(),
-    getLocation: jest.fn(),
-    searchLocations: jest.fn(),
-    getAuthUrl: jest.fn(),
+    getAccounts: jest.fn(() => Promise.resolve([
+      { name: 'accounts/123', type: 'PERSONAL' },
+      { name: 'accounts/456', type: 'BUSINESS' },
+    ])),
+    getLocations: jest.fn((accountName) => {
+      if (accountName === 'accounts/123') {
+        return Promise.resolve([
+          {
+            name: 'locations/123',
+            title: 'Test Location',
+            storefrontAddress: { addressLines: ['123 Main St'], locality: 'Anytown', administrativeArea: 'TX', postalCode: '12345' },
+          },
+        ]);
+      }
+      return Promise.resolve([]);
+    }),
+    getLocation: jest.fn((locationName) => {
+      if (locationName === 'locations/123') {
+        return Promise.resolve({
+          name: 'locations/123',
+          title: 'Test Business',
+          websiteUri: 'https://testbusiness.com',
+          phoneNumbers: { primaryPhone: '555-1234' },
+          regularHours: {
+            periods: [
+              { openDay: 'MONDAY', openTime: { hours: 9, minutes: 0 }, closeDay: 'MONDAY', closeTime: { hours: 17, minutes: 0 } },
+              { openDay: 'TUESDAY', openTime: { hours: 9, minutes: 0 }, closeDay: 'TUESDAY', closeTime: { hours: 17, minutes: 0 } },
+            ],
+          },
+        });
+      }
+      return Promise.resolve(null);
+    }),
+    getLocationPhotos: jest.fn(() => Promise.resolve({ mediaItems: [{ name: 'photos/1', googleUrl: 'http://example.com/photo1.jpg' }] })),
+    searchGoogleLocations: jest.fn(() => Promise.resolve({ googleLocations: [{ name: 'locations/google/1', title: 'Google Test Location' }] })),
+    getAuthUrl: jest.fn(() => Promise.resolve('http://auth.url')),
   })),
 }));
 
@@ -286,6 +359,15 @@ jest.mock('@/lib/ghl', () => ({
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
     },
+    createContact: jest.fn(),
+    createSaasSubAccount: jest.fn(),
+    submitFormToGHL: jest.fn(),
+    handleContactWebhook: jest.fn(),
+    handleOpportunityWebhook: jest.fn(),
+    handleAppointmentWebhook: jest.fn(),
+    getCalendars: jest.fn(),
+    getCalendarSlots: jest.fn(),
+    createCustomField: jest.fn(),
     handleWebhook: jest.fn(),
   })),
   GHL_WEBHOOK_EVENTS: {
@@ -330,23 +412,146 @@ jest.mock('@/lib/intelligence/inference-engine', () => ({
 }));
 
 // Mock orchestration modules
-jest.mock('@/lib/orchestration/website-generation-orchestrator', () => ({
-  websiteGenerationOrchestrator: {
-    generateWebsite: jest.fn(() => Promise.resolve({
-      id: 'site_123',
-      subdomain: 'test-site',
-      businessName: 'Test Business',
-      content: {
-        hero: { title: 'Welcome' },
-      },
-    })),
-    generateWebsiteVariations: jest.fn(() => Promise.resolve([
-      { id: 'site_1' },
-      { id: 'site_2' },
-      { id: 'site_3' },
-    ])),
-  },
-}));
+jest.mock('@/lib/orchestration/website-generation-orchestrator', () => {
+  const { prisma } = require('@/lib/prisma'); // Import prisma here
+  return {
+    websiteGenerationOrchestrator: {
+      generateWebsite: jest.fn(async (request) => {
+        // Simulate fetching business intelligence data
+        const businessIntelligence = await prisma.businessIntelligence.findUnique({
+          where: { id: request.businessIntelligenceId },
+        });
+
+        if (!businessIntelligence) {
+          throw new Error('Business intelligence data not found');
+        }
+
+        const businessName = businessIntelligence?.data?.gbp?.businessName || businessIntelligence?.data?.manual?.businessName;
+        if (!businessName) {
+          throw new Error('Business name is required');
+        }
+
+        let subdomain = businessName.toLowerCase().replace(/\s/g, '-');
+        let subdomainExists = await prisma.site.findUnique({ where: { subdomain } });
+        let counter = 1;
+        while (subdomainExists) {
+          subdomain = `${businessName.toLowerCase().replace(/\s/g, '-')}-${counter}`;
+          subdomainExists = await prisma.site.findUnique({ where: { subdomain } });
+          counter++;
+        }
+
+        const publishedUrl = `https://${subdomain}.example.com`;
+        const siteId = 'site_123';
+
+        // Simulate prisma.site.create calls
+        prisma.site.create({
+          data: {
+            id: siteId,
+            subdomain: subdomain,
+            businessName: businessName,
+            userId: request.userId,
+            template: request.template || 'default-template',
+            content: request.content || { hero: { title: 'Welcome' } },
+            publishedUrl: publishedUrl,
+            metadata: {
+              conversionOptimized: request.options?.optimizeForConversion || false,
+              generationTime: 1000,
+              seoScore: 90,
+              uniquenessScore: 85,
+            },
+            industry: request.industry,
+            published: request.options?.publishImmediately || false,
+          },
+        });
+
+        // Simulate prisma.service.createMany call
+        if (request.answers?.services && request.answers.services.length > 0) {
+          prisma.service.createMany({
+            data: request.answers.services.map((service: string) => ({
+              siteId: siteId,
+              name: service,
+            })),
+          });
+        }
+
+        // Simulate progress callback calls
+        if (request.progressCallback) {
+          request.progressCallback({ step: '1', progress: 10, message: 'Starting generation' });
+          request.progressCallback({ step: '2', progress: 30, message: 'Analyzing business data' });
+          request.progressCallback({ step: '3', progress: 50, message: 'Generating content' });
+          request.progressCallback({ step: '4', progress: 70, message: 'Designing layout' });
+          request.progressCallback({ step: '5', progress: 90, message: 'Optimizing SEO' });
+          request.progressCallback({ step: '6', progress: 95, message: 'Publishing site' });
+          request.progressCallback({ step: '7', progress: 98, message: 'Finalizing' });
+          request.progressCallback({ step: 'completion', progress: 100, message: 'Website generation complete!' });
+        }
+
+        return Promise.resolve({
+          id: siteId,
+          subdomain: subdomain,
+          businessName: businessName,
+          content: request.content || { hero: { title: 'Welcome' } },
+          metadata: {
+            conversionOptimized: request.options?.optimizeForConversion || false,
+            generationTime: 1000,
+            seoScore: 90,
+            uniquenessScore: 85,
+          },
+          publishedUrl: publishedUrl,
+          industry: request.industry,
+          published: request.options?.publishImmediately || false,
+        });
+      }),
+      generateWebsiteVariations: jest.fn(async (request) => {
+        const variations = [];
+        const businessIntelligence = await prisma.businessIntelligence.findUnique({
+          where: { id: request.businessIntelligenceId },
+        });
+        const businessName = businessIntelligence?.data?.gbp?.businessName || 'Test Business';
+
+        for (let i = 0; i < 3; i++) {
+          const subdomain = `${businessName.toLowerCase().replace(/\s/g, '-')}-${i + 1}`;
+          const siteId = `site_${i + 1}`;
+          prisma.site.create({
+            data: {
+              id: siteId,
+              subdomain: subdomain,
+              businessName: businessName,
+              userId: request.userId,
+              template: request.template || 'default-template',
+              content: request.content || { hero: { title: 'Welcome' } },
+              publishedUrl: `https://${subdomain}.example.com`,
+              metadata: {
+                conversionOptimized: true,
+                generationTime: 1000,
+                seoScore: 90,
+                uniquenessScore: 85,
+              },
+              industry: request.industry,
+              published: false,
+            },
+          });
+          variations.push({
+            id: siteId,
+            subdomain: subdomain,
+            businessName: businessName,
+            content: request.content || { hero: { title: 'Welcome' } },
+            metadata: {
+              conversionOptimized: true,
+              generationTime: 1000,
+              seoScore: 90,
+              uniquenessScore: 85,
+            },
+            publishedUrl: `https://${subdomain}.example.com`,
+            industry: request.industry,
+            published: false,
+          });
+        }
+        return Promise.resolve(variations);
+      }),
+    },
+  };
+});
 
 // Mock content generation modules
 jest.mock('@/lib/content-generation/ai-content-engine', () => ({

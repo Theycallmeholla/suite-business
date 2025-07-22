@@ -1,4 +1,4 @@
-import { TemplateConfig } from '@/types/site-builder';
+import { TemplateConfig } from '@/types/template-system';
 
 export const artistryMinimalTemplate: TemplateConfig = {
   id: 'artistry-minimal',
@@ -15,95 +15,118 @@ export const artistryMinimalTemplate: TemplateConfig = {
     }
   },
   requirements: {
+    colors: {
+      primary: true,
+      secondary: true,
+      accent: false,
+      minimumCount: 2
+    },
     content: {
-      minSections: 3,
-      requiredFields: ['businessName', 'services', 'contactInfo'],
-      optionalFields: ['gallery', 'testimonials', 'about']
-    },
-    features: ['minimal-animations', 'grid-layouts', 'clean-typography']
-  },
-  sections: {
-    hero: {
-      component: 'hero-artistry-minimal',
-      props: {
-        layout: 'fullscreen',
-        showCTA: true,
-        backgroundType: 'image'
+      businessName: true,
+      tagline: false,
+      description: {
+        minLength: 50,
+        required: false
       },
-      requirements: {
-        content: ['businessName', 'tagline'],
-        optional: ['heroImage']
+      services: {
+        min: 3,
+        max: 9
       }
     },
-    services: {
-      component: 'services-artistry-grid',
-      props: {
-        columns: 3,
-        showIcons: false,
-        layout: 'grid'
-      },
-      requirements: {
-        content: ['services'],
-        minItems: 3
-      }
-    },
-    portfolio: {
-      component: 'portfolio-artistry-masonry',
-      props: {
-        layout: 'masonry',
-        showFilter: true,
-        hoverEffect: 'minimal'
-      },
-      requirements: {
-        content: ['gallery'],
-        minItems: 6
-      }
-    },
-    testimonials: {
-      component: 'testimonials-artistry-grid',
-      props: {
-        layout: 'grid',
-        columns: 2,
-        minimal: true
-      },
-      requirements: {
-        content: ['testimonials'],
-        minItems: 2
-      }
-    },
-    about: {
-      component: 'about-artistry-split',
-      props: {
-        layout: 'split',
-        imagePosition: 'right'
-      },
-      requirements: {
-        content: ['about'],
-        optional: ['teamPhoto']
-      }
-    },
-    contact: {
-      component: 'contact-artistry-cards',
-      props: {
-        showMap: false,
-        cardLayout: true
-      },
-      requirements: {
-        content: ['contactInfo']
+    media: {
+      logo: false,
+      heroImage: false,
+      galleryImages: {
+        min: 4
       }
     }
   },
-  colorScheme: {
-    primary: '#1a1a1a',
-    secondary: '#f5f5f5',
-    accent: '#4a5568',
-    background: '#ffffff',
-    text: '#2d3748',
-    muted: '#e2e8f0'
+  style: {
+    colorScheme: 'light',
+    density: 'spacious',
+    mood: 'minimal',
+    animations: 'subtle'
   },
-  typography: {
-    headingFont: 'var(--font-serif)',
-    bodyFont: 'var(--font-sans)',
-    scale: 'minimal'
+  sections: {
+    hero: [{
+      id: 'hero-artistry-minimal',
+      name: 'Artistry Minimal Hero',
+      requires: {
+        content: {
+          title: true,
+          subtitle: false
+        }
+      },
+      characteristics: {
+        contentDensity: 'minimal',
+        bestFor: ['landscaping', 'architecture', 'design'],
+        layout: 'fullscreen'
+      }
+    }],
+    services: [{
+      id: 'services-artistry-grid',
+      name: 'Artistry Grid Services',
+      requires: {
+        data: {
+          services: { min: 3, max: 9 }
+        }
+      },
+      characteristics: {
+        contentDensity: 'balanced',
+        layout: 'grid'
+      }
+    }],
+    portfolio: [{
+      id: 'portfolio-artistry-masonry',
+      name: 'Artistry Masonry Portfolio',
+      requires: {
+        media: {
+          image: { min: 6 }
+        }
+      },
+      characteristics: {
+        contentDensity: 'rich',
+        layout: 'masonry'
+      }
+    }],
+    testimonials: [{
+      id: 'testimonials-artistry-grid',
+      name: 'Artistry Grid Testimonials',
+      requires: {
+        data: {
+          testimonials: { min: 2 }
+        }
+      },
+      characteristics: {
+        contentDensity: 'balanced',
+        layout: 'grid'
+      }
+    }],
+    about: [{
+      id: 'about-artistry-split',
+      name: 'Artistry Split About',
+      requires: {
+        content: {
+          description: { minLength: 100 }
+        }
+      },
+      characteristics: {
+        contentDensity: 'balanced',
+        layout: 'split'
+      }
+    }],
+    contact: [{
+      id: 'contact-artistry-cards',
+      name: 'Artistry Cards Contact',
+      requires: {
+        content: {
+          title: true
+        }
+      },
+      characteristics: {
+        contentDensity: 'minimal',
+        layout: 'cards'
+      }
+    }]
   }
 };

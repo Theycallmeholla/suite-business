@@ -493,19 +493,109 @@ export class QuestionOrchestrator {
     // Industry-appropriate color schemes
     const schemes: Record<string, any[]> = {
       landscaping: [
-        { value: 'natural-green', label: 'Natural Green', colors: ['#2D5016', '#4A7C59', '#8FBC8F'] },
-        { value: 'earth-tones', label: 'Earth Tones', colors: ['#8B4513', '#CD853F', '#DEB887'] },
-        { value: 'fresh-modern', label: 'Fresh & Modern', colors: ['#228B22', '#32CD32', '#98FB98'] }
+        { 
+          value: 'natural-green', 
+          label: 'Natural Green', 
+          preview: {
+            colors: {
+              primary: '#2D5016',
+              secondary: '#4A7C59',
+              accent: '#8FBC8F'
+            }
+          }
+        },
+        { 
+          value: 'earth-tones', 
+          label: 'Earth Tones', 
+          preview: {
+            colors: {
+              primary: '#8B4513',
+              secondary: '#CD853F',
+              accent: '#DEB887'
+            }
+          }
+        },
+        { 
+          value: 'fresh-modern', 
+          label: 'Fresh & Modern', 
+          preview: {
+            colors: {
+              primary: '#228B22',
+              secondary: '#32CD32',
+              accent: '#98FB98'
+            }
+          }
+        }
       ],
       plumbing: [
-        { value: 'trust-blue', label: 'Trustworthy Blue', colors: ['#1E3A8A', '#3B82F6', '#93C5FD'] },
-        { value: 'professional-navy', label: 'Professional Navy', colors: ['#1E293B', '#475569', '#94A3B8'] },
-        { value: 'clean-aqua', label: 'Clean Aqua', colors: ['#0891B2', '#06B6D4', '#67E8F9'] }
+        { 
+          value: 'trust-blue', 
+          label: 'Trustworthy Blue', 
+          preview: {
+            colors: {
+              primary: '#1E3A8A',
+              secondary: '#3B82F6',
+              accent: '#93C5FD'
+            }
+          }
+        },
+        { 
+          value: 'professional-navy', 
+          label: 'Professional Navy', 
+          preview: {
+            colors: {
+              primary: '#1E293B',
+              secondary: '#475569',
+              accent: '#94A3B8'
+            }
+          }
+        },
+        { 
+          value: 'clean-aqua', 
+          label: 'Clean Aqua', 
+          preview: {
+            colors: {
+              primary: '#0891B2',
+              secondary: '#06B6D4',
+              accent: '#67E8F9'
+            }
+          }
+        }
       ],
       general: [
-        { value: 'professional-blue', label: 'Professional Blue', colors: ['#1E40AF', '#3B82F6', '#93C5FD'] },
-        { value: 'warm-gray', label: 'Warm Gray', colors: ['#374151', '#6B7280', '#D1D5DB'] },
-        { value: 'modern-teal', label: 'Modern Teal', colors: ['#0F766E', '#14B8A6', '#5EEAD4'] }
+        { 
+          value: 'professional-blue', 
+          label: 'Professional Blue', 
+          preview: {
+            colors: {
+              primary: '#1E40AF',
+              secondary: '#3B82F6',
+              accent: '#93C5FD'
+            }
+          }
+        },
+        { 
+          value: 'warm-gray', 
+          label: 'Warm Gray', 
+          preview: {
+            colors: {
+              primary: '#374151',
+              secondary: '#6B7280',
+              accent: '#D1D5DB'
+            }
+          }
+        },
+        { 
+          value: 'modern-teal', 
+          label: 'Modern Teal', 
+          preview: {
+            colors: {
+              primary: '#0F766E',
+              secondary: '#14B8A6',
+              accent: '#5EEAD4'
+            }
+          }
+        }
       ]
     }
     
@@ -514,10 +604,54 @@ export class QuestionOrchestrator {
 
   private getTypographyOptions(industry: IndustryType) {
     return [
-      { value: 'professional', label: 'Professional', preview: 'Clean and trustworthy' },
-      { value: 'modern', label: 'Modern', preview: 'Contemporary and fresh' },
-      { value: 'friendly', label: 'Friendly', preview: 'Approachable and warm' },
-      { value: 'bold', label: 'Bold', preview: 'Strong and confident' }
+      { 
+        value: 'professional', 
+        label: 'Professional', 
+        description: 'Clean and trustworthy',
+        preview: {
+          fontFamily: '"Inter", "Helvetica Neue", sans-serif',
+          fontSize: '16px',
+          fontWeight: 400,
+          letterSpacing: '-0.01em',
+          lineHeight: '1.5'
+        }
+      },
+      { 
+        value: 'modern', 
+        label: 'Modern', 
+        description: 'Contemporary and fresh',
+        preview: {
+          fontFamily: '"Poppins", "Montserrat", sans-serif',
+          fontSize: '16px',
+          fontWeight: 500,
+          letterSpacing: '-0.02em',
+          lineHeight: '1.6'
+        }
+      },
+      { 
+        value: 'friendly', 
+        label: 'Friendly', 
+        description: 'Approachable and warm',
+        preview: {
+          fontFamily: '"Open Sans", "Lato", sans-serif',
+          fontSize: '16px',
+          fontWeight: 400,
+          letterSpacing: '0',
+          lineHeight: '1.7'
+        }
+      },
+      { 
+        value: 'bold', 
+        label: 'Bold', 
+        description: 'Strong and confident',
+        preview: {
+          fontFamily: '"Oswald", "Bebas Neue", sans-serif',
+          fontSize: '18px',
+          fontWeight: 600,
+          letterSpacing: '0.02em',
+          lineHeight: '1.4'
+        }
+      }
     ]
   }
 

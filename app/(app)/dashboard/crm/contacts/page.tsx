@@ -17,7 +17,7 @@ export default async function ContactsPage() {
   }
 
   // Get all contacts from all user's sites
-  const contacts = await prisma.contact.findMany({
+  const contacts = (await prisma.contact.findMany({
     where: {
       site: {
         userId: session.user.id
@@ -32,7 +32,10 @@ export default async function ContactsPage() {
       }
     },
     orderBy: { createdAt: 'desc' }
-  });
+  })).map(contact => ({
+    ...contact,
+    createdAt: contact.createdAt.toISOString(), // Convert Date to string
+  }));
 
   const totalContacts = await prisma.contact.count({
     where: {

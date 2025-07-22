@@ -28,6 +28,7 @@ import { QuestionOrchestrator, type QuestionContext } from '@/lib/intelligence/q
 import { InferenceEngine } from '@/lib/intelligence/inference-engine'
 import { ConversationalFlow, type ConversationalQuestion } from './ConversationalFlow'
 import { RealTimePreview, type PreviewData } from './RealTimePreview'
+import { TemplatePreview, type TemplatePreviewData } from './TemplatePreview'
 import { BusinessIntelligenceData } from '@/lib/intelligence/scoring'
 import { IndustryType } from '@/types/site-builder'
 import { cn } from '@/lib/utils'
@@ -52,9 +53,10 @@ export function QuestionFlowOrchestrator({
   const [orchestrator, setOrchestrator] = useState<QuestionOrchestrator | null>(null)
   const [inferenceEngine, setInferenceEngine] = useState<InferenceEngine | null>(null)
   const [conversationalQuestions, setConversationalQuestions] = useState<ConversationalQuestion[]>([])
-  const [previewData, setPreviewData] = useState<Partial<PreviewData>>({})
+  const [previewData, setPreviewData] = useState<Partial<TemplatePreviewData>>({})
   const [improvements, setImprovements] = useState<string[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
+  const [useTemplatePreview, setUseTemplatePreview] = useState(true) // Toggle for preview mode
 
   useEffect(() => {
     // Initialize orchestrator and inference engine
@@ -92,7 +94,10 @@ export function QuestionFlowOrchestrator({
       typography: 'professional',
       availability: 'business-hours',
       location: businessData.location?.address,
-      phone: businessData.phone
+      phone: businessData.phone,
+      description: businessData.description,
+      tagline: businessData.tagline,
+      keywords: businessData.keywords
     })
   }, [businessData])
 
@@ -333,12 +338,22 @@ export function QuestionFlowOrchestrator({
 
         {/* Preview Column */}
         <div className="lg:sticky lg:top-6">
-          <RealTimePreview
-            data={previewData}
-            currentQuestion={conversationalQuestions[0]?.id} // This would be dynamic in real implementation
-            latestAnswer={null} // This would track the latest answer
-            onImprovementDetected={handleImprovementDetected}
-          />
+          {useTemplatePreview ? (
+            <TemplatePreview
+              data={previewData}
+              businessIntelligence={businessData}
+              currentQuestion={conversationalQuestions[0]?.id} // This would be dynamic in real implementation
+              latestAnswer={null} // This would track the latest answer
+              onImprovementDetected={handleImprovementDetected}
+            />
+          ) : (
+            <RealTimePreview
+              data={previewData as Partial<PreviewData>}
+              currentQuestion={conversationalQuestions[0]?.id} // This would be dynamic in real implementation
+              latestAnswer={null} // This would track the latest answer
+              onImprovementDetected={handleImprovementDetected}
+            />
+          )}
         </div>
       </div>
     </div>

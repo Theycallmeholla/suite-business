@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 
@@ -15,7 +14,7 @@ const EtherealContact = ({ content }: { content: any }) => {
           viewport={{ once: true }}
           className="text-5xl md:text-8xl font-serif font-extralight tracking-wider mb-10"
         >
-          {title || 'Let's Create Magic'}
+          {title || 'Let\'s Create Magic'}
         </motion.h2>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}

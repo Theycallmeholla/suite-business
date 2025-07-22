@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Created**: December 2024  
-**Last Updated**: June 2025, 1:35 AM CST
+**Last Updated**: December 28, 2024, 3:30 PM CST
 
 ## Quick Reference: Claude Commands
 Use these slash commands for common tasks:
@@ -30,6 +30,64 @@ Sitebango is a multi-industry SaaS platform for service-based businesses (landsc
 - `npm run setup:agency` - Initial agency setup
 - `npm run db:studio` - View/edit database
 - See `.claude/commands.md` for full command list
+
+## Documentation Structure
+All documentation is organized in the `/docs` directory with the following structure:
+
+### `/docs/api/` - API Documentation
+- `API_DOCUMENTATION.md` - Complete API endpoint reference
+
+### `/docs/architecture/` - System Architecture
+- `IMPLEMENTATION_GUIDE.md` - Overall implementation guide
+- `SITE_INFRASTRUCTURE.md` - Client site rendering system
+- `TEMPLATE_SYSTEM.md` - Template and theme architecture
+- `TEMPLATE_SELECTION_IMPLEMENTATION.md` - New AI template selection system
+- `INTELLIGENT_CONTENT_GENERATION.md` - Smart content generation system
+
+### `/docs/deployment/` - Deployment & Infrastructure
+- `DEPLOY_VPS.md` - VPS deployment guide
+
+### `/docs/development/` - Development Guides
+- `DEVELOPMENT_GUIDE.md` - Development setup and practices
+- `GEMINI.md` - Gemini AI assistant context
+- `ONBOARDING.md` - Onboarding system documentation
+- `template-selection-demo.ts` - Template selection example code
+
+### `/docs/features/` - Feature Documentation
+- `ANALYTICS_TRACKING.md` - Analytics implementation
+- `AUTHENTICATION_FLOW.md` - Auth system details
+- `CONTENT_EDITOR.md` - Content editing features
+- `CUSTOM_DOMAINS.md` - Custom domain support
+- `ENHANCED_FORMS.md` - Form handling system
+- `LOGO_UPLOAD.md` - Logo upload and processing
+- `TEAM_MANAGEMENT.md` - Team and permissions
+- `STRIPE_BILLING.md` - Payment integration
+
+### `/docs/industries/` - Industry-Specific Implementation
+- `INDUSTRY_STANDARDS_LANDSCAPING.md` - Landscaping industry guide
+- `LANDSCAPING_IMPLEMENTATION.md` - Landscaping site implementation
+- `RESEARCH_DATA_FORMAT.md` - Research data structure
+
+### `/docs/integrations/` - Third-Party Integrations
+- `GHL_COMPLETE_GUIDE.md` - GoHighLevel integration guide
+- `GOOGLE_INTEGRATION.md` - Google services integration
+
+### `/docs/reports/` - Analysis Reports & Status
+- `PRODUCT_COMPLETION_ANALYSIS.md` - Feature completion status
+- `DOCUMENTATION_GAPS_ANALYSIS.md` - Missing documentation
+- `ERROR_HANDLING_ANALYSIS.md` - Error handling review
+- `SECURITY_ANALYSIS_REPORT.md` - Security assessment
+- `WORK_COMPLETED.md` - Completed work log
+- `ACTION_ITEMS.md` - Pending action items
+- `CUSTOM_DOMAIN_REVIEW.md` - Custom domain implementation review
+
+### `/docs/testing/` - Testing Documentation
+- `TESTING.md` - Testing strategy and guidelines
+- `TESTING_COVERAGE_REPORT.md` - Test coverage analysis
+
+### `/docs/user-guides/` - User Manuals
+- `USER_TRAINING_MANUAL.md` - User training guide
+- `SITEBANGO_USER_TRAINING_MANUAL.md` - Platform user manual
 
 ## Team Structure & Permissions
 
@@ -77,6 +135,15 @@ npm run add-agency-members-bulk
 
 ## Recent Enhancements
 
+### December 2024 (Latest)
+- **App Subdomain Architecture**: Moved authenticated app from `/(app)` route group to subdomain architecture
+  - Dashboard now lives at `app.domain.com` instead of `domain.com/dashboard`
+  - Reserved subdomains list prevents conflicts with client sites
+  - Automatic validation ensures businesses can't use system subdomains
+  - Authentication flows properly redirect to app subdomain
+  - Middleware handles routing for both app and client subdomains
+  - See `APP_SUBDOMAIN_SETUP.md` for local setup instructions
+
 ### December 2024
 - **Custom Domain Support**: Full implementation with DNS verification and SSL automation
 - **Multi-Account GBP Access**: Fixed critical bug where businesses weren't recognized across multiple Google accounts
@@ -86,6 +153,11 @@ npm run add-agency-members-bulk
 - **Shared Caching System**: Optimized API calls with intelligent caching between endpoints
 - **Logo Upload**: Smart resizing and optimization for different display contexts
 - **Dashboard Redesign**: Comprehensive UI/UX improvements with better information architecture
+- **Onboarding Persistence**: Full state persistence for onboarding flow with 24-hour retention
+  - Automatically saves progress at every step
+  - Resume capability with visual indicator
+  - Handles browser refresh and navigation without data loss
+  - Fixed parsing errors from concatenated code lines
 
 ### June 2025 - Intelligent Content Generation System
 - **Data Scoring Algorithm**: 0-100 point system across 5 categories (basic info, content, visuals, trust, differentiation)
@@ -98,7 +170,14 @@ npm run add-agency-members-bulk
 - **Question Intelligence**: Automatically skips questions when data is already known from GBP
 - **Industry Profiles**: Complete configurations for all 6 supported industries
 - **Progressive Enhancement**: Content quality improves as more data becomes available
-- See `/docs/INTELLIGENT_CONTENT_GENERATION.md` for full documentation
+- See `/docs/architecture/INTELLIGENT_CONTENT_GENERATION.md` for full documentation
+
+### December 2024 - Template Variant Selection System
+- **Data Quality Evaluator**: Analyzes business data quality/quantity to inform template selection
+- **Template Variant Selector**: Intelligently selects optimal template variants based on data
+- **Industry Content Populators**: Populates templates with real data + industry fallbacks
+- **AI-Enhanced Selection**: Uses OpenAI when available, works without it
+- See `/docs/architecture/TEMPLATE_SELECTION_IMPLEMENTATION.md` for implementation guide
 
 ## Development Commands
 ```bash
@@ -172,6 +251,7 @@ npm run setup          # Install deps, start Docker, and push DB schema
    - Sub-account deletion when removing sites
    - CRM operations (contacts, opportunities, appointments)
    - Webhook handling for real-time updates
+   - See `/docs/integrations/GHL_COMPLETE_GUIDE.md` for full documentation
 
 2. **Google Integration**:
    - **Google Business Profile (`/lib/google-business-profile.ts`)**:
@@ -183,6 +263,7 @@ npm run setup          # Install deps, start Docker, and push DB schema
      - Detailed place information retrieval
      - Cost optimization through field masking
      - $200/month free tier usage optimization
+   - See `/docs/integrations/GOOGLE_INTEGRATION.md` for full documentation
 
 3. **Database (`/lib/prisma.ts`)**:
    - Supports both PostgreSQL (production) and SQLite (development)
@@ -227,6 +308,7 @@ When tests are added, the approach will be:
 - Playwright for E2E tests
 - Test multi-tenant isolation
 - Mock external API calls (GHL, GBP, Stripe)
+- See `/docs/testing/` for testing documentation
 
 ### Planned Testing Commands
 These commands will be available once testing is implemented:
@@ -273,7 +355,7 @@ The platform uses a component-based template system for client sites:
 - **Subdomain Routing**: Each site accessible via subdomain (e.g., `demo.localhost:3000`)
 - **Content Adaptation**: Rich/moderate/minimal layouts based on data availability
 
-See `/docs/SITE_INFRASTRUCTURE.md` for detailed documentation.
+See `/docs/architecture/SITE_INFRASTRUCTURE.md` for detailed documentation.
 
 ## Tool Usage Preferences
 - **Use fetch for HTTP requests** - Prefer native fetch over external libraries
@@ -301,6 +383,7 @@ See `/docs/SITE_INFRASTRUCTURE.md` for detailed documentation.
    - Always include creation date and time CST when creating new documentation
    - Always update "Last Updated" date and time CST when modifying documentation
    - Use format: **Created**: Month Day, Year, Time CST, **Last Updated**: Month Day, Year, Time CST
+   - Keep all documentation organized in `/docs` with appropriate subdirectories
    
 4. **Before Completing Any Task**:
    - Run linting: `npm run lint` (when available)

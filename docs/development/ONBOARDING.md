@@ -1,11 +1,17 @@
 # Onboarding Flow Documentation
 
 **Created**: December 23, 2024, 2:50 PM CST  
-**Last Updated**: December 23, 2024, 2:50 PM CST
+**Last Updated**: December 28, 2024, 1:45 AM CST
 
 ## Overview
 
 Suite Business offers flexible onboarding paths to accommodate both businesses with existing Google Business Profiles and those starting from scratch. The onboarding flow automatically creates websites, sets up GoHighLevel CRM integration, and configures industry-specific features.
+
+### Key Features
+- **Automatic Progress Persistence**: All onboarding progress is automatically saved, allowing users to refresh the page or navigate away without losing their work
+- **Resume Capability**: Users can return to exactly where they left off, even after closing their browser
+- **24-Hour State Retention**: Progress is saved for 24 hours, giving users ample time to complete onboarding
+- **Smart State Restoration**: The system remembers selections, form data, and navigation state
 
 ## Onboarding Paths
 
@@ -45,6 +51,40 @@ For businesses starting fresh or preferring manual setup.
 - **Manual**: `/onboarding?setup=manual` - Skip GBP and go straight to manual
 - **Resume**: `/onboarding?resume=true` - Continue after adding Google accounts
 
+### State Persistence
+The onboarding flow includes comprehensive state persistence managed by `/lib/onboarding-persistence.ts`:
+
+#### Features
+- **Automatic Saving**: State is saved after every user interaction
+- **localStorage Based**: Uses browser's localStorage for client-side persistence
+- **24-Hour Expiration**: Saved state expires after 24 hours to ensure data freshness
+- **Resume Banner**: Shows when saved progress is detected, allowing users to continue or start fresh
+
+#### Persisted Data
+- Current step in the onboarding flow
+- Google Business Profile selection (hasGBP answer)
+- Selected Google account ID and email
+- Selected business and all fetched businesses
+- Industry selection (both detected and user-selected)
+- Business claim dialog data
+- Manual setup form data
+- Cache status and age
+
+#### Implementation
+```typescript
+// State is automatically saved on every change
+const persistence = useOnboardingPersistence();
+
+// Save current state
+persistence.save(state);
+
+// Load saved state on mount
+const savedState = persistence.load();
+
+// Clear state (on completion or manual reset)
+persistence.clear();
+```
+
 ### Key Components
 
 #### BusinessSearch (`/app/onboarding/components/BusinessSearch.tsx`)
@@ -71,6 +111,7 @@ For businesses starting fresh or preferring manual setup.
 - Business information
 - Service configuration
 - Hours of operation
+- Includes `onUpdate` callback for persistence integration
 
 ### API Endpoints
 

@@ -13,6 +13,7 @@ interface EditableTextProps {
   editClassName?: string;
   multiline?: boolean;
   placeholder?: string;
+  style?: React.CSSProperties; // Add style prop
 }
 
 export function EditableText({
@@ -22,7 +23,8 @@ export function EditableText({
   className,
   editClassName,
   multiline = false,
-  placeholder = 'Click to edit...'
+  placeholder = 'Click to edit...',
+  style // Destructure style prop
 }: EditableTextProps) {
   const { isEditMode } = useEditMode();
   const [isEditing, setIsEditing] = useState(false);
@@ -74,7 +76,7 @@ export function EditableText({
   };
 
   if (!isEditMode) {
-    return <Component className={className}>{value || placeholder}</Component>;
+    return <Component className={className} style={style}>{value || placeholder}</Component>;
   }
 
   if (isEditing) {
