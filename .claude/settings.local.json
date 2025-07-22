@@ -66,7 +66,10 @@
       "Bash(npm test:*)",
       "Bash(docker stop:*)",
       "mcp__filesystem__list_directory",
-      "mcp__context7-mcp__get-library-docs"
+      "mcp__context7-mcp__get-library-docs",
+      "mcp__filesystem__read_file",
+      "WebFetch(domain:docs.anthropic.com)",
+      "mcp__filesystem__edit_file"
     ],
     "deny": []
   },

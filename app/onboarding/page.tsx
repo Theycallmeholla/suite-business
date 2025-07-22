@@ -319,11 +319,153 @@ export default function OnboardingPage() {
 
   // Note: searchBusinessListings removed in favor of BusinessAutocomplete component
 
-  const handleBusinessSelect = () => {
+  const handleBusinessSelect = async () => {
     if (selectedBusiness) {
-      // Store the selected business and move to next step
-      localStorage.setItem('selectedGBP', selectedBusiness);
-      setStep('business-info');
+      setIsLoading(true);
+      setLoadingMessage('Gathering business information...');
+      
+      try {
+        // Store the selected business for later
+        localStorage.setItem('selectedGBP', selectedBusiness);
+        
+        // Find the selected business from our list
+        const business = businesses.find(b => b.id === selectedBusiness);
+        if (!business) {
+          throw new Error('Selected business not found');
+        }
+        
+        // Track all API calls for comprehensive data collection
+        const apiCalls = [];
+        
+        // 1. Google Business Profile API - Get full location details
+        if (selectedBusiness.startsWith('locations/')) {
+          setLoadingMessage('Fetching Google Business Profile details...');
+          apiCalls.push(
+            fetch(`/api/gbp/location/${encodeURIComponent(selectedBusiness)}?accountId=${selectedAccountId}`)
+              .then(res => res.json())
+              .then(data => ({ type: 'gbp', data }))
+              .catch(err => {
+                logger.error('GBP API call failed', {}, err);
+                return { type: 'gbp', error: err.message };
+              })
+          );
+        }
+        
+        // 2. Google Places API - Get additional details and reviews
+        setLoadingMessage('Fetching place details and reviews...');
+        
+        // First, we need to get the Place ID if we don't have it
+        let placeId = business.id;
+        
+        // If this is a GBP location ID, we need to search for the Place ID
+        if (selectedBusiness.startsWith('locations/')) {
+          const searchResponse = await fetch('/api/gbp/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `${business.name} ${business.address}`,
+              location: business.coordinates,
+            }),
+          });
+          
+          if (searchResponse.ok) {
+            const searchData = await searchResponse.json();
+            if (searchData.results && searchData.results.length > 0) {
+              // Find the best match based on name and address
+              const bestMatch = searchData.results.find((result: any) => 
+                result.name.toLowerCase().includes(business.name.toLowerCase()) ||
+                business.name.toLowerCase().includes(result.name.toLowerCase())
+              );
+              
+              if (bestMatch) {
+                placeId = bestMatch.place_id;
+              }
+            }
+          }
+        }
+        
+        // Now get place details if we have a Place ID
+        if (placeId && (placeId.startsWith('ChIJ') || !placeId.startsWith('locations/'))) {
+          apiCalls.push(
+            fetch('/api/gbp/place-details', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ placeId }),
+            })
+              .then(res => res.json())
+              .then(data => ({ type: 'places', data }))
+              .catch(err => {
+                logger.error('Places API call failed', {}, err);
+                return { type: 'places', error: err.message };
+              })
+          );
+        }
+        
+        // 3. DataForSEO SERP API - Business intelligence gathering
+        setLoadingMessage('Searching for business information online...');
+        
+        // Prepare data for business intelligence API
+        const businessData = {
+          businessName: business.name,
+          placeId: placeId,
+          gbpData: null as any,
+          placesData: null as any,
+        };
+        
+        // Wait for GBP and Places data before calling Business Intelligence
+        const results = await Promise.all(apiCalls);
+        
+        // Extract GBP and Places data from results
+        results.forEach((result: any) => {
+          if (result.type === 'gbp' && !result.error) {
+            businessData.gbpData = result.data;
+          } else if (result.type === 'places' && !result.error) {
+            businessData.placesData = result.data.details;
+          }
+        });
+        
+        // Call Business Intelligence API (which uses DataForSEO)
+        const intelligenceResponse = await fetch('/api/business-intelligence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(businessData),
+        });
+        
+        if (intelligenceResponse.ok) {
+          const intelligenceData = await intelligenceResponse.json();
+          logger.info('Business intelligence collected', {
+            metadata: {
+              businessName: business.name,
+              intelligenceId: intelligenceData.intelligenceId,
+              summary: intelligenceData.summary,
+            }
+          });
+          
+          // Store intelligence ID for later use
+          localStorage.setItem('businessIntelligenceId', intelligenceData.intelligenceId);
+        }
+        
+        // Log API usage summary
+        logger.info('Business data collection complete', {
+          metadata: {
+            businessName: business.name,
+            apisUsed: ['Google Business Profile', 'Google Places', 'DataForSEO SERP'],
+            hasGBPData: !!businessData.gbpData,
+            hasPlacesData: !!businessData.placesData,
+            hasIntelligenceData: intelligenceResponse.ok,
+          }
+        });
+        
+        // Move to next step
+        setStep('business-info');
+        
+      } catch (error) {
+        logger.error('Error collecting business data', {}, error as Error);
+        toast.error('Failed to gather business information. Please try again.');
+      } finally {
+        setIsLoading(false);
+        setLoadingMessage('');
+      }
     }
   };
 
