@@ -1,0 +1,155 @@
+version: '3.8'
+
+# Custom configuration for Cursive VPS: 32 cores, 125GB RAM
+# This configuration uses ~80% of available resources, leaving 20% for system
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: suitebusiness-postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-suitebusiness_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-suitebusiness_prod_password}
+      POSTGRES_DB: ${POSTGRES_DB:-suitebusiness}
+      # Performance tuning for high-spec server
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=en_US.UTF-8"
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-config-cursive.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-suitebusiness_user} -d ${POSTGRES_DB:-suitebusiness}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Resource limits optimized for your VPS
+    deploy:
+      resources:
+        limits:
+          cpus: '8.0'         # 25% of 32 cores
+          memory: 30G         # ~24% of 125GB
+        reservations:
+          cpus: '4.0'         
+          memory: 20G         
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "10"
+
+  # Application container (Next.js) - can scale this
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: suitebusiness-app
+    restart: always
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-suitebusiness_user}:${POSTGRES_PASSWORD:-suitebusiness_prod_password}@postgres:5432/${POSTGRES_DB:-suitebusiness}?schema=public
+      # Node.js optimization for high-spec server
+      NODE_OPTIONS: "--max-old-space-size=16384"
+      UV_THREADPOOL_SIZE: 128
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Resource limits - generous allocation
+    deploy:
+      resources:
+        limits:
+          cpus: '20.0'        # ~62% of 32 cores
+          memory: 60G         # ~48% of 125GB
+        reservations:
+          cpus: '10.0'
+          memory: 40G
+      replicas: 1             # Can increase for load balancing
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "10"
+
+  # Nginx reverse proxy with caching
+  nginx:
+    image: nginx:alpine
+    container_name: suitebusiness-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-highperf.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_cache:/var/cache/nginx
+      - nginx_temp:/var/nginx/temp
+    depends_on:
+      - app
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'         # ~6% of 32 cores
+          memory: 4G          # ~3% of 125GB
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # Redis for caching (optional but recommended with this much RAM)
+  redis:
+    image: redis:7-alpine
+    container_name: suitebusiness-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 8gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 10G         # 8GB for data + overhead
+        reservations:
+          cpus: '1.0'
+          memory: 8G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+volumes:
+  postgres_data:
+    name: suitebusiness_postgres_data
+  nginx_cache:
+    name: suitebusiness_nginx_cache
+  nginx_temp:
+    name: suitebusiness_nginx_temp
+  redis_data:
+    name: suitebusiness_redis_data
+
+# Network configuration
+networks:
+  default:
+    name: suitebusiness_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

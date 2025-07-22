@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Production
+.next/
+out/
+dist/
+build/
+
+# Testing
+coverage/
+test-results/
+
+# Cache and temp files
+.turbo/
+*.tsbuildinfo
+.DS_Store
+
+# Logs
+*.log
+
+# Generated files
+prisma/migrations/
+public/uploads/
+
+# Environment files
+.env*
+
+# Lock files (formatted differently)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

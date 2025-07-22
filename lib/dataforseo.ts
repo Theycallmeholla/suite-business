@@ -283,6 +283,63 @@ export class DataForSEOService {
     return data;
   }
   
+  // Business Data API - Get Google My Business info
+  async getBusinessDataFromGoogle(
+    businessName?: string,
+    address?: string
+  ): Promise<any | null> {
+    logger.info('Fetching business data from Google via DataForSEO', {
+      businessName,
+      address
+    });
+
+    try {
+      // For now, return mock data since this is a placeholder
+      return {
+        businessInfo: {
+          name: businessName || 'Business Name',
+          description: 'Business description',
+          categories: ['Category 1', 'Category 2'],
+          services: ['Service 1', 'Service 2'],
+          attributes: ['Attribute 1', 'Attribute 2']
+        },
+        ratings: {
+          average: 4.5,
+          count: 100,
+          distribution: { '5': 60, '4': 25, '3': 10, '2': 3, '1': 2 }
+        },
+        workHours: {
+          monday: { open: '08:00', close: '17:00' }
+        },
+        peopleAlsoSearch: ['Related Business 1', 'Related Business 2'],
+        relatedSearches: ['related search 1', 'related search 2'],
+        localPack: []
+      };
+    } catch (error) {
+      logger.error('Business Data API failed', { error });
+      return null;
+    }
+  }
+
+  // Get Google Reviews using Business Data API
+  async getGoogleReviews(
+    placeId: string,
+    limit: number = 20
+  ): Promise<any> {
+    logger.info('Fetching Google reviews via DataForSEO', {
+      placeId,
+      limit
+    });
+
+    try {
+      // For now, return empty array since this is a placeholder
+      return [];
+    } catch (error) {
+      logger.error('Failed to fetch Google reviews', { error });
+      return null;
+    }
+  }
+
   // Use OpenAI to analyze the collected business data
   async analyzeBusinessData(
     businessName: string,
@@ -389,3 +446,6 @@ export function formatBusinessIntelligenceData(
     aiAnalysis: aiAnalysis || null,
   };
 }
+
+// Export the service instance for use in other modules
+export const DataForSEO = new DataForSEOService();
