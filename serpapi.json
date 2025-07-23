@@ -1,0 +1,1343 @@
+{
+    "googlePlaces": [
+        {
+            "title": {
+                "text": "ASAP Credit Repair",
+                "languageCode": "en"
+            },
+            "address": "15915 Katy Fwy #555, Houston, TX 77094",
+            "types": [
+                "corporate_office",
+                "consultant",
+                "finance",
+                "point_of_interest",
+                "establishment"
+            ],
+            "addressComponents": [
+                {
+                    "types": [
+                        "subpremise"
+                    ],
+                    "longText": "555",
+                    "shortText": "555",
+                    "languageCode": "en"
+                },
+                {
+                    "types": [
+                        "street_number"
+                    ],
+                    "longText": "15915",
+                    "shortText": "15915",
+                    "languageCode": "en"
+                },
+                {
+                    "types": [
+                        "route"
+                    ],
+                    "longText": "Katy Freeway",
+                    "shortText": "Katy Fwy",
+                    "languageCode": "en"
+                },
+                {
+                    "types": [
+                        "neighborhood",
+                        "political"
+                    ],
+                    "longText": "Energy Corridor",
+                    "shortText": "Energy Corridor",
+                    "languageCode": "en"
+                },
+                {
+                    "types": [
+                        "locality",
+                        "political"
+                    ],
+                    "longText": "Houston",
+                    "shortText": "Houston",
+                    "languageCode": "en"
+                },
+                {
+                    "types": [
+                        "administrative_area_level_2",
+                        "political"
+                    ],
+                    "longText": "Harris County",
+                    "shortText": "Harris County",
+                    "languageCode": "en"
+                },
+                {
+                    "types": [
+                        "administrative_area_level_1",
+                        "political"
+                    ],
+                    "longText": "Texas",
+                    "shortText": "TX",
+                    "languageCode": "en"
+                },
+                {
+                    "types": [
+                        "country",
+                        "political"
+                    ],
+                    "longText": "United States",
+                    "shortText": "US",
+                    "languageCode": "en"
+                },
+                {
+                    "types": [
+                        "postal_code"
+                    ],
+                    "longText": "77094",
+                    "shortText": "77094",
+                    "languageCode": "en"
+                },
+                {
+                    "types": [
+                        "postal_code_suffix"
+                    ],
+                    "longText": "1708",
+                    "shortText": "1708",
+                    "languageCode": "en"
+                }
+            ],
+            "attributions": [],
+            "currentSecondaryOpeningHours": [
+                {
+                    "periods": [
+                        {
+                            "open": {
+                                "truncated": true,
+                                "date": {
+                                    "year": 2025,
+                                    "month": 7,
+                                    "day": 23
+                                },
+                                "day": 3,
+                                "_day": "day",
+                                "hour": 0,
+                                "_hour": "hour",
+                                "minute": 0,
+                                "_minute": "minute"
+                            },
+                            "close": {
+                                "truncated": true,
+                                "date": {
+                                    "year": 2025,
+                                    "month": 7,
+                                    "day": 29
+                                },
+                                "day": 2,
+                                "_day": "day",
+                                "hour": 23,
+                                "_hour": "hour",
+                                "minute": 59,
+                                "_minute": "minute"
+                            }
+                        }
+                    ],
+                    "weekdayDescriptions": [
+                        "Monday: Open 24 hours",
+                        "Tuesday: Open 24 hours",
+                        "Wednesday: Open 24 hours",
+                        "Thursday: Open 24 hours",
+                        "Friday: Open 24 hours",
+                        "Saturday: Open 24 hours",
+                        "Sunday: Open 24 hours"
+                    ],
+                    "specialDays": [],
+                    "secondaryHoursType": "ONLINE_SERVICE_HOURS",
+                    "nextOpenTime": null,
+                    "nextCloseTime": null,
+                    "openNow": true,
+                    "_openNow": "openNow"
+                }
+            ],
+            "regularSecondaryOpeningHours": [
+                {
+                    "periods": [
+                        {
+                            "open": {
+                                "truncated": false,
+                                "date": null,
+                                "day": 0,
+                                "_day": "day",
+                                "hour": 0,
+                                "_hour": "hour",
+                                "minute": 0,
+                                "_minute": "minute"
+                            },
+                            "close": null
+                        }
+                    ],
+                    "weekdayDescriptions": [
+                        "Monday: Open 24 hours",
+                        "Tuesday: Open 24 hours",
+                        "Wednesday: Open 24 hours",
+                        "Thursday: Open 24 hours",
+                        "Friday: Open 24 hours",
+                        "Saturday: Open 24 hours",
+                        "Sunday: Open 24 hours"
+                    ],
+                    "specialDays": [],
+                    "secondaryHoursType": "ONLINE_SERVICE_HOURS",
+                    "nextOpenTime": null,
+                    "nextCloseTime": null,
+                    "openNow": true,
+                    "_openNow": "openNow"
+                }
+            ],
+            "reviews": [
+                {
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/reviews/ChdDSUhNMG9nS0VJQ0FnTUN3ODh5VjF3RRAB",
+                    "relativePublishTimeDescription": "4 months ago",
+                    "rating": 5,
+                    "text": {
+                        "text": "MAKING MY DECISION AND CHOOSING ASAP CREDIT REPAIR COUNSELORS..WAS THE BEST DECISION I'VE MADE FOR MYSELF TO HAVE A GREATER FURTHER AHEAD OF MY LIFE.. WORKING WITH MY MANAGER FOR ASAP CREDIT REPAIR COMPANY ZAIREN IS PHENOMENAL.. PROFESSIONAL WORK ETHICS.. EXPERIENCE EXPLAINED HOW EVERYTHING WORKS WHAT HER PLANS ARE LETTING ME KNOW AS A CLIENT THAT SHE'S WORKING TO MAKE SURE IM A SATISFIED CUSTOMER EXPERIENCE WITH ASAP CREDIT REPAIR.. AND KEEPING ME UPDATED ABOUT THE PROCESS GOING FORWARD.. HIGHLY RECOMMENDED TO FRIENDS AND FAMILY AND ASSOCIATES FOR ASAP CREDIT REPAIR COMPANY AND COUNSELORS TEAM.. THAT WILL BE WORKING WITH YOU.. TO MAKE SURE YOU HAVE A GREAT EXPERIENCE WITH YOUR CREDIT REPAIRS.. MRS ZAIREN IS AWESOME PLEASURE WORKING WITH HER AND THE WHOLE CREW OF ASAP CREDIT REPAIR SERVICES THANK GOD FOR DIRECTING ME FOR CHOOSING ASAP CREDIT REPAIR COMPANY ZAIREN RAQUEL MRS CINDY AND MANAGEMENT WORKING WITH ME ON MY TEAM.. TOWARDS A GREAT OUTLOOK FOR MY FUTURE EXPERIENCE WITH MY CREDIT 💳 REPORT.. KEEP UP THE AMAZING WORK GUYS.. MAKE SURE YOU CHOOSE ASAP CREDIT REPAIR COMPANY.. THANK ME LATER.. FRIENDS AND FAMILY MEMBERS ARE ASSOCIATES ANYONE ON GOOGLE REVIEWS GIVE THEM A CALL 🤙🏽🙏🏽👏🏽",
+                        "languageCode": "en"
+                    },
+                    "originalText": {
+                        "text": "MAKING MY DECISION AND CHOOSING ASAP CREDIT REPAIR COUNSELORS..WAS THE BEST DECISION I'VE MADE FOR MYSELF TO HAVE A GREATER FURTHER AHEAD OF MY LIFE.. WORKING WITH MY MANAGER FOR ASAP CREDIT REPAIR COMPANY ZAIREN IS PHENOMENAL.. PROFESSIONAL WORK ETHICS.. EXPERIENCE EXPLAINED HOW EVERYTHING WORKS WHAT HER PLANS ARE LETTING ME KNOW AS A CLIENT THAT SHE'S WORKING TO MAKE SURE IM A SATISFIED CUSTOMER EXPERIENCE WITH ASAP CREDIT REPAIR.. AND KEEPING ME UPDATED ABOUT THE PROCESS GOING FORWARD.. HIGHLY RECOMMENDED TO FRIENDS AND FAMILY AND ASSOCIATES FOR ASAP CREDIT REPAIR COMPANY AND COUNSELORS TEAM.. THAT WILL BE WORKING WITH YOU.. TO MAKE SURE YOU HAVE A GREAT EXPERIENCE WITH YOUR CREDIT REPAIRS.. MRS ZAIREN IS AWESOME PLEASURE WORKING WITH HER AND THE WHOLE CREW OF ASAP CREDIT REPAIR SERVICES THANK GOD FOR DIRECTING ME FOR CHOOSING ASAP CREDIT REPAIR COMPANY ZAIREN RAQUEL MRS CINDY AND MANAGEMENT WORKING WITH ME ON MY TEAM.. TOWARDS A GREAT OUTLOOK FOR MY FUTURE EXPERIENCE WITH MY CREDIT 💳 REPORT.. KEEP UP THE AMAZING WORK GUYS.. MAKE SURE YOU CHOOSE ASAP CREDIT REPAIR COMPANY.. THANK ME LATER.. FRIENDS AND FAMILY MEMBERS ARE ASSOCIATES ANYONE ON GOOGLE REVIEWS GIVE THEM A CALL 🤙🏽🙏🏽👏🏽",
+                        "languageCode": "en"
+                    },
+                    "authorAttribution": {
+                        "displayName": "MO",
+                        "uri": "https://www.google.com/maps/contrib/109566629720699489612/reviews",
+                        "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjUNJH--7aSP9cSWATvodekZx2NVRIGf3uE8yhld-TzGPG_4dzpaxg=s128-c0x00000000-cc-rp-mo-ba4"
+                    },
+                    "publishTime": {
+                        "seconds": "1742528803",
+                        "nanos": 590441000
+                    },
+                    "flagContentUri": "https://www.google.com/local/review/rap/report?postId=ChdDSUhNMG9nS0VJQ0FnTUN3ODh5VjF3RRAB&d=17924085&t=1",
+                    "googleMapsUri": "https://www.google.com/maps/reviews/data=!4m6!14m5!1m4!2m3!1sChdDSUhNMG9nS0VJQ0FnTUN3ODh5VjF3RRAB!2m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/reviews/ChZDSUhNMG9nS0VJQ0FnTURBbDhqWWZ3EAE",
+                    "relativePublishTimeDescription": "5 months ago",
+                    "rating": 5,
+                    "text": {
+                        "text": "ASAP credit has been awsome to work with! The professionalism is top notch, and the results are amazing to see! I am on my second round and I have already seen results! Thank you to Cindy and the team. Cindy you all are the absolute best!",
+                        "languageCode": "en"
+                    },
+                    "originalText": {
+                        "text": "ASAP credit has been awsome to work with! The professionalism is top notch, and the results are amazing to see! I am on my second round and I have already seen results! Thank you to Cindy and the team. Cindy you all are the absolute best!",
+                        "languageCode": "en"
+                    },
+                    "authorAttribution": {
+                        "displayName": "Emmanuel Walker",
+                        "uri": "https://www.google.com/maps/contrib/113187962513572054009/reviews",
+                        "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjWyK8sZHRGg1jLaRHlVgRY6L_fNl0N3bYPbAz5OECoTVl9J9ee6=s128-c0x00000000-cc-rp-mo"
+                    },
+                    "publishTime": {
+                        "seconds": "1739360479",
+                        "nanos": 249340000
+                    },
+                    "flagContentUri": "https://www.google.com/local/review/rap/report?postId=ChZDSUhNMG9nS0VJQ0FnTURBbDhqWWZ3EAE&d=17924085&t=1",
+                    "googleMapsUri": "https://www.google.com/maps/reviews/data=!4m6!14m5!1m4!2m3!1sChZDSUhNMG9nS0VJQ0FnTURBbDhqWWZ3EAE!2m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/reviews/ChdDSUhNMG9nS0VJQ0FnTURBNXFxZnpBRRAB",
+                    "relativePublishTimeDescription": "5 months ago",
+                    "rating": 5,
+                    "text": {
+                        "text": "Cindy! Has been one of the great knowledgeable consultation to assist us in our credit. She takes her time explaining the breakdown on what's going to happen to the end. ASAP is the best company to reach out too for assistance, love this company.",
+                        "languageCode": "en"
+                    },
+                    "originalText": {
+                        "text": "Cindy! Has been one of the great knowledgeable consultation to assist us in our credit. She takes her time explaining the breakdown on what's going to happen to the end. ASAP is the best company to reach out too for assistance, love this company.",
+                        "languageCode": "en"
+                    },
+                    "authorAttribution": {
+                        "displayName": "Kevin Mattix",
+                        "uri": "https://www.google.com/maps/contrib/104014580698611878854/reviews",
+                        "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjVmDUp3vEBDKuvIIdAm-IrxUY74Hm_WpfoZVCunNwAp7TSG7TZH=s128-c0x00000000-cc-rp-mo"
+                    },
+                    "publishTime": {
+                        "seconds": "1739033963",
+                        "nanos": 469004000
+                    },
+                    "flagContentUri": "https://www.google.com/local/review/rap/report?postId=ChdDSUhNMG9nS0VJQ0FnTURBNXFxZnpBRRAB&d=17924085&t=1",
+                    "googleMapsUri": "https://www.google.com/maps/reviews/data=!4m6!14m5!1m4!2m3!1sChdDSUhNMG9nS0VJQ0FnTURBNXFxZnpBRRAB!2m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/reviews/Ci9DQUlRQUNvZENodHljRjlvT25WUWVXNWhPVEpNYVZFNVlXSm5kVVoyVG1kaVVXYxAB",
+                    "relativePublishTimeDescription": "3 weeks ago",
+                    "rating": 5,
+                    "text": {
+                        "text": "All of my experiences with Dex-Ann has all been very positive.  I look forward to continue to work with her with my situation and with my customers.",
+                        "languageCode": "en"
+                    },
+                    "originalText": {
+                        "text": "All of my experiences with Dex-Ann has all been very positive.  I look forward to continue to work with her with my situation and with my customers.",
+                        "languageCode": "en"
+                    },
+                    "authorAttribution": {
+                        "displayName": "Roy Thomas",
+                        "uri": "https://www.google.com/maps/contrib/115164691506012587231/reviews",
+                        "photoUri": "https://lh3.googleusercontent.com/a/ACg8ocLNETYW7CGKUmSkeHuzIg47kLJ3qAY_9C4kWXcgu9T8KtA4g5E=s128-c0x00000000-cc-rp-mo"
+                    },
+                    "publishTime": {
+                        "seconds": "1751319414",
+                        "nanos": 418888346
+                    },
+                    "flagContentUri": "https://www.google.com/local/review/rap/report?postId=Ci9DQUlRQUNvZENodHljRjlvT25WUWVXNWhPVEpNYVZFNVlXSm5kVVoyVG1kaVVXYxAB&d=17924085&t=1",
+                    "googleMapsUri": "https://www.google.com/maps/reviews/data=!4m6!14m5!1m4!2m3!1sCi9DQUlRQUNvZENodHljRjlvT25WUWVXNWhPVEpNYVZFNVlXSm5kVVoyVG1kaVVXYxAB!2m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/reviews/ChZDSUhNMG9nS0VJQ0FnTUNBcE5xMlVREAE",
+                    "relativePublishTimeDescription": "5 months ago",
+                    "rating": 5,
+                    "text": {
+                        "text": "My experience with ASAP Credit Repair has been amazing and Ms Cindy Broadstreet has been nothing short of excellent for me. She has been very informative , helpful and communicative throughout this process for me. I’m glade I decided to go to ASAP Credit Repair for help",
+                        "languageCode": "en"
+                    },
+                    "originalText": {
+                        "text": "My experience with ASAP Credit Repair has been amazing and Ms Cindy Broadstreet has been nothing short of excellent for me. She has been very informative , helpful and communicative throughout this process for me. I’m glade I decided to go to ASAP Credit Repair for help",
+                        "languageCode": "en"
+                    },
+                    "authorAttribution": {
+                        "displayName": "Denzel Broaden",
+                        "uri": "https://www.google.com/maps/contrib/104726088317531962542/reviews",
+                        "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjWgzdVtzzXOQU17bxTWIYhEnoi-xS3sAhFAjwXVfzUy9wC8MhNSJg=s128-c0x00000000-cc-rp-mo"
+                    },
+                    "publishTime": {
+                        "seconds": "1738170382",
+                        "nanos": 582144000
+                    },
+                    "flagContentUri": "https://www.google.com/local/review/rap/report?postId=ChZDSUhNMG9nS0VJQ0FnTUNBcE5xMlVREAE&d=17924085&t=1",
+                    "googleMapsUri": "https://www.google.com/maps/reviews/data=!4m6!14m5!1m4!2m3!1sChZDSUhNMG9nS0VJQ0FnTUNBcE5xMlVREAE!2m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                }
+            ],
+            "photos": [
+                {
+                    "authorAttributions": [
+                        {
+                            "displayName": "ASAP Credit Repair",
+                            "uri": "https://maps.google.com/maps/contrib/101548810038266886740",
+                            "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjXZq-GlJktnILRVRmTRCtMvkH6MawjiElUeinHBwtP3SuDr0yG6=s100-p-k-no-mo"
+                        }
+                    ],
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/photos/ATKogpfBuGS4fjricl2vtLma_zqZ80IUkoKoZ6n9Gl1CoiQ8gwmROPx71Rd-4a1I0TB8yCFqqYRaPIGgNLnaQC-a3jsKge2O9S5eSPrSCe07FYe9NS5WNa1DwEeZx6wBJ9mUwcH3bI0-tLBkGHP7bddNaDsTMZk9Gx_SXH3sduO_lnYW6rzC1MZ45cz8VskJGcUXkqozfRSe4meY-N5tbBtlv-436ZoiZLAOSS88Bby2IX_pkXVUybKCx0tSIJm95hnmlQhb7Q3KrlOaKuTMCd2z5estdt_4eQAmawgQ_Bi_p8-2YA",
+                    "widthPx": 3024,
+                    "heightPx": 4032,
+                    "flagContentUri": "https://www.google.com/local/imagery/report/?cb_client=maps_api_places.places_api&image_key=!1e10!2sAF1QipOiJeIB1J-Ln7DIFeCfVg84mVoUw6xV-uMrvwiI&hl=en&gl=us",
+                    "googleMapsUri": "https://www.google.com/maps/place//data=!3m4!1e2!3m2!1sAF1QipOiJeIB1J-Ln7DIFeCfVg84mVoUw6xV-uMrvwiI!2e10!4m2!3m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "authorAttributions": [
+                        {
+                            "displayName": "ASAP Credit Repair",
+                            "uri": "https://maps.google.com/maps/contrib/101548810038266886740",
+                            "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjXZq-GlJktnILRVRmTRCtMvkH6MawjiElUeinHBwtP3SuDr0yG6=s100-p-k-no-mo"
+                        }
+                    ],
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/photos/ATKogpfnXxtn7KkLB7FgIXKK4w7ThHOqNXjRCR3lEzVyX3Ke39PS_PoWxxsehq43dlulTDfqXJbSWfRyZVK6kqfIoXnnhEMusLEjHBpsGH4esYXCCGSRbgaidjpKswc_vDw2Iwm9SuGhwqg5IOxwUvl_eSEt14oT_3nPR3CAJg067_hSSERBx_hyjHee1yl4uVUWAKAQDTtLyNE2xPOmQg8HyJJ9a03mmmm-B5XlD3U4VAwJt9GDoakbl2qr6l5EBmjEWyPsVQNbLuWFJSmv_ysh3AoHZurf2-Teiabz3Bnc_xE54g",
+                    "widthPx": 4032,
+                    "heightPx": 3024,
+                    "flagContentUri": "https://www.google.com/local/imagery/report/?cb_client=maps_api_places.places_api&image_key=!1e10!2sAF1QipM4NZPc4jeJD7mCpMzRPYcMln1yiXqOBvRitzgc&hl=en&gl=us",
+                    "googleMapsUri": "https://www.google.com/maps/place//data=!3m4!1e2!3m2!1sAF1QipM4NZPc4jeJD7mCpMzRPYcMln1yiXqOBvRitzgc!2e10!4m2!3m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "authorAttributions": [
+                        {
+                            "displayName": "ASAP Credit Repair",
+                            "uri": "https://maps.google.com/maps/contrib/101548810038266886740",
+                            "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjXZq-GlJktnILRVRmTRCtMvkH6MawjiElUeinHBwtP3SuDr0yG6=s100-p-k-no-mo"
+                        }
+                    ],
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/photos/ATKogpfh_IBFSTIWxJEkJoOddboOw3yamv98Z9U55PU1FKHQ4Oh9SBPbRZhzZZOp2pp1cSaEb9R_eXEKPpT3Urt5FrCIkmrBEEfJ9t5L_tDicqKQujQ-fHuUOsAtN_nzGybTvdTp7x9mmAyc3CYfPSxofZMEQGx1E8xqBLNkrRWxVLFaaI7oGowzWPCtlblrqsB-c7nyWIysJvzE3DlGduXWFH52RkRVwMH1JyY7USzvMvRZjPDWHg1mf7D6tI4VTRd53XwmPCNx_PC8hYrbxmYXOOatDO9H_OhwRVnS6ivDsfqN-Q",
+                    "widthPx": 3024,
+                    "heightPx": 4032,
+                    "flagContentUri": "https://www.google.com/local/imagery/report/?cb_client=maps_api_places.places_api&image_key=!1e10!2sAF1QipOFpC9IVQQUgxNtzcizcaJqGSGmE_jQFuknsndD&hl=en&gl=us",
+                    "googleMapsUri": "https://www.google.com/maps/place//data=!3m4!1e2!3m2!1sAF1QipOFpC9IVQQUgxNtzcizcaJqGSGmE_jQFuknsndD!2e10!4m2!3m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "authorAttributions": [
+                        {
+                            "displayName": "ASAP Credit Repair",
+                            "uri": "https://maps.google.com/maps/contrib/101548810038266886740",
+                            "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjXZq-GlJktnILRVRmTRCtMvkH6MawjiElUeinHBwtP3SuDr0yG6=s100-p-k-no-mo"
+                        }
+                    ],
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/photos/ATKogpelBGftAJcJ128o8EcgAEvl9OD7G_mpB3otoxUG99C8q02nSFxzQAL8yzZBEVCJr4nlOnMBou39Vnxh3nlxoVh35NhP_liRcMDPRUykiL_d5pGGAZzrvEO1MlWEkzJisMoo-u1H_iYD6SUhRr8iIZZ4f2GIeKHS1TVnfGJXgKUwC7IvZSIJllT-CxBZjAFUgPlmDjjNx9odJuDMDgRWYkCkPcMZseyLiK-Pt27KABQE5pOtIWa35I7AKUFbUYaTsfFaIT_C3zptHF3PHCt_i0QT7ymwE8ulg6dahRXr3dpapQ",
+                    "widthPx": 3024,
+                    "heightPx": 4032,
+                    "flagContentUri": "https://www.google.com/local/imagery/report/?cb_client=maps_api_places.places_api&image_key=!1e10!2sAF1QipObh5PSXWlYaH2OuohfI8lEsVyVCnqBP8pzYoUu&hl=en&gl=us",
+                    "googleMapsUri": "https://www.google.com/maps/place//data=!3m4!1e2!3m2!1sAF1QipObh5PSXWlYaH2OuohfI8lEsVyVCnqBP8pzYoUu!2e10!4m2!3m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "authorAttributions": [
+                        {
+                            "displayName": "ASAP Credit Repair",
+                            "uri": "https://maps.google.com/maps/contrib/101548810038266886740",
+                            "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjXZq-GlJktnILRVRmTRCtMvkH6MawjiElUeinHBwtP3SuDr0yG6=s100-p-k-no-mo"
+                        }
+                    ],
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/photos/ATKogpeIQcqnan__AV2BKtd7VjHiBbVaUcqxUxaMSQSBIAMcYm_WMdxNzjtEhwcHo8bBPxMtfGhiOgrbX7URsjYyihE4n0xFzFOLAAa-sYyZErQ3HbF2IWUmoZb-pEwOeQmuYwWOuJPoBW8T2N4FZ6dOw_EEqXrQgNq2fOBDV8-N-9aJuaeKYR26sVPIXXkwuIBkjDZDzbptnyn02h-TPYxd5tuly75cVwoVjSunWIoQySyNxWPd2icUS6UjvueHfIPXFwoUif2MTDG15-Ywu--PeHrzA1s1JKJ0pZFtDH4tmY94FA",
+                    "widthPx": 4032,
+                    "heightPx": 3024,
+                    "flagContentUri": "https://www.google.com/local/imagery/report/?cb_client=maps_api_places.places_api&image_key=!1e10!2sAF1QipO5EEWZ3zI3SvOUtdJi2CsJuRZUxKkCs33AcKSE&hl=en&gl=us",
+                    "googleMapsUri": "https://www.google.com/maps/place//data=!3m4!1e2!3m2!1sAF1QipO5EEWZ3zI3SvOUtdJi2CsJuRZUxKkCs33AcKSE!2e10!4m2!3m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "authorAttributions": [
+                        {
+                            "displayName": "ASAP Credit Repair",
+                            "uri": "https://maps.google.com/maps/contrib/101548810038266886740",
+                            "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjXZq-GlJktnILRVRmTRCtMvkH6MawjiElUeinHBwtP3SuDr0yG6=s100-p-k-no-mo"
+                        }
+                    ],
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/photos/ATKogpcLnG1mOxstYT0M5EOQx1jj8VW06sYydrRrobT_Nb9Mj1Adxx7qmPdXFihrtPTlb-qrTEoFoldVpZSkeRrK4gTUb2_2QyWokST90h4vWAVVlzuDfZSk2A-lrXq5d8vWbs73SRt59b5xy--nnlTZ61Yf7m6Rw_F6atB4m7rpifEKWNmPKM_bzYaShkLFcbbaX25xcJqJud0mtKrxdZKeSAM9evdZuf1KshGbfALHgZMTJkmm0ORDRWTamgZHbr_isfZloVCYMZu3cjyao5i0POnKM78H_84s2hC2jAl93RjN5A",
+                    "widthPx": 3024,
+                    "heightPx": 4032,
+                    "flagContentUri": "https://www.google.com/local/imagery/report/?cb_client=maps_api_places.places_api&image_key=!1e10!2sAF1QipOsJn5M8YUEIBE4_PZcYpk1rHhliOEsoIPYYZJi&hl=en&gl=us",
+                    "googleMapsUri": "https://www.google.com/maps/place//data=!3m4!1e2!3m2!1sAF1QipOsJn5M8YUEIBE4_PZcYpk1rHhliOEsoIPYYZJi!2e10!4m2!3m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "authorAttributions": [
+                        {
+                            "displayName": "ASAP Credit Repair",
+                            "uri": "https://maps.google.com/maps/contrib/101548810038266886740",
+                            "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjXZq-GlJktnILRVRmTRCtMvkH6MawjiElUeinHBwtP3SuDr0yG6=s100-p-k-no-mo"
+                        }
+                    ],
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/photos/ATKogpfPYFEbGL6KjUEYGNnt-rdDtH7hi8V1GDTzhMd9FFdJNbK01O-hi41YSBXxu75fd0qM7mYtSgSbK88saGrbr_r10B4vgIk8LpyK6EqE_h2XLDu9XOfPnT46a-eJggdyLgsL6hbg2tsJHyOSTqHgwQo9v8yi-hIe4RK9ZkaBAhP4_hKGB4-SdYfp5feEqbHgN59YAKFxKLyZdt_yyZsHpu9lbmjxazpv5nrxM-G5uCDwk9Gzh6vaEnyYgIhKbBsUDGnz8NoaIunQf5nM1fVhXikdo4gxu6Dysac_fm2LBNZ0ew",
+                    "widthPx": 1980,
+                    "heightPx": 3520,
+                    "flagContentUri": "https://www.google.com/local/imagery/report/?cb_client=maps_api_places.places_api&image_key=!1e10!2sAF1QipPLeRfumZTOn4nojBwOjDrvLwQQqhMAXc2UotsB&hl=en&gl=us",
+                    "googleMapsUri": "https://www.google.com/maps/place//data=!3m4!1e2!3m2!1sAF1QipPLeRfumZTOn4nojBwOjDrvLwQQqhMAXc2UotsB!2e10!4m2!3m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "authorAttributions": [
+                        {
+                            "displayName": "ASAP Credit Repair",
+                            "uri": "https://maps.google.com/maps/contrib/101548810038266886740",
+                            "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjXZq-GlJktnILRVRmTRCtMvkH6MawjiElUeinHBwtP3SuDr0yG6=s100-p-k-no-mo"
+                        }
+                    ],
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/photos/ATKogpfsuTDvrYcPctW73WDdHZzLq0VsFxnWNnz7ygf5iKlXT9I9Tc6VPtyLKgrB0HxsG7LRx0A-0CyyGnslajOYBe-mltAiSP-0GJrY42wurfWlVrABzou28a5fZxtPcXtkaqKaVLtBuOgCre5khriYTs_MLX_eqoHemj5gMrziZPhEtMU6AiIHQtuYt0WodlICluUG-4wR1xDLg46n2-afttE3LBU6MCky_A1hn3WtsqgY2_uqb1kKwLtlchIxKIFr7k9CAPYF-eEoVq5MhRe3YuWWDcEXb2GPU03E650ND1a8tg",
+                    "widthPx": 720,
+                    "heightPx": 960,
+                    "flagContentUri": "https://www.google.com/local/imagery/report/?cb_client=maps_api_places.places_api&image_key=!1e10!2sAF1QipNgzGQgpTthtXNJeEN947WXTU_EeoQCCfBj2ORx&hl=en&gl=us",
+                    "googleMapsUri": "https://www.google.com/maps/place//data=!3m4!1e2!3m2!1sAF1QipNgzGQgpTthtXNJeEN947WXTU_EeoQCCfBj2ORx!2e10!4m2!3m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "authorAttributions": [
+                        {
+                            "displayName": "ASAP Credit Repair",
+                            "uri": "https://maps.google.com/maps/contrib/101548810038266886740",
+                            "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjXZq-GlJktnILRVRmTRCtMvkH6MawjiElUeinHBwtP3SuDr0yG6=s100-p-k-no-mo"
+                        }
+                    ],
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/photos/ATKogpdgfwTYyiL4HeSW-zrn2fLm1Ygm7RU_bfjoaAvPAxS1GLvYgoo5-RxMZ_k7nlpr3ZwtgYklUXIaxRzROH3qP-0ENBpYhzzeednMMAk0tfCktxpqhToUeKSC3Jv1Q-wdhfMzJMNW_V8YQikuOf9mkQb_UI_rVHtNLNRfwodyaqOc63f3Kd7x7u-HlOjeY3met8GJ5vWDD9Dn8ew_Rmk3F-mZI0kbxUCDOhehIKZDE21hxjFA5Zy_trbBm_AXZ-igFX8K6g3R_F6UZ0jMZyyl930alcdJM1FT10Q-sfuGs0YkSQ",
+                    "widthPx": 1600,
+                    "heightPx": 1200,
+                    "flagContentUri": "https://www.google.com/local/imagery/report/?cb_client=maps_api_places.places_api&image_key=!1e10!2sAF1QipOGGvzjXBEgnTL5EfntlhehFTYBSuMREAXYzPf6&hl=en&gl=us",
+                    "googleMapsUri": "https://www.google.com/maps/place//data=!3m4!1e2!3m2!1sAF1QipOGGvzjXBEgnTL5EfntlhehFTYBSuMREAXYzPf6!2e10!4m2!3m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                },
+                {
+                    "authorAttributions": [
+                        {
+                            "displayName": "ASAP Credit Repair",
+                            "uri": "https://maps.google.com/maps/contrib/101548810038266886740",
+                            "photoUri": "https://lh3.googleusercontent.com/a-/ALV-UjXZq-GlJktnILRVRmTRCtMvkH6MawjiElUeinHBwtP3SuDr0yG6=s100-p-k-no-mo"
+                        }
+                    ],
+                    "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o/photos/ATKogpcT33RhEONCa1CoQiTF86KPrqkdvQaoz7at7nmB3iX1_LZ0RPqZMjMsckC_ZoXuMDaFUWEthmLCg6NNTtfztiBxONtC7HsUHCg9_qFIahdfRVduqc3v3zENt2xxbPSuEh8ivdFiCWaNiHx-c23FnN3yNnssB1Vt_uCsA43E48l2qakC-fHUEPPknHdd9k7YEGktYws4OjJEpmOlki_dp2-AGNU4fg36ZDukXWyKrCZRNJMtF15SeOBmLLPScEujVEh_eYzbeEqZIxtKNOkqDt84Wp2UcGeCxvZXsoo0d-uPzA",
+                    "widthPx": 4032,
+                    "heightPx": 3024,
+                    "flagContentUri": "https://www.google.com/local/imagery/report/?cb_client=maps_api_places.places_api&image_key=!1e10!2sAF1QipOnKFcnWpwuqIABDGcEfPSEJMQCiKA9OZypRZ7U&hl=en&gl=us",
+                    "googleMapsUri": "https://www.google.com/maps/place//data=!3m4!1e2!3m2!1sAF1QipOnKFcnWpwuqIABDGcEfPSEJMQCiKA9OZypRZ7U!2e10!4m2!3m1!1s0x8640db96c7ca875d:0xea0f0d729eb2852f"
+                }
+            ],
+            "subDestinations": [],
+            "containingPlaces": [
+                {
+                    "name": "places/ChIJbQ1qF8rZQIYRVfRg60qN5tA",
+                    "id": "ChIJbQ1qF8rZQIYRVfRg60qN5tA"
+                }
+            ],
+            "name": "places/ChIJXYfKx5bbQIYRL4WynnIND-o",
+            "id": "ChIJXYfKx5bbQIYRL4WynnIND-o",
+            "nationalPhoneNumber": "(281) 545-5001",
+            "internationalPhoneNumber": "+1 281-545-5001",
+            "formattedAddress": "15915 Katy Fwy #555, Houston, TX 77094",
+            "plusCode": {
+                "globalCode": "76X6Q8MQ+8F",
+                "compoundCode": "Q8MQ+8F Energy Corridor, Houston, TX"
+            },
+            "location": {
+                "latitude": 29.783282800000002,
+                "longitude": -95.6613245
+            },
+            "viewport": {
+                "low": {
+                    "latitude": 29.7819333197085,
+                    "longitude": -95.6626948802915
+                },
+                "high": {
+                    "latitude": 29.7846312802915,
+                    "longitude": -95.65999691970849
+                }
+            },
+            "rating": 4.8,
+            "googleMapsUri": "https://maps.google.com/?cid=16865713915465729327&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQABgEIAA",
+            "websiteUri": "https://www.asapcreditrepairusa.com/",
+            "regularOpeningHours": {
+                "periods": [
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 1,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 1,
+                            "_day": "day",
+                            "hour": 19,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    },
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 2,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 2,
+                            "_day": "day",
+                            "hour": 19,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    },
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 3,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 3,
+                            "_day": "day",
+                            "hour": 19,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    },
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 4,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 4,
+                            "_day": "day",
+                            "hour": 19,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    },
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 5,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 5,
+                            "_day": "day",
+                            "hour": 19,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    },
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 6,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": null,
+                            "day": 6,
+                            "_day": "day",
+                            "hour": 16,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    }
+                ],
+                "weekdayDescriptions": [
+                    "Monday: 8:00 AM – 7:00 PM",
+                    "Tuesday: 8:00 AM – 7:00 PM",
+                    "Wednesday: 8:00 AM – 7:00 PM",
+                    "Thursday: 8:00 AM – 7:00 PM",
+                    "Friday: 8:00 AM – 7:00 PM",
+                    "Saturday: 8:00 AM – 4:00 PM",
+                    "Sunday: Closed"
+                ],
+                "specialDays": [],
+                "secondaryHoursType": "SECONDARY_HOURS_TYPE_UNSPECIFIED",
+                "nextOpenTime": {
+                    "seconds": "1753275600",
+                    "nanos": 0
+                },
+                "nextCloseTime": null,
+                "openNow": false,
+                "_openNow": "openNow"
+            },
+            "adrFormatAddress": "<span class=\"street-address\">15915 Katy Fwy #555</span>, <span class=\"locality\">Houston</span>, <span class=\"region\">TX</span> <span class=\"postal-code\">77094-1708</span>, <span class=\"country-name\">USA</span>",
+            "businessStatus": "OPERATIONAL",
+            "priceLevel": "PRICE_LEVEL_UNSPECIFIED",
+            "iconMaskBaseUri": "https://maps.gstatic.com/mapfiles/place_api/icons/v2/generic_pinlet",
+            "iconBackgroundColor": "#7B9EB0",
+            "displayName": {
+                "text": "ASAP Credit Repair",
+                "languageCode": "en"
+            },
+            "primaryTypeDisplayName": {
+                "text": "Consultant",
+                "languageCode": "en"
+            },
+            "currentOpeningHours": {
+                "periods": [
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 28
+                            },
+                            "day": 1,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 28
+                            },
+                            "day": 1,
+                            "_day": "day",
+                            "hour": 19,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    },
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 29
+                            },
+                            "day": 2,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 29
+                            },
+                            "day": 2,
+                            "_day": "day",
+                            "hour": 19,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    },
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 23
+                            },
+                            "day": 3,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 23
+                            },
+                            "day": 3,
+                            "_day": "day",
+                            "hour": 19,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    },
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 24
+                            },
+                            "day": 4,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 24
+                            },
+                            "day": 4,
+                            "_day": "day",
+                            "hour": 19,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    },
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 25
+                            },
+                            "day": 5,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 25
+                            },
+                            "day": 5,
+                            "_day": "day",
+                            "hour": 19,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    },
+                    {
+                        "open": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 26
+                            },
+                            "day": 6,
+                            "_day": "day",
+                            "hour": 8,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        },
+                        "close": {
+                            "truncated": false,
+                            "date": {
+                                "year": 2025,
+                                "month": 7,
+                                "day": 26
+                            },
+                            "day": 6,
+                            "_day": "day",
+                            "hour": 16,
+                            "_hour": "hour",
+                            "minute": 0,
+                            "_minute": "minute"
+                        }
+                    }
+                ],
+                "weekdayDescriptions": [
+                    "Monday: 8:00 AM – 7:00 PM",
+                    "Tuesday: 8:00 AM – 7:00 PM",
+                    "Wednesday: 8:00 AM – 7:00 PM",
+                    "Thursday: 8:00 AM – 7:00 PM",
+                    "Friday: 8:00 AM – 7:00 PM",
+                    "Saturday: 8:00 AM – 4:00 PM",
+                    "Sunday: Closed"
+                ],
+                "specialDays": [],
+                "secondaryHoursType": "SECONDARY_HOURS_TYPE_UNSPECIFIED",
+                "nextOpenTime": {
+                    "seconds": "1753275600",
+                    "nanos": 0
+                },
+                "nextCloseTime": null,
+                "openNow": false,
+                "_openNow": "openNow"
+            },
+            "primaryType": "consultant",
+            "shortFormattedAddress": "15915 Katy Fwy #555, Houston",
+            "editorialSummary": null,
+            "paymentOptions": null,
+            "parkingOptions": null,
+            "fuelOptions": null,
+            "evChargeOptions": null,
+            "generativeSummary": {
+                "overview": {
+                    "text": "Credit reporting agency that specializes in disputing inaccuracies and negative items.",
+                    "languageCode": "en-US"
+                },
+                "overviewFlagContentUri": "https://www.google.com/local/review/rap/report?postId=CiUweDg2NDBkYjk2YzdjYTg3NWQ6MHhlYTBmMGQ3MjllYjI4NTJmMAI&d=17924085&t=12",
+                "disclosureText": {
+                    "text": "Summarized with Gemini",
+                    "languageCode": "en-US"
+                }
+            },
+            "addressDescriptor": {
+                "landmarks": [
+                    {
+                        "types": [
+                            "establishment",
+                            "furniture_store",
+                            "home_goods_store",
+                            "point_of_interest",
+                            "store"
+                        ],
+                        "name": "places/ChIJryQL42nZQIYR1llF_gnbWeQ",
+                        "placeId": "ChIJryQL42nZQIYR1llF_gnbWeQ",
+                        "displayName": {
+                            "text": "La-Z-Boy Home Furnishings & Décor",
+                            "languageCode": "en"
+                        },
+                        "spatialRelationship": "NEAR",
+                        "straightLineDistanceMeters": 102.45370483398438,
+                        "travelDistanceMeters": 180.51564025878906,
+                        "_travelDistanceMeters": "travelDistanceMeters"
+                    },
+                    {
+                        "types": [
+                            "car_dealer",
+                            "establishment",
+                            "point_of_interest",
+                            "store"
+                        ],
+                        "name": "places/ChIJt-gN9wfZQIYRPsQL5Q8zB2I",
+                        "placeId": "ChIJt-gN9wfZQIYRPsQL5Q8zB2I",
+                        "displayName": {
+                            "text": "Audi West Houston",
+                            "languageCode": "en"
+                        },
+                        "spatialRelationship": "NEAR",
+                        "straightLineDistanceMeters": 243.7412872314453,
+                        "travelDistanceMeters": 401.76275634765625,
+                        "_travelDistanceMeters": "travelDistanceMeters"
+                    },
+                    {
+                        "types": [
+                            "establishment",
+                            "health",
+                            "point_of_interest"
+                        ],
+                        "name": "places/ChIJUyt8rmXBQIYRfqoRLw0mg_s",
+                        "placeId": "ChIJUyt8rmXBQIYRfqoRLw0mg_s",
+                        "displayName": {
+                            "text": "Pulse Staffing",
+                            "languageCode": "en"
+                        },
+                        "spatialRelationship": "AROUND_THE_CORNER",
+                        "straightLineDistanceMeters": 77.222900390625,
+                        "travelDistanceMeters": 131.59390258789062,
+                        "_travelDistanceMeters": "travelDistanceMeters"
+                    },
+                    {
+                        "types": [
+                            "establishment",
+                            "general_contractor",
+                            "point_of_interest"
+                        ],
+                        "name": "places/ChIJJSlIvNbcQIYRPipmA-8ejjs",
+                        "placeId": "ChIJJSlIvNbcQIYRPipmA-8ejjs",
+                        "displayName": {
+                            "text": "IDCUS Inc.",
+                            "languageCode": "en"
+                        },
+                        "spatialRelationship": "AROUND_THE_CORNER",
+                        "straightLineDistanceMeters": 77.222900390625,
+                        "travelDistanceMeters": 131.59390258789062,
+                        "_travelDistanceMeters": "travelDistanceMeters"
+                    },
+                    {
+                        "types": [
+                            "car_dealer",
+                            "establishment",
+                            "finance",
+                            "point_of_interest",
+                            "store"
+                        ],
+                        "name": "places/ChIJAQDACmrZQIYRVjOW2PubCbA",
+                        "placeId": "ChIJAQDACmrZQIYRVjOW2PubCbA",
+                        "displayName": {
+                            "text": "Volvo Cars West Houston",
+                            "languageCode": "en"
+                        },
+                        "spatialRelationship": "NEAR",
+                        "straightLineDistanceMeters": 147.1617889404297,
+                        "travelDistanceMeters": 308.82342529296875,
+                        "_travelDistanceMeters": "travelDistanceMeters"
+                    }
+                ],
+                "areas": [
+                    {
+                        "name": "places/ChIJ_RGugsreQIYRYcnzEFGWRwM",
+                        "placeId": "ChIJ_RGugsreQIYRYcnzEFGWRwM",
+                        "displayName": {
+                            "text": "Energy Corridor",
+                            "languageCode": "en"
+                        },
+                        "containment": "OUTSKIRTS"
+                    },
+                    {
+                        "name": "places/ChIJn9yerGTbQIYR7LtcGN5A2WM",
+                        "placeId": "ChIJn9yerGTbQIYR7LtcGN5A2WM",
+                        "displayName": {
+                            "text": "Memorial",
+                            "languageCode": "en"
+                        },
+                        "containment": "OUTSKIRTS"
+                    },
+                    {
+                        "name": "places/ChIJF2irz03cQIYRYqukl68Qw6U",
+                        "placeId": "ChIJF2irz03cQIYRYqukl68Qw6U",
+                        "displayName": {
+                            "text": "Westside",
+                            "languageCode": "en"
+                        },
+                        "containment": "OUTSKIRTS"
+                    }
+                ]
+            },
+            "priceRange": null,
+            "reviewSummary": null,
+            "timeZone": {
+                "id": "America/Chicago",
+                "version": ""
+            },
+            "evChargeAmenitySummary": null,
+            "postalAddress": {
+                "addressLines": [
+                    "15915 Katy Fwy #555"
+                ],
+                "recipients": [],
+                "revision": 0,
+                "regionCode": "US",
+                "languageCode": "en",
+                "postalCode": "77094-1708",
+                "sortingCode": "",
+                "administrativeArea": "TX",
+                "locality": "Houston",
+                "sublocality": "",
+                "organization": ""
+            },
+            "neighborhoodSummary": null,
+            "utcOffsetMinutes": -300,
+            "_utcOffsetMinutes": "utcOffsetMinutes",
+            "userRatingCount": 1763,
+            "_userRatingCount": "userRatingCount",
+            "restroom": true,
+            "_restroom": "restroom",
+            "accessibilityOptions": {
+                "wheelchairAccessibleParking": true,
+                "_wheelchairAccessibleParking": "wheelchairAccessibleParking",
+                "wheelchairAccessibleEntrance": true,
+                "_wheelchairAccessibleEntrance": "wheelchairAccessibleEntrance",
+                "wheelchairAccessibleRestroom": true,
+                "_wheelchairAccessibleRestroom": "wheelchairAccessibleRestroom",
+                "wheelchairAccessibleSeating": true,
+                "_wheelchairAccessibleSeating": "wheelchairAccessibleSeating"
+            },
+            "_accessibilityOptions": "accessibilityOptions"
+        }
+    ],
+    "dataForSEO": [
+        {
+            "title": "ASAP Credit Repair | Trusted Credit Repair Services with 20+ ...",
+            "website": "https://asapcreditrepairusa.com/",
+            "rating": null,
+            "type": "organic",
+            "rank_group": 1,
+            "rank_absolute": 1,
+            "position": "left",
+            "xpath": "/html[1]/body[1]/div[3]/div[1]/div[13]/div[1]/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[3]/div[12]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]",
+            "domain": "asapcreditrepairusa.com",
+            "url": "https://asapcreditrepairusa.com/",
+            "cache_url": null,
+            "related_search_url": null,
+            "breadcrumb": "https://asapcreditrepairusa.com",
+            "website_name": "ASAP Credit Repair",
+            "is_image": false,
+            "is_video": false,
+            "is_featured_snippet": false,
+            "is_malicious": false,
+            "is_web_story": false,
+            "description": "Improve your credit score with ASAP Credit Repair USA. Benefit from our 20+ years of experience, 100% money-back guarantee, and 73% average success rate.",
+            "pre_snippet": null,
+            "extended_snippet": null,
+            "images": null,
+            "amp_version": false,
+            "price": null,
+            "highlighted": [
+                "ASAP Credit Repair USA"
+            ],
+            "links": [
+                {
+                    "type": "link_element",
+                    "title": "Improve Your Credit Score Fast",
+                    "description": "Introducing the next generation of credit repair. It's just ...",
+                    "url": "https://asapcreditrepairusa.com/how-it-works.php",
+                    "domain": "asapcreditrepairusa.com"
+                },
+                {
+                    "type": "link_element",
+                    "title": "Meet the Team",
+                    "description": "ASAP Credit Repair is a Family-Owned and Operated Credit ...",
+                    "url": "https://asapcreditrepairusa.com/about-us.php",
+                    "domain": "asapcreditrepairusa.com"
+                },
+                {
+                    "type": "link_element",
+                    "title": "Contact Us",
+                    "description": "Need to get in touch with ASAP Credit Repair? Contact us via ...",
+                    "url": "https://asapcreditrepairusa.com/contact.php",
+                    "domain": "asapcreditrepairusa.com"
+                },
+                {
+                    "type": "link_element",
+                    "title": "ASAP Credit Repair San Jose",
+                    "description": "ASAP Credit Repair San Jose will help you repair your credit ...",
+                    "url": "https://sanjose.asapcreditrepairusa.com/",
+                    "domain": "sanjose.asapcreditrepairusa.com"
+                },
+                {
+                    "type": "link_element",
+                    "title": "ASAP Credit Repair San Antonio",
+                    "description": "ASAP Credit Repair San Antonio will help you repair your credit ...",
+                    "url": "https://sanantonio.asapcreditrepairusa.com/",
+                    "domain": "sanantonio.asapcreditrepairusa.com"
+                }
+            ],
+            "faq": null,
+            "extended_people_also_search": null,
+            "about_this_result": null,
+            "related_result": null,
+            "timestamp": null,
+            "rectangle": null
+        },
+        {
+            "title": "ASAP Credit Repair (@asapcreditrepairusa)",
+            "website": "https://www.instagram.com/asapcreditrepairusa/?hl=en",
+            "rating": null,
+            "type": "organic",
+            "rank_group": 2,
+            "rank_absolute": 3,
+            "position": "left",
+            "xpath": "/html[1]/body[1]/div[3]/div[1]/div[13]/div[1]/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[3]/div[14]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]",
+            "domain": "www.instagram.com",
+            "url": "https://www.instagram.com/asapcreditrepairusa/?hl=en",
+            "cache_url": null,
+            "related_search_url": null,
+            "breadcrumb": "9.6K+ followers",
+            "website_name": "Instagram · asapcreditrepairusa",
+            "is_image": false,
+            "is_video": false,
+            "is_featured_snippet": false,
+            "is_malicious": false,
+            "is_web_story": false,
+            "description": "Call or Text us anytime! 713-927-9979 Click the link and get paid to refer us clients! #creditrepair #creditreport #creditscores #newhome #newcarSee more",
+            "pre_snippet": null,
+            "extended_snippet": null,
+            "images": null,
+            "amp_version": false,
+            "price": null,
+            "highlighted": [
+                "713-927-9979",
+                "See more"
+            ],
+            "links": null,
+            "faq": null,
+            "extended_people_also_search": null,
+            "about_this_result": null,
+            "related_result": null,
+            "timestamp": null,
+            "rectangle": null
+        },
+        {
+            "title": "ASAP Credit Repair",
+            "website": "https://www.facebook.com/ASAPCreditRepairUSA/",
+            "rating": null,
+            "type": "organic",
+            "rank_group": 3,
+            "rank_absolute": 4,
+            "position": "left",
+            "xpath": "/html[1]/body[1]/div[3]/div[1]/div[13]/div[1]/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[3]/div[15]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]",
+            "domain": "www.facebook.com",
+            "url": "https://www.facebook.com/ASAPCreditRepairUSA/",
+            "cache_url": null,
+            "related_search_url": null,
+            "breadcrumb": "17.7K+ followers",
+            "website_name": "Facebook · ASAP Credit Repair",
+            "is_image": false,
+            "is_video": false,
+            "is_featured_snippet": false,
+            "is_malicious": false,
+            "is_web_story": false,
+            "description": "A 60-90 day family owned and operated credit repair company. We work with individuals and businesses to help them repair their credit.See more",
+            "pre_snippet": null,
+            "extended_snippet": null,
+            "images": null,
+            "amp_version": false,
+            "price": null,
+            "highlighted": [
+                "A 60-90 day family owned and operated credit repair company",
+                "See more"
+            ],
+            "links": null,
+            "faq": null,
+            "extended_people_also_search": null,
+            "about_this_result": null,
+            "related_result": null,
+            "timestamp": null,
+            "rectangle": null
+        },
+        {
+            "title": "ASAP Credit Repair | BBB Business Profile",
+            "website": "https://www.bbb.org/us/tx/houston/profile/credit-repair-services/asap-credit-repair-0915-90050669",
+            "rating": null,
+            "type": "organic",
+            "rank_group": 4,
+            "rank_absolute": 5,
+            "position": "left",
+            "xpath": "/html[1]/body[1]/div[3]/div[1]/div[13]/div[1]/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[3]/div[16]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]",
+            "domain": "www.bbb.org",
+            "url": "https://www.bbb.org/us/tx/houston/profile/credit-repair-services/asap-credit-repair-0915-90050669",
+            "cache_url": null,
+            "related_search_url": null,
+            "breadcrumb": "https://www.bbb.org › ... › Credit Repair Services",
+            "website_name": "Better Business Bureau",
+            "is_image": false,
+            "is_video": false,
+            "is_featured_snippet": false,
+            "is_malicious": false,
+            "is_web_story": false,
+            "description": "ASAP Credit Repair. 1880 S. Dairy Ashford STE 425 Houston, TX 77077 · ASAP Credit Repair. 4446 West 76th Street Edina, MN 55369.See more",
+            "pre_snippet": null,
+            "extended_snippet": null,
+            "images": null,
+            "amp_version": false,
+            "price": null,
+            "highlighted": [
+                "1880 S. Dairy Ashford STE 425 Houston, TX 77077",
+                "See more"
+            ],
+            "links": null,
+            "faq": null,
+            "extended_people_also_search": null,
+            "about_this_result": null,
+            "related_result": null,
+            "timestamp": null,
+            "rectangle": null
+        },
+        {
+            "title": "Recommended Reviews - ASAP Credit Repair",
+            "website": "https://www.yelp.com/biz/asap-credit-repair-houston",
+            "rating": null,
+            "type": "organic",
+            "rank_group": 5,
+            "rank_absolute": 6,
+            "position": "left",
+            "xpath": "/html[1]/body[1]/div[3]/div[1]/div[13]/div[1]/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[3]/div[17]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]",
+            "domain": "www.yelp.com",
+            "url": "https://www.yelp.com/biz/asap-credit-repair-houston",
+            "cache_url": null,
+            "related_search_url": null,
+            "breadcrumb": "https://www.yelp.com › ... › Debt Relief Services",
+            "website_name": "Yelp",
+            "is_image": false,
+            "is_video": false,
+            "is_featured_snippet": false,
+            "is_malicious": false,
+            "is_web_story": false,
+            "description": "ASAP CREDIT REPAIR, 15915 Katy Fwy, Ste 555, Houston, TX 77094, 57 Photos, Mon - 9:00 am - 5:00 pm, Tue - 9:00 am - 5:00 pm, Wed - 9:00 am - 5:00 pm, ...",
+            "pre_snippet": null,
+            "extended_snippet": null,
+            "images": null,
+            "amp_version": false,
+            "price": null,
+            "highlighted": [
+                "15915 Katy Fwy, Ste 555, Houston, TX 77094"
+            ],
+            "links": null,
+            "faq": null,
+            "extended_people_also_search": null,
+            "about_this_result": null,
+            "related_result": null,
+            "timestamp": null,
+            "rectangle": null
+        },
+        {
+            "title": "ASAP Credit Repair",
+            "website": "https://www.linkedin.com/company/asap-credit-repair",
+            "rating": null,
+            "type": "organic",
+            "rank_group": 6,
+            "rank_absolute": 7,
+            "position": "left",
+            "xpath": "/html[1]/body[1]/div[3]/div[1]/div[13]/div[1]/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[3]/div[18]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]",
+            "domain": "www.linkedin.com",
+            "url": "https://www.linkedin.com/company/asap-credit-repair",
+            "cache_url": null,
+            "related_search_url": null,
+            "breadcrumb": "50+ followers",
+            "website_name": "LinkedIn · ASAP Credit Repair",
+            "is_image": false,
+            "is_video": false,
+            "is_featured_snippet": false,
+            "is_malicious": false,
+            "is_web_story": false,
+            "description": "ASAP Credit Repair is one of America's most trusted and effective credit repair and credit restructuring companies. With over 11 years in business, ...See more",
+            "pre_snippet": null,
+            "extended_snippet": null,
+            "images": null,
+            "amp_version": false,
+            "price": null,
+            "highlighted": [
+                "ASAP Credit Repair",
+                "credit repair",
+                "credit",
+                "See more"
+            ],
+            "links": null,
+            "faq": null,
+            "extended_people_also_search": null,
+            "about_this_result": null,
+            "related_result": null,
+            "timestamp": null,
+            "rectangle": null
+        },
+        {
+            "title": "ASAP Credit Repair | BBB Complaints | Better Business ...",
+            "website": "https://www.bbb.org/us/tx/houston/profile/credit-repair-services/asap-credit-repair-0915-90050669/complaints",
+            "rating": null,
+            "type": "organic",
+            "rank_group": 7,
+            "rank_absolute": 8,
+            "position": "left",
+            "xpath": "/html[1]/body[1]/div[3]/div[1]/div[13]/div[1]/div[2]/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[3]/div[19]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]",
+            "domain": "www.bbb.org",
+            "url": "https://www.bbb.org/us/tx/houston/profile/credit-repair-services/asap-credit-repair-0915-90050669/complaints",
+            "cache_url": null,
+            "related_search_url": null,
+            "breadcrumb": "https://www.bbb.org › ... › Credit Repair Services",
+            "website_name": "Better Business Bureau",
+            "is_image": false,
+            "is_video": false,
+            "is_featured_snippet": false,
+            "is_malicious": false,
+            "is_web_story": false,
+            "description": "This company is a credit repair company who did none of the services that they were suppose to do. My credit score dropped lower since I hired them for credit ...See more",
+            "pre_snippet": null,
+            "extended_snippet": null,
+            "images": null,
+            "amp_version": false,
+            "price": null,
+            "highlighted": [
+                "credit repair",
+                "credit",
+                "See more"
+            ],
+            "links": null,
+            "faq": null,
+            "extended_people_also_search": null,
+            "about_this_result": null,
+            "related_result": null,
+            "timestamp": null,
+            "rectangle": null
+        }
+    ]
+}
