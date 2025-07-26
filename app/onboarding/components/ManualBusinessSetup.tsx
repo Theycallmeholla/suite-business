@@ -16,6 +16,12 @@ interface ManualBusinessSetupProps {
     businessName: string;
     address: string;
     placeId?: string;
+    primaryPhone?: string | null;
+    website?: string | null;
+    coordinates?: any;
+    regularHours?: any;
+    primaryCategory?: any;
+    profile?: any;
   };
   onComplete: (data: any) => void;
   onBack: () => void;
@@ -136,14 +142,29 @@ export function ManualBusinessSetup({ initialData, onComplete, onBack, onUpdate 
   
   const parsedAddress = initialData ? parseAddress(initialData.address) : null;
   
+  // Detect industry from category
+  const detectIndustry = (category: any) => {
+    if (!category?.displayName) return '';
+    const categoryName = category.displayName.toLowerCase();
+    
+    if (categoryName.includes('landscap') || categoryName.includes('lawn')) return 'landscaping';
+    if (categoryName.includes('hvac') || categoryName.includes('heating') || categoryName.includes('cooling')) return 'hvac';
+    if (categoryName.includes('plumb')) return 'plumbing';
+    if (categoryName.includes('clean')) return 'cleaning';
+    if (categoryName.includes('roof')) return 'roofing';
+    if (categoryName.includes('electric')) return 'electrical';
+    
+    return 'general';
+  };
+
   const [formData, setFormData] = useState({
     // Basic Information
     businessName: initialData?.businessName || '',
-    industry: '',
+    industry: detectIndustry(initialData?.primaryCategory),
     subdomain: initialData?.businessName ? generateSubdomain(initialData.businessName) : '',
-    phone: '',
+    phone: initialData?.primaryPhone || '',
     email: '',
-    website: '',
+    website: initialData?.website || '',
     
     // Address
     address: parsedAddress?.address || '',
@@ -152,7 +173,7 @@ export function ManualBusinessSetup({ initialData, onComplete, onBack, onUpdate 
     zip: parsedAddress?.zip || '',
     
     // Description
-    description: '',
+    description: initialData?.profile?.description || '',
     
     // Services
     services: '',
@@ -165,15 +186,77 @@ export function ManualBusinessSetup({ initialData, onComplete, onBack, onUpdate 
     primaryColor: '#22C55E',
   });
 
-  const [businessHours, setBusinessHours] = useState<BusinessHours>({
-    monday: { open: true, openTime: '09:00', closeTime: '17:00' },
-    tuesday: { open: true, openTime: '09:00', closeTime: '17:00' },
-    wednesday: { open: true, openTime: '09:00', closeTime: '17:00' },
-    thursday: { open: true, openTime: '09:00', closeTime: '17:00' },
-    friday: { open: true, openTime: '09:00', closeTime: '17:00' },
-    saturday: { open: false, openTime: '09:00', closeTime: '17:00' },
-    sunday: { open: false, openTime: '09:00', closeTime: '17:00' },
-  });
+  // Parse regular hours from initial data
+  const parseRegularHours = () => {
+    const defaultHours: BusinessHours = {
+      monday: { open: true, openTime: '09:00', closeTime: '17:00' },
+      tuesday: { open: true, openTime: '09:00', closeTime: '17:00' },
+      wednesday: { open: true, openTime: '09:00', closeTime: '17:00' },
+      thursday: { open: true, openTime: '09:00', closeTime: '17:00' },
+      friday: { open: true, openTime: '09:00', closeTime: '17:00' },
+      saturday: { open: false, openTime: '09:00', closeTime: '17:00' },
+      sunday: { open: false, openTime: '09:00', closeTime: '17:00' },
+    };
+    
+    if (!initialData?.regularHours?.periods) return defaultHours;
+    
+    const dayMap: Record<string, string> = {
+      'MONDAY': 'monday',
+      'TUESDAY': 'tuesday',
+      'WEDNESDAY': 'wednesday',
+      'THURSDAY': 'thursday',
+      'FRIDAY': 'friday',
+      'SATURDAY': 'saturday',
+      'SUNDAY': 'sunday',
+    };
+    
+    // Reset all to closed first
+    const parsedHours = { ...defaultHours };
+    Object.keys(parsedHours).forEach(day => {
+      parsedHours[day].open = false;
+    });
+    
+    // Parse periods
+    initialData.regularHours.periods.forEach((period: any) => {
+      if (period.openDay && period.openTime && period.closeTime) {
+        const dayKey = dayMap[period.openDay];
+        if (dayKey) {
+          let openHour, openMin, closeHour, closeMin;
+          
+          // Handle both string format (HHMM) and object format ({hours: 8, minutes: 0})
+          if (typeof period.openTime === 'string') {
+            openHour = period.openTime.substring(0, 2);
+            openMin = period.openTime.substring(2, 4);
+          } else if (period.openTime.hours !== undefined) {
+            openHour = period.openTime.hours.toString().padStart(2, '0');
+            openMin = (period.openTime.minutes || 0).toString().padStart(2, '0');
+          } else {
+            return; // Skip if format is unknown
+          }
+          
+          if (typeof period.closeTime === 'string') {
+            closeHour = period.closeTime.substring(0, 2);
+            closeMin = period.closeTime.substring(2, 4);
+          } else if (period.closeTime.hours !== undefined) {
+            closeHour = period.closeTime.hours.toString().padStart(2, '0');
+            closeMin = (period.closeTime.minutes || 0).toString().padStart(2, '0');
+          } else {
+            return; // Skip if format is unknown
+          }
+          
+          parsedHours[dayKey] = {
+            open: true,
+            openTime: `${openHour}:${openMin}`,
+            closeTime: `${closeHour}:${closeMin}`,
+          };
+        }
+      }
+    });
+    
+    return parsedHours;
+  };
+
+  const [businessHours, setBusinessHours] = useState<BusinessHours>(parseRegularHours());
 
   // Call onUpdate whenever form data changes
   useEffect(() => {
@@ -269,8 +352,8 @@ export function ManualBusinessSetup({ initialData, onComplete, onBack, onUpdate 
           {initialData && (
             <Card className="p-4 bg-blue-50 border-blue-200">
               <p className="text-sm text-blue-900">
-                <strong>📍 Found on Google:</strong> We've pre-filled some information from Google Places. 
-                Please review and complete all fields.
+                <strong>✏️ Editing Mode:</strong> We've pre-filled your business information from Google. 
+                Review and make any necessary changes below.
               </p>
             </Card>
           )}

@@ -43,7 +43,14 @@ const detectIndustry = (category: any) => {
 
 // Format operating hours
 const formatHours = (regularHours: any) => {
-  if (!regularHours?.periods) return null;
+  console.log('🕐 formatHours input:', regularHours);
+  
+  if (!regularHours?.periods) {
+    console.log('❌ No periods found in regularHours');
+    return null;
+  }
+  
+  console.log('✅ Found periods:', regularHours.periods.length);
   
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const dayMapping: Record<string, string> = {
@@ -57,7 +64,8 @@ const formatHours = (regularHours: any) => {
   };
   const hoursMap: Record<string, string> = {};
   
-  regularHours.periods.forEach((period: any) => {
+  regularHours.periods.forEach((period: any, index: number) => {
+    console.log(`📅 Period ${index}:`, period);
     if (period.openDay && period.openTime && period.closeTime) {
       // Handle both string day names and numeric indices
       const day = typeof period.openDay === 'string' 
@@ -118,6 +126,13 @@ export function BusinessConfirmation({ business, selectedAccountId, onConfirm, o
   console.log('📍 Service Area:', business.serviceArea);
   console.log('🏷️ Categories:', business.primaryCategory, business.additionalCategories);
   console.log('⏰ Hours:', business.regularHours);
+  console.log('⏰ Hours Structure:', {
+    hasRegularHours: !!business.regularHours,
+    hasPeriods: !!business.regularHours?.periods,
+    periodsLength: business.regularHours?.periods?.length,
+    firstPeriod: business.regularHours?.periods?.[0],
+    allPeriods: business.regularHours?.periods
+  });
   console.log('🔧 Services:', business.serviceItems);
   console.log('📝 Profile:', business.profile);
   console.log('🏷️ Labels:', business.labels);
@@ -126,6 +141,9 @@ export function BusinessConfirmation({ business, selectedAccountId, onConfirm, o
   const detectedIndustry = detectIndustry(business.primaryCategory);
   const formattedHours = formatHours(business.regularHours);
   const suggestedSubdomain = generateSubdomain(business.name);
+  
+  // Check if we have any hours data at all
+  const hasAnyHoursData = !!(business.regularHours || business.openInfo || business.moreHours?.length > 0);
   
   // Generate the full URL based on environment
   const getWebsiteUrl = () => {
@@ -251,7 +269,7 @@ export function BusinessConfirmation({ business, selectedAccountId, onConfirm, o
       </Card>
 
       {/* Operating Hours */}
-      {formattedHours && (
+      {formattedHours ? (
         <Card className="p-6">
           <h3 className="font-semibold mb-4 flex items-center">
             <Clock className="h-4 w-4 mr-2" />
@@ -297,7 +315,35 @@ export function BusinessConfirmation({ business, selectedAccountId, onConfirm, o
             </p>
           )}
         </Card>
-      )}
+      ) : hasAnyHoursData ? (
+        <Card className="p-6">
+          <h3 className="font-semibold mb-4 flex items-center">
+            <Clock className="h-4 w-4 mr-2" />
+            Business Hours
+          </h3>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div>
+                <p className="text-sm text-yellow-800 font-medium">Hours information is being loaded</p>
+                <p className="text-xs text-yellow-700 mt-1">
+                  Your business hours are available but couldn't be displayed in the expected format. 
+                  They will be imported correctly when your website is created.
+                </p>
+                {business.openInfo?.status && (
+                  <p className="text-sm mt-2">
+                    Currently: <span className={`font-medium ${
+                      business.openInfo.status === 'OPEN' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {business.openInfo.status}
+                    </span>
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+      ) : null}
 
       {/* Services - Extract from Categories */}
       {(business.primaryCategory?.serviceTypes || business.additionalCategories?.some((cat: any) => cat.serviceTypes)) && (
@@ -427,22 +473,14 @@ export function BusinessConfirmation({ business, selectedAccountId, onConfirm, o
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex gap-4">
+      <div className="flex justify-center">
         <Button
           onClick={handleConfirm}
-          className="flex-1"
           size="lg"
+          className="min-w-[300px]"
         >
           <CheckCircle2 className="h-4 w-4 mr-2" />
           Continue to Industry Selection
-        </Button>
-        <Button
-          onClick={onEdit}
-          variant="outline"
-          size="lg"
-        >
-          <Edit2 className="h-4 w-4 mr-2" />
-          Let me fix something
         </Button>
       </div>
 

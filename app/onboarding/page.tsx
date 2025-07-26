@@ -180,6 +180,23 @@ export default function OnboardingPage() {
       const data = await response.json();
       
       if (response.ok) {
+        // Debug: Log what we're getting from my-locations
+        console.log('📍 MY-LOCATIONS Response:', {
+          locationsCount: data.locations?.length,
+          firstLocation: data.locations?.[0],
+          allLocations: data.locations
+        });
+        
+        // Check each location for regularHours
+        data.locations?.forEach((loc: any, index: number) => {
+          console.log(`🏢 Location ${index} - ${loc.name}:`, {
+            hasRegularHours: !!loc.regularHours,
+            regularHoursStructure: loc.regularHours,
+            hasPeriods: !!loc.regularHours?.periods,
+            periodsCount: loc.regularHours?.periods?.length
+          });
+        });
+        
         setBusinesses(data.locations || []);
         setIsCached(data.cached || false);
         setCacheAge(data.cacheAge || null);
@@ -481,7 +498,33 @@ export default function OnboardingPage() {
         const data = await response.json();
         const details = data.details;
         
+        // Debug: Log what we're getting from Places API
+        console.log('🔍 Places API Details:', {
+          name: details.name,
+          hasOpeningHours: !!details.opening_hours,
+          openingHoursPeriods: details.opening_hours?.periods,
+          openingHoursWeekdayText: details.opening_hours?.weekday_text,
+          fullDetails: details
+        });
+        
         // Convert place details to our business location format
+        // Transform Places API opening_hours to GMB API regularHours format
+        let regularHours = null;
+        if (details.opening_hours?.periods) {
+          regularHours = {
+            periods: details.opening_hours.periods.map((period: any) => ({
+              openDay: period.open?.day !== undefined ? 
+                ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'][period.open.day] :
+                null,
+              openTime: period.open ? `${period.open.hours || '00'}${period.open.minutes || '00'}` : null,
+              closeDay: period.close?.day !== undefined ?
+                ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'][period.close.day] :
+                null,
+              closeTime: period.close ? `${period.close.hours || '00'}${period.close.minutes || '00'}` : null,
+            }))
+          };
+        }
+        
         const businessLocation: BusinessLocation = {
           id: placeId,
           name: businessName,
@@ -489,7 +532,14 @@ export default function OnboardingPage() {
           primaryPhone: details.formatted_phone_number || null,
           website: details.website || null,
           coordinates: details.location,
-          regularHours: details.opening_hours,
+          regularHours: regularHours,
+          // Add other fields that might be missing
+          primaryCategory: details.types?.length > 0 ? {
+            displayName: details.types[0].replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
+          } : null,
+          profile: {
+            description: details.editorial_summary?.overview || null
+          },
         };
         
         setSelectedBusiness(placeId);
@@ -651,10 +701,46 @@ export default function OnboardingPage() {
             </Button>
           </div>
         )}        {/* Back button */}
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <Button
             variant="ghost"
-            onClick={() => router.push('/dashboard')}
+            onClick={() => {
+              // Navigate based on current step
+              switch (step) {
+                case 'gbp-check':
+                  router.push('/dashboard');
+                  break;
+                case 'gbp-select':
+                  setStep('gbp-check');
+                  break;
+                case 'gbp-search':
+                  setStep('gbp-check');
+                  break;
+                case 'business-info':
+                  // Go back to appropriate step based on how we got here
+                  if (hasGBP === 'yes') {
+                    setStep('gbp-select');
+                  } else if (hasGBP === 'not-sure') {
+                    setStep('gbp-search');
+                  } else {
+                    setStep('manual-setup');
+                  }
+                  break;
+                case 'industry-select':
+                  setStep('business-info');
+                  break;
+                case 'manual-setup':
+                  // Go back to appropriate step based on how we got here
+                  if (hasGBP === 'no') {
+                    setStep('gbp-check');
+                  } else if (hasGBP === 'not-sure') {
+                    setStep('gbp-search');
+                  } else {
+                    setStep('business-info');
+                  }
+                  break;
+              }
+            }}
             className="flex items-center gap-2"
           >
             <svg
@@ -671,8 +757,19 @@ export default function OnboardingPage() {
             >
               <path d="m15 18-6-6 6-6"/>
             </svg>
-            Back to Dashboard
+            {step === 'gbp-check' ? 'Back to Dashboard' : 'Back'}
           </Button>
+          
+          {step !== 'gbp-check' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/dashboard')}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Exit to Dashboard
+            </Button>
+          )}
         </div>        {/* Progress indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -833,21 +930,13 @@ export default function OnboardingPage() {
                     </SelectContent>
                   </Select>
 
-                  <div className="flex gap-4">
+                  <div className="flex justify-center">
                     <Button
                       onClick={handleBusinessSelect}
                       disabled={!selectedBusiness}
-                      className="flex-1"
+                      className="min-w-[200px]"
                     >
                       Continue
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        router.push('/add-google-account?returnTo=/onboarding');
-                      }}
-                    >
-                      Add account
                     </Button>
                   </div>
                 </div>
@@ -929,9 +1018,8 @@ export default function OnboardingPage() {
                 setStep('industry-select');
               }}
               onEdit={() => {
-                // For now, use the form as fallback
-                // In future, create inline edit mode
-                setStep('gbp-select');
+                // Editing is disabled for now
+                toast.info('Editing is not available at this time');
               }}
             />
           )}

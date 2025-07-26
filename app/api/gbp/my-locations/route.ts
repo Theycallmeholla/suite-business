@@ -202,6 +202,16 @@ export async function GET(request: NextRequest) {
           const locations = locationsResponse.data.locations || [];
           console.log(`Found ${locations.length} location(s) for account ${businessAccount.name}`);
           
+          // Debug: Log regularHours for each location
+          locations.forEach((loc: any, idx: number) => {
+            console.log(`🏢 API Location ${idx} - ${loc.title}:`, {
+              hasRegularHours: !!loc.regularHours,
+              regularHoursStructure: loc.regularHours,
+              periodsCount: loc.regularHours?.periods?.length,
+              firstPeriod: loc.regularHours?.periods?.[0]
+            });
+          });
+          
           allLocations.push(...locations.map((location: any) => ({
             // Core identification
             id: location.name,
