@@ -102,7 +102,7 @@ export default function OnboardingPage() {
       if (savedState.claimDialogData) setClaimDialogData(savedState.claimDialogData);
       if (savedState.manualSetupData) setManualSetupData(savedState.manualSetupData);
       if (savedState.isCached !== undefined) setIsCached(savedState.isCached);
-      if (savedState.cacheAge !== null) setCacheAge(savedState.cacheAge);
+      if (savedState.cacheAge !== undefined) setCacheAge(savedState.cacheAge);
       
       // If we were in gbp-select, refetch businesses
       if (savedState.step === 'gbp-select' && savedState.selectedAccountId) {
